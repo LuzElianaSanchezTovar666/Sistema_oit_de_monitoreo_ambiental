@@ -1,0 +1,6 @@
+{
+  "name": "EcoSense IoT - Monitoreo Ambiental",
+  "description": "Sistema IoT de Monitoreo Ambiental con telemetría en tiempo real, detección inteligente de anomalías térmicas e higrométricas, gestión de nodos ESP32 y alertas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
