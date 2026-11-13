@@ -338,3 +338,4 @@ export const EnvironmentalThreeBackground: React.FC = () => {
     />
   );
 };
+
