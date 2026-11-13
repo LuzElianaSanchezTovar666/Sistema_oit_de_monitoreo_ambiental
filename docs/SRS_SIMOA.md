@@ -22,12 +22,9 @@
 
 **Presentado por:**  
 - Luz Eliana Sánchez Tovar  
-- Cristian Libardo Vargas Osorio  
-- Anyely Valeria Castellanos Bautista  
 
 **Presentado a:**  
-- Instructor: Carlos Fabián Martínez Mora  
-- Instructor: José Jesús Motta Vargas  
+- Instructor: Javier Humberto Pinto  
 
 **Fecha de emisión:** 13/11/2026  
 **Versión del documento:** 1.0 (MVP)  
@@ -67,9 +64,6 @@
    - 5.2 Diccionario de Datos y Reglas de Integridad
 6. [Diseño de Servicios y API REST](#6-diseño-de-servicios-y-api-rest)
 7. [Diseño y Distribución de Interfaces (UI/UX)](#7-diseño-y-distribución-de-interfaces-uiux)
-8. [Plan de Desarrollo (Sprint Plan - 4 Semanas Scrum)](#8-plan-de-desarrollo-sprint-plan---4-semanas-scrum)
-9. [Plan de Pruebas y Validación](#9-plan-de-pruebas-y-validación)
-10. [Entregables Finales y Criterios de Evaluación](#10-entregables-finales-y-criterios-de-evaluación)
 
 ---
 
@@ -131,9 +125,7 @@ Desarrollar un sistema IoT de monitoreo ambiental integral que permita registrar
 
 | Nombre | Rol del Proyecto | Especialidad ADSO | Responsabilidad Técnica |
 | :--- | :--- | :--- | :--- |
-| **Luz Eliana Sánchez Tovar** | Líder UI/UX & DBA | Aprendiz ADSO | Diseño de interfaces en React/Tailwind, administración de base de datos MySQL y gestión de documentación SRS. |
-| **Cristian Libardo Vargas Osorio** | Líder Backend & IA | Aprendiz ADSO | Implementación de APIs en FastAPI, arquitectura MQTT, desarrollo del modelo *Isolation Forest* en Scikit-learn. |
-| **Anyely Valeria Castellanos Bautista** | Líder Hardware & QA | Aprendiz ADSO | Programación en C++/MicroPython del ESP32, integración de sensores DHT22, flujos Node-RED y diseño de plan de pruebas. |
+| **Luz Eliana Sánchez Tovar** | Desarrolladora del Proyecto (Full Stack & IoT) | Aprendiz ADSO | Análisis y especificación de requisitos (SRS), programación de firmware ESP32, desarrollo de backend en FastAPI, base de datos MySQL, módulo de IA y dashboard en React. |
 
 ---
 
@@ -699,79 +691,4 @@ El sistema comprende las siguientes pantallas principales:
 5. **Módulo de Análisis Inteligente de Anomalías:** Visualización de puntos dispersos (Scatter plot) donde se marcan en color ámbar/púrpura las lecturas señaladas por la Inteligencia Artificial.
 6. **Módulo de Reportes:** Generador con calendario interactivo para exportar archivos `.csv`.
 
----
 
-## 8. PLAN DE DESARROLLO (SPRINT PLAN - 4 SEMANAS SCRUM)
-
-```
-SEMANA 1: Análisis, Requisitos, Diseño y Prototipado Inicial
-  ├── Levantamiento y formalización del documento SRS (IEEE 830).
-  ├── Definición de casos de uso, diagrama de clases y modelo ER.
-  ├── Wireframes y prototipo visual del Dashboard en React.
-  └── Montaje físico del circuito ESP32 + DHT22 en protoboard y pruebas de lectura básica.
-
-SEMANA 2: IoT, Comunicación MQTT y Backend FastAPI
-  ├── Programación del ESP32 con cliente MQTT (PubSubClient / MicroPython).
-  ├── Despliegue del Broker Mosquitto local y flujos de prueba en Node-RED.
-  ├── Creación del esquema relacional en MySQL 8.0.
-  ├── Implementación de la API en Python (FastAPI) con controladores de ingestión.
-  └── Pruebas de persistencia continua de datos desde el sensor físico a la base de datos.
-
-SEMANA 3: Frontend Dinámico, Alertas y Módulo de Inteligencia Artificial
-  ├── Desarrollo del Dashboard interactivo en React + Tailwind + Chart.js.
-  ├── Conexión del frontend a los endpoints REST del backend.
-  ├── Implementación del motor de alertas por desborde de umbrales.
-  ├── Entrenamiento e integración del modelo Isolation Forest con Scikit-learn.
-  └── Pantallas de configuración de rangos y consulta histórica.
-
-SEMANA 4: Pruebas Integrales, Afinación, Despliegue y Sustentación
-  ├── Ejecución del plan de pruebas (estrés, desconexión Wi-Fi, lecturas límite).
-  ├── Corrección de bugs y optimización de latencias.
-  ├── Generación de manuales técnicos y de usuario final.
-  └── Presentación final y sustentación del MVP funcional ante instructores SENA.
-```
-
----
-
-## 9. PLAN DE PRUEBAS Y VALIDACIÓN
-
-| ID Prueba | Caso de Prueba | Procedimiento | Resultado Esperado | Criterio de Éxito |
-| :--- | :--- | :--- | :--- | :--- |
-| **TC-01** | Lectura física del sensor DHT22 | Encender ESP32 conectado al sensor y abrir monitor serie. | El microcontrolador lee valores numéricos coherentes de T y H. | $0^\circ\text{C} < T < 50^\circ\text{C}$; $20\% < H < 90\%$. |
-| **TC-02** | Conexión Wi-Fi y Reconexión | Apagar y encender el router Wi-Fi mientras el ESP32 está transmitiendo. | El ESP32 detecta la desconexión y se reconecta automáticamente al volver la red. | Reconexión en $\le 10\text{ s}$ sin colgar el chip. |
-| **TC-03** | Publicación y Entrega MQTT | Enviar telemetría desde ESP32 y monitorear con `mosquitto_sub`. | El mensaje llega íntegro en JSON sin pérdidas de caracteres. | Payload parseable por el backend. |
-| **TC-04** | Almacenamiento en MySQL | Transmitir 100 mensajes seguidos al backend. | Se confirman 100 registros en la tabla `mediciones` con timestamps válidos. | 0% de pérdidas de paquetes. |
-| **TC-05** | Disparo de Alerta de Temperatura | Aplicar calor al sensor hasta superar los $30^\circ\text{C}$ (umbral fijado en $28^\circ\text{C}$). | El sistema genera la alerta en BD y la refleja en la UI en rojo. | Alerta emitida en $\le 2\text{ s}$. |
-| **TC-06** | Detección de Caída de Nodo | Desconectar el cable USB del ESP32. | A los 60 segundos, la interfaz marca el nodo como *"Desconectado"*. | Estado visual actualizado automáticamente. |
-| **TC-07** | Clasificación por IA | Inyectar una caída artificial de 15°C en 5 segundos. | El algoritmo Isolation Forest marca el registro con `es_anomalia = true`. | Punto destacado en el gráfico de anomalías. |
-| **TC-08** | Exportación de Datos a CSV | Hacer clic en "Exportar Reporte" para el día anterior. | Se descarga un archivo `.csv` legible con encabezados estándar. | Apertura correcta en Excel sin corrupción de caracteres. |
-
----
-
-## 10. ENTREGABLES FINALES Y CRITERIOS DE EVALUACIÓN
-
-### Entregables del Proyecto
-1. **Documento SRS (IEEE 830 adaptado SENA)** completo y aprobado.
-2. **Repositorio oficial en GitHub** con ramas `main`, `DEV` y `QA`, con historial de commits ordenado.
-3. **Código fuente del firmware ESP32** debidamente documentado.
-4. **Código fuente del backend en Python / FastAPI** con modelos SQLAlchemy y pruebas.
-5. **Código fuente del frontend en React** con arquitectura basada en componentes.
-6. **Script SQL** con sentencias DDL y datos semilla (seeders).
-7. **Flujos exportados de Node-RED y configuración Mosquitto.**
-8. **Plan y matriz de evidencias de pruebas ejecutadas.**
-9. **Manual de Instalación y Manual de Usuario.**
-10. **Prototipo físico y demostración en vivo del sistema en funcionamiento.**
-
-### Rúbrica de Evaluación SENA
-
-| Criterio Evaluativo | Ponderación |
-| :--- | :---: |
-| Análisis, Requisitos y Documentación Formal (SRS) | 15% |
-| Diseño y Arquitectura de la Solución IoT | 15% |
-| Desarrollo Backend, Base de Datos y APIs REST | 15% |
-| Desarrollo Frontend y Experiencia de Usuario (UI/UX) | 15% |
-| Integración de Hardware, Sensores y Protocolo MQTT | 20% |
-| Calidad, Pruebas y Trazabilidad del Sistema | 10% |
-| Uso Responsable y Pertinente de Inteligencia Artificial | 5% |
-| Sustentación Técnica y Defensa del Proyecto ante Jurado | 5% |
-| **TOTAL** | **100%** |
