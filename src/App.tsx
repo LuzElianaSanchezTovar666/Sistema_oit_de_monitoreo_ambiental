@@ -38,15 +38,45 @@ import {
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { EnvironmentalLandingPage } from './components/landing/EnvironmentalLandingPage';
+import { LiveTelemetryView } from './components/dashboard/LiveTelemetryView';
 import { HeroSkeleton, CardGridSkeleton } from './components/common/SkeletonLoader';
 import { Check, AlertCircle, Smartphone } from 'lucide-react';
 
-// Code-Splitting por página / vista mediante React.lazy()
-const LiveTelemetryView = React.lazy(() =>
-  import('./components/dashboard/LiveTelemetryView').then((m) => ({
-    default: m.LiveTelemetryView,
-  }))
-);
+// ErrorBoundary para evitar pantallas vacías si falla un chunk o vista
+class SystemErrorBoundary extends React.Component<
+  { children: React.ReactNode; onReset: () => void },
+  { hasError: boolean; message: string }
+> {
+  constructor(props: { children: React.ReactNode; onReset: () => void }) {
+    super(props);
+    this.state = { hasError: false, message: '' };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, message: error.message };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="p-8 bg-[#FFFFFF] border border-[#C8E6C9] rounded-[28px] text-center space-y-4">
+          <h3 className="text-lg font-semibold text-[#0D3B1E]">Ocurrió un error al cargar el módulo</h3>
+          <p className="text-sm text-[#3B694C]">{this.state.message}</p>
+          <button
+            onClick={() => {
+              this.setState({ hasError: false, message: '' });
+              this.props.onReset();
+            }}
+            className="apple-blue-pill px-5 py-2 text-xs font-semibold"
+          >
+            Volver al inicio
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+// Code-Splitting por página / vista mediante React.lazy() para módulos secundarios
 const DeviceManagement = React.lazy(() =>
   import('./components/devices/DeviceManagement').then((m) => ({
     default: m.DeviceManagement,
@@ -453,8 +483,11 @@ export default function App() {
             onEnterSystem={(initialTab) => {
               if (typeof initialTab === 'string') {
                 setActiveTab(initialTab);
+              } else {
+                setActiveTab('dashboard');
               }
               setViewMode('system');
+              window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
             }}
             darkMode={darkMode}
             onToggleDarkMode={() => setDarkMode(!darkMode)}
@@ -511,9 +544,10 @@ export default function App() {
                     <CardGridSkeleton count={4} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" />
                   </div>
                 ) : (
-                  <Suspense
-                    fallback={<CardGridSkeleton count={4} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" />}
-                  >
+                  <SystemErrorBoundary onReset={() => setViewMode('landing')}>
+                    <Suspense
+                      fallback={<CardGridSkeleton count={4} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" />}
+                    >
                     {activeTab === 'dashboard' && (
                       <LiveTelemetryView
                         locations={locations}
@@ -618,7 +652,8 @@ export default function App() {
                         </div>
                       </div>
                     )}
-                  </Suspense>
+                    </Suspense>
+                  </SystemErrorBoundary>
                 )}
               </main>
             </div>
