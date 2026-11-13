@@ -141,7 +141,12 @@ export default function App() {
   }, [darkMode]);
 
   // Mode: 'landing' (Página pública de presentación) vs 'system' (Plataforma de gestión IoT)
-  const [viewMode, setViewMode] = useState<'landing' | 'system'>('landing');
+  const [viewMode, setViewMode] = useState<'landing' | 'system'>(() => {
+    if (typeof window !== 'undefined' && (window.location.search.includes('sistema') || window.location.hash === '#sistema')) {
+      return 'system';
+    }
+    return 'landing';
+  });
 
   // Skeleton loading states (never block initial render with black screen)
   const [skeletonMode, setSkeletonMode] = useState<boolean>(false);
