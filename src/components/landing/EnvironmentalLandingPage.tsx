@@ -19,6 +19,7 @@ import {
   Radio,
 } from 'lucide-react';
 import { HeroSkeleton, CardGridSkeleton } from '../common/SkeletonLoader';
+import { EnvironmentalThreeBackground } from './EnvironmentalThreeBackground';
 
 interface EnvironmentalLandingPageProps {
   onEnterSystem: (initialTab?: string) => void;
@@ -131,9 +132,12 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
   ];
 
   return (
-    <div className="min-h-screen bg-[#f3f1ec] text-[#101f1e] selection:bg-[#104336] selection:text-[#ffffff] overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#f3f1ec] text-[#101f1e] selection:bg-[#104336] selection:text-[#ffffff] overflow-x-hidden">
+      {/* Fondo 3D Interactivo con Three.js (paleta Arcadia: Canopy, Mint Pulse, Orb Violet) */}
+      <EnvironmentalThreeBackground />
+
       {/* 1. ANNOUNCEMENT BAR — Full-bleed Canopy (#104336) */}
-      <div className="w-full bg-[#104336] text-[#ffffff] px-6 py-2.5 text-center text-[13px] font-normal flex items-center justify-center gap-2.5">
+      <div className="relative z-10 w-full bg-[#104336] text-[#ffffff] px-6 py-2.5 text-center text-[13px] font-normal flex items-center justify-center gap-2.5">
         <span className="w-2 h-2 rounded-full bg-[#0fff87] shrink-0" />
         <span>
           SIMOA Observatorio v2.4 · Monitoreo ambiental IoT con telemetría MQTTS y diagnóstico IA en vivo
@@ -222,7 +226,14 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </header>
 
       {/* 3. HERO SECTION — Diagonal Hero Wash (#afc4bf -> #e8e7f5 -> #f1eee9) */}
-      <section id="inicio" className="arcadia-hero-wash pt-20 pb-24 px-6 border-b border-[#afc4bf]">
+      <section
+        id="inicio"
+        className="relative z-10 pt-20 pb-24 px-6 border-b border-[#afc4bf]"
+        style={{
+          background:
+            'linear-gradient(212.12deg, rgba(175, 196, 191, 0.55) 14.83%, rgba(232, 231, 245, 0.55) 52.99%, rgba(241, 238, 233, 0.65) 79.47%)',
+        }}
+      >
         {skeletonMode ? (
           <div className="max-w-[1200px] mx-auto">
             <HeroSkeleton />
@@ -379,7 +390,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 4. LOGO STRIP — Sheet White (#ffffff), monochrome Bark (#101f1e) */}
-      <section className="bg-[#ffffff] border-b border-[#afc4bf] py-12 px-6">
+      <section className="relative z-10 bg-[#ffffff]/88 border-b border-[#afc4bf] py-12 px-6">
         <div className="max-w-[1200px] mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8 items-center text-center">
             {[
@@ -402,7 +413,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 5. NETWORK DIAGRAM SECTION ("Cómo entregamos resultados") — Cream Paper (#f3f1ec), Floating 3D-style Orbs */}
-      <section id="arquitectura" className="bg-[#f3f1ec] py-24 px-6 border-b border-[#afc4bf]">
+      <section id="arquitectura" className="relative z-10 bg-[#f3f1ec]/75 py-24 px-6 border-b border-[#afc4bf]">
         <div className="max-w-[1200px] mx-auto">
           <div className="max-w-[700px] mx-auto text-center space-y-4">
             <p className="arcadia-eyebrow text-[#7c18d3]">CÓMO ENTREGAMOS RESULTADOS</p>
@@ -519,7 +530,12 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 6. ISOMETRIC FEATURE SECTION — Mint-Cream Gradient (#e8f0ec -> #f1eee9) */}
-      <section className="arcadia-iso-wash py-24 px-6 border-b border-[#afc4bf]">
+      <section
+        className="relative z-10 py-24 px-6 border-b border-[#afc4bf]"
+        style={{
+          background: 'linear-gradient(180deg, rgba(232, 240, 236, 0.78) 0%, rgba(241, 238, 233, 0.78) 100%)',
+        }}
+      >
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Isometric Observatory Illustration */}
           <div className="flex justify-center">
@@ -598,7 +614,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 7. CAPABILITIES GRID — Sheet White (#ffffff) band, 16px cards, 1px Sage Mist (#afc4bf) */}
-      <section id="capacidades" className="bg-[#ffffff] py-24 px-6 border-b border-[#afc4bf]">
+      <section id="capacidades" className="relative z-10 bg-[#ffffff]/88 py-24 px-6 border-b border-[#afc4bf]">
         <div className="max-w-[1200px] mx-auto space-y-14">
           <div className="max-w-[680px] space-y-4">
             <p className="arcadia-eyebrow text-[#104336]">CAPACIDADES DEL SISTEMA</p>
@@ -637,7 +653,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 8. TECHNOLOGIES & CONTACT — Cream Paper (#f3f1ec) band */}
-      <section id="tecnologias" className="bg-[#f3f1ec] py-24 px-6">
+      <section id="tecnologias" className="relative z-10 bg-[#f3f1ec]/80 py-24 px-6">
         <div className="max-w-[1200px] mx-auto space-y-20">
           {/* Tech Stack */}
           <div className="space-y-10">
@@ -762,7 +778,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 9. FOOTER — Canopy (#104336) background, white DM Sans 13-15px text */}
-      <footer className="bg-[#104336] text-[#ffffff] py-20 px-6">
+      <footer className="relative z-10 bg-[#104336] text-[#ffffff] py-20 px-6">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-4 md:col-span-2">
             <div className="flex items-center gap-2.5">
