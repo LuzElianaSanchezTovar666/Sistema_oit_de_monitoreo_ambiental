@@ -179,12 +179,6 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => onEnterSystem('srs')}
-              className="hidden sm:inline-flex arcadia-btn-ghost px-4 py-2.5 text-[14px] cursor-pointer"
-            >
-              Documentación SRS
-            </button>
-            <button
               onClick={() => onEnterSystem('dashboard')}
               className="arcadia-btn-primary px-5 py-2.5 text-[14px] cursor-pointer flex items-center gap-2"
             >
@@ -692,7 +686,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 </div>
                 <div className="flex items-center gap-2.5">
                   <ShieldCheck className="w-4 h-4 text-canopy" />
-                  <span>Trazabilidad auditada bajo especificación SRS</span>
+                  <span>Trazabilidad auditada de mediciones e incidencias</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Radio className="w-4 h-4 text-canopy" />
@@ -830,16 +824,8 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </div>
 
           <div className="space-y-3 text-[14px]">
-            <p className="arcadia-eyebrow text-mint-pulse">DOCUMENTACIÓN</p>
+            <p className="arcadia-eyebrow text-mint-pulse">SISTEMA</p>
             <ul className="space-y-2.5 text-sage-mist">
-              <li>
-                <button
-                  onClick={() => onEnterSystem('srs')}
-                  className="hover:text-sheet-white cursor-pointer"
-                >
-                  Especificación SRS
-                </button>
-              </li>
               <li>
                 <a href="#arquitectura" className="hover:text-sheet-white">
                   Arquitectura MQTTS
@@ -848,6 +834,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               <li>
                 <a href="#capacidades" className="hover:text-sheet-white">
                   Capacidades
+                </a>
+              </li>
+              <li>
+                <a href="#tecnologias" className="hover:text-sheet-white">
+                  Tecnologías
                 </a>
               </li>
               <li>

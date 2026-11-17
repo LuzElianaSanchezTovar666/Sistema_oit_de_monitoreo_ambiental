@@ -251,7 +251,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
       {/* Tarjeta Explicativa de Arquitectura IA */}
       <div className="bg-sheet-white rounded-[16px] p-6 space-y-4">
         <h4 className="text-[14px] font-semibold text-bark">
-          Métricas de Desempeño del Motor de IA (Especificación SRS SIMOA)
+          Métricas de Desempeño del Motor de IA
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px] text-xs font-mono">
           <div className="p-[16px] rounded-[16px] bg-cream-paper space-y-1">

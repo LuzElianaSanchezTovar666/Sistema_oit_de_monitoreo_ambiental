@@ -117,11 +117,6 @@ const PerformanceMonitorModal = React.lazy(() =>
     default: m.PerformanceMonitorModal,
   }))
 );
-const SrsDocumentationView = React.lazy(() =>
-  import('./components/docs/SrsDocumentationView').then((m) => ({
-    default: m.SrsDocumentationView,
-  }))
-);
 
 export default function App() {
   useEffect(() => {
@@ -587,13 +582,6 @@ export default function App() {
                         sensors={sensors}
                         readingsHistory={readingsHistory}
                         activeAlerts={alerts}
-                      />
-                    )}
-
-                    {activeTab === 'srs' && (
-                      <SrsDocumentationView
-                        onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
-                        onNavigateTab={setActiveTab}
                       />
                     )}
 
