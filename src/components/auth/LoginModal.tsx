@@ -47,40 +47,40 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const roleIcons: Record<UserRole, React.ReactNode> = {
-    admin: <Shield className="w-4 h-4 text-[#104336]" />,
-    cliente: <UserCheck className="w-4 h-4 text-[#104336]" />,
+    admin: <Shield className="w-4 h-4 text-canopy" />,
+    cliente: <UserCheck className="w-4 h-4 text-canopy" />,
     tecnico: <Wrench className="w-4 h-4 text-[#D97706]" />,
-    supervisor: <Eye className="w-4 h-4 text-[#101f1e]" />,
+    supervisor: <Eye className="w-4 h-4 text-bark" />,
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-      <div className="bg-[#FFFFFF] border border-[#afc4bf] rounded-[16px] w-full max-w-md p-6 sm:p-8 space-y-6">
+      <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-md p-6 sm:p-8 space-y-6">
         {/* Header with Official SIMOA Logo */}
         <div className="text-center space-y-2.5">
-          <div className="inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-[#f3f1ec] border border-[#afc4bf] mx-auto">
+          <div className="inline-flex items-center justify-center px-4 py-2 rounded-2xl bg-cream-paper border border-sage-mist mx-auto">
             <img
               src="/assets/images/simoa-logo.webp"
               alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
               className="h-12 w-auto object-contain"
             />
           </div>
-          <h2 className="apple-card-heading text-[#101f1e]">
+          <h2 className="apple-card-heading text-bark">
             Acceso a Plataforma SIMOA
           </h2>
-          <p className="text-xs text-[#535e5d]">
-            Control de Acceso Basado en Roles (RBAC) con tokens JWT
+          <p className="text-xs text-slate">
+            Modo demostración: selecciona un perfil para simular permisos por rol (sin verificación real de contraseña ni JWT)
           </p>
         </div>
 
         {/* Formulario Manual */}
         <form onSubmit={handleCustomLogin} className="space-y-4 text-xs">
           <div>
-            <label className="block text-[#535e5d] font-semibold mb-1.5">
+            <label className="block text-slate font-semibold mb-1.5">
               Correo Electrónico
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-4 top-3 text-[#535e5d]" />
+              <Mail className="w-4 h-4 absolute left-4 top-3 text-slate" />
               <input
                 type="email"
                 required
@@ -96,11 +96,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-[#535e5d] font-semibold mb-1.5">
+            <label className="block text-slate font-semibold mb-1.5">
               Contraseña
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-4 top-3 text-[#535e5d]" />
+              <Lock className="w-4 h-4 absolute left-4 top-3 text-slate" />
               <input
                 type="password"
                 required
@@ -123,8 +123,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         </form>
 
         {/* Perfiles Rápidos para Evaluación */}
-        <div className="pt-3 border-t border-[#afc4bf] space-y-2.5">
-          <div className="text-[11px] font-semibold text-[#535e5d] uppercase tracking-wider text-center">
+        <div className="pt-3 border-t border-sage-mist space-y-2.5">
+          <div className="text-[11px] font-semibold text-slate uppercase tracking-wider text-center">
             Perfiles Rápidos Preconfigurados
           </div>
 
@@ -134,17 +134,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 key={u.id_usuario}
                 type="button"
                 onClick={() => handleQuickLogin(u)}
-                className="w-full flex items-center justify-between p-3 rounded-[16px] bg-[#f3f1ec] hover:bg-[#f3f1ec]/50 transition-all text-left"
+                className="w-full flex items-center justify-between p-3 rounded-[16px] bg-cream-paper hover:bg-cream-paper/50 transition-all text-left"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#FFFFFF] flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-sheet-white flex items-center justify-center shrink-0">
                     {roleIcons[u.rol]}
                   </div>
                   <div>
-                    <div className="font-semibold text-[#101f1e] leading-tight">
+                    <div className="font-semibold text-bark leading-tight">
                       {u.nombre}
                     </div>
-                    <div className="text-[10px] text-[#535e5d] capitalize">
+                    <div className="text-[10px] text-slate capitalize">
                       {u.rol} · {u.empresa}
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         <div className="text-center">
           <button
             onClick={onClose}
-            className="text-xs text-[#535e5d] hover:text-[#101f1e]"
+            className="text-xs text-slate hover:text-bark"
           >
             Continuar en modo explorador
           </button>

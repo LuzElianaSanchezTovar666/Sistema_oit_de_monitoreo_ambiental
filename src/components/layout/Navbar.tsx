@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   Bell,
   Radio,
@@ -19,8 +19,6 @@ interface NavbarProps {
   onOpenAlerts: () => void;
   onOpenSimulator: () => void;
   onOpenPerformanceMonitor?: () => void;
-  darkMode: boolean;
-  onToggleDarkMode: () => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
   isStreaming: boolean;
@@ -44,10 +42,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const roleIcons: Record<UserRole, React.ReactNode> = {
-    admin: <Shield className="w-3.5 h-3.5 text-[#104336]" />,
-    cliente: <UserCheck className="w-3.5 h-3.5 text-[#104336]" />,
-    tecnico: <Wrench className="w-3.5 h-3.5 text-[#535e5d]" />,
-    supervisor: <Eye className="w-3.5 h-3.5 text-[#101f1e]" />,
+    admin: <Shield className="w-3.5 h-3.5 text-canopy" />,
+    cliente: <UserCheck className="w-3.5 h-3.5 text-canopy" />,
+    tecnico: <Wrench className="w-3.5 h-3.5 text-slate" />,
+    supervisor: <Eye className="w-3.5 h-3.5 text-bark" />,
   };
 
   const roleLabels: Record<UserRole, string> = {
@@ -60,10 +58,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <div className="sticky top-0 z-30">
       {/* Announcement Bar — Full-bleed Canopy (#104336) */}
-      <div className="w-full bg-[#104336] text-[#ffffff] px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-normal">
+      <div className="w-full bg-canopy text-sheet-white px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-normal">
         <span
           className={`w-2 h-2 rounded-full shrink-0 ${
-            isStreaming ? 'bg-[#0fff87]' : 'bg-[#afc4bf]'
+            isStreaming ? 'bg-mint-pulse' : 'bg-sage-mist'
           }`}
         />
         <span className="truncate">
@@ -72,7 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {onBackToLanding && (
           <button
             onClick={onBackToLanding}
-            className="hidden sm:inline-flex items-center gap-1 text-[#0fff87] hover:underline font-medium shrink-0 cursor-pointer"
+            className="hidden sm:inline-flex items-center gap-1 text-mint-pulse hover:underline font-medium shrink-0 cursor-pointer"
           >
             Portada →
           </button>
@@ -80,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Top Navigation — Sheet White (#ffffff), 72px height, 1px Sage Mist (#afc4bf) border */}
-      <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-[#ffffff] border-b border-[#afc4bf]">
+      <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-sheet-white border-b border-sage-mist">
         {/* Brand Logo */}
         <div className="flex items-center gap-3 shrink-0">
           <button
@@ -100,7 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <nav className="hidden lg:flex items-center gap-1">
           {[
             { id: 'dashboard', label: 'Monitoreo en Vivo' },
-            { id: 'devices', label: 'Dispositivos y Sensores' },
+            { id: 'devices', label: 'Dispositivos' },
             { id: 'alerts', label: 'Alertas' },
             { id: 'analytics', label: 'Analítica' },
             { id: 'ai', label: 'Diagnóstico IA' },
@@ -112,11 +110,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => onTabChange(item.id)}
                 className={`px-3.5 py-2 rounded-[8px] text-[14px] transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'bg-[#104336] text-[#ffffff] font-medium'
-                    : 'text-[#101f1e] font-normal hover:bg-[#f3f1ec]'
+                    ? 'bg-canopy text-sheet-white font-medium'
+                    : 'text-bark font-normal hover:bg-cream-paper'
                 }`}
               >
-                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-[#0fff87]" />}
+                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-mint-pulse" />}
                 {item.label}
               </button>
             );
@@ -128,11 +126,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onToggleStreaming}
             title={isStreaming ? 'Pausar transmisión en vivo' : 'Reanudar transmisión en vivo'}
-            className="hidden sm:flex items-center gap-2 px-3.5 py-2 text-[13px] rounded-[8px] bg-[#f3f1ec] border border-[#afc4bf] text-[#101f1e] hover:bg-[#e8e7f5]/50 transition-colors cursor-pointer"
+            className="hidden sm:flex items-center gap-2 px-3.5 py-2 text-[13px] rounded-[8px] bg-cream-paper border border-sage-mist text-bark hover:bg-[#e8e7f5]/50 transition-colors cursor-pointer"
           >
             <Radio
               className={`w-3.5 h-3.5 ${
-                isStreaming ? 'text-[#104336]' : 'text-[#798281]'
+                isStreaming ? 'text-canopy' : 'text-[#798281]'
               }`}
             />
             <span className="font-medium">{isStreaming ? 'En línea' : 'Pausado'}</span>
@@ -143,66 +141,56 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="arcadia-btn-primary flex items-center gap-2 px-4 py-2 text-[14px] cursor-pointer"
             title="Abrir Simulador de Sensores"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[#0fff87]" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-mint-pulse" />
             <span className="hidden md:inline">Simulador</span>
           </button>
 
           <button
             onClick={onOpenAlerts}
-            className="relative p-2 text-[#101f1e] hover:bg-[#f3f1ec] rounded-[8px] bg-[#ffffff] border border-[#afc4bf] transition-colors cursor-pointer"
+            className="relative p-2 text-bark hover:bg-cream-paper rounded-[8px] bg-sheet-white border border-sage-mist transition-colors cursor-pointer"
             title="Ver alertas"
           >
             <Bell className="w-4 h-4" />
             {activeAlertCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 text-[10px] font-bold text-[#101f1e] bg-[#0fff87] border border-[#104336] rounded-full font-mono tabular-nums leading-none">
+              <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 text-[10px] font-bold text-bark bg-mint-pulse border border-canopy rounded-full font-mono tabular-nums leading-none">
                 {activeAlertCount}
               </span>
             )}
           </button>
 
-          {onBackToLanding && (
-            <button
-              onClick={onBackToLanding}
-              className="arcadia-btn-ghost px-3.5 py-2 text-[14px] cursor-pointer hidden sm:inline-flex"
-              title="Volver a la página de inicio"
-            >
-              Inicio
-            </button>
-          )}
-
           {/* User profile & Role switcher */}
           <div className="relative">
             <button
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-[8px] bg-[#f3f1ec] border border-[#afc4bf] hover:bg-[#e8e7f5]/50 transition-colors text-left cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-[8px] bg-cream-paper border border-sage-mist hover:bg-[#e8e7f5]/50 transition-colors text-left cursor-pointer"
             >
-              <div className="w-7 h-7 rounded-[8px] bg-[#104336] flex items-center justify-center font-medium text-[12px] text-[#ffffff]">
+              <div className="w-7 h-7 rounded-[8px] bg-canopy flex items-center justify-center font-medium text-[12px] text-sheet-white">
                 {currentUser.nombre.charAt(0)}
               </div>
               <div className="hidden sm:flex flex-col">
-                <span className="text-[13px] font-medium text-[#101f1e] whitespace-nowrap leading-tight">
+                <span className="text-[13px] font-medium text-bark whitespace-nowrap leading-tight">
                   {currentUser.nombre}
                 </span>
-                <span className="text-[11px] text-[#535e5d] capitalize flex items-center gap-1">
+                <span className="text-[11px] text-slate capitalize flex items-center gap-1">
                   {roleIcons[currentUser.rol]}
                   {roleLabels[currentUser.rol]}
                 </span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-[#535e5d]" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate" />
             </button>
 
             {userDropdownOpen && (
               <div
-                className="absolute right-0 mt-2 w-64 rounded-[16px] bg-[#ffffff] border border-[#afc4bf] p-3 z-50 text-xs space-y-1"
+                className="absolute right-0 mt-2 w-64 rounded-[16px] bg-sheet-white border border-sage-mist p-3 z-50 text-xs space-y-1"
                 onMouseLeave={() => setUserDropdownOpen(false)}
               >
-                <div className="px-3 py-2 border-b border-[#afc4bf]">
-                  <p className="font-medium text-[#101f1e] text-[13px]">{currentUser.nombre}</p>
-                  <p className="text-[11px] text-[#535e5d] truncate">{currentUser.correo}</p>
-                  <p className="text-[11px] text-[#104336] font-medium mt-0.5">{currentUser.empresa}</p>
+                <div className="px-3 py-2 border-b border-sage-mist">
+                  <p className="font-medium text-bark text-[13px]">{currentUser.nombre}</p>
+                  <p className="text-[11px] text-slate truncate">{currentUser.correo}</p>
+                  <p className="text-[11px] text-canopy font-medium mt-0.5">{currentUser.empresa}</p>
                 </div>
 
-                <div className="px-3 py-1.5 arcadia-eyebrow text-[11px] text-[#535e5d]">
+                <div className="px-3 py-1.5 arcadia-eyebrow text-[11px] text-slate">
                   Cambiar Rol / Perfil
                 </div>
 
@@ -213,19 +201,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onSelectUser(u);
                       setUserDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-[8px] text-left hover:bg-[#f3f1ec] transition-colors cursor-pointer ${
-                      u.id_usuario === currentUser.id_usuario ? 'bg-[#f3f1ec] font-medium' : ''
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-[8px] text-left hover:bg-cream-paper transition-colors cursor-pointer ${
+                      u.id_usuario === currentUser.id_usuario ? 'bg-cream-paper font-medium' : ''
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       {roleIcons[u.rol]}
                       <div>
-                        <div className="text-[#101f1e] text-[13px]">{u.nombre}</div>
-                        <div className="text-[11px] text-[#535e5d]">{roleLabels[u.rol]}</div>
+                        <div className="text-bark text-[13px]">{u.nombre}</div>
+                        <div className="text-[11px] text-slate">{roleLabels[u.rol]}</div>
                       </div>
                     </div>
                     {u.id_usuario === currentUser.id_usuario && (
-                      <span className="w-2 h-2 rounded-full bg-[#0fff87] border border-[#104336]" />
+                      <span className="w-2 h-2 rounded-full bg-mint-pulse border border-canopy" />
                     )}
                   </button>
                 ))}

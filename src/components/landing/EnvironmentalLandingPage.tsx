@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
   Activity,
   Cpu,
@@ -23,8 +23,6 @@ import { EnvironmentalThreeBackground } from './EnvironmentalThreeBackground';
 
 interface EnvironmentalLandingPageProps {
   onEnterSystem: (initialTab?: string) => void;
-  darkMode: boolean;
-  onToggleDarkMode: () => void;
   skeletonMode: boolean;
   onToggleSkeletonMode: () => void;
   onOpenPerformanceMonitor?: () => void;
@@ -56,42 +54,42 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
   const capabilities = [
     {
-      icon: <Thermometer className="w-5 h-5 text-[#104336]" />,
+      icon: <Thermometer className="w-5 h-5 text-canopy" />,
       eyebrow: 'PRECISIÓN TÉRMICA',
       metric: '±0.2 °C',
       title: 'Registro continuo de temperatura y humedad',
       desc: 'Captura periódica en recintos críticos con sondas calibradas DHT22, BME280 y SHT31.',
     },
     {
-      icon: <Cpu className="w-5 h-5 text-[#104336]" />,
+      icon: <Cpu className="w-5 h-5 text-canopy" />,
       eyebrow: 'NODOS EDGE',
       metric: 'ESP32',
       title: 'Supervisión de dispositivos IoT en red',
-      desc: 'Control de latidos PINGREQ, validación de dirección MAC y estado Online/Offline en tiempo real.',
+      desc: 'Control de latidos PINGREQ, validación de dirección MAC y estado Online/Offline.',
     },
     {
-      icon: <LineChart className="w-5 h-5 text-[#104336]" />,
+      icon: <LineChart className="w-5 h-5 text-canopy" />,
       eyebrow: 'SERIES TEMPORALES',
       metric: '1 Hz',
       title: 'Históricos y gráficas dinámicas',
       desc: 'Almacenamiento en TimescaleDB con bandas de tolerancia, umbrales configurables y exportación CSV.',
     },
     {
-      icon: <AlertTriangle className="w-5 h-5 text-[#104336]" />,
+      icon: <AlertTriangle className="w-5 h-5 text-canopy" />,
       eyebrow: 'SEGURIDAD OPERATIVA',
       metric: '5 min',
       title: 'Alertas preventivas con debouncing',
       desc: 'Notificaciones visibles inmediatas ante excursiones térmicas, evitando falsos positivos por ruido.',
     },
     {
-      icon: <BrainCircuit className="w-5 h-5 text-[#7c18d3]" />,
+      icon: <BrainCircuit className="w-5 h-5 text-orb-violet" />,
       eyebrow: 'INTELIGENCIA ARTIFICIAL',
       metric: '<200 ms',
       title: 'Detección multivariante de anomalías',
       desc: 'Isolation Forest y Z-Score 3σ que identifican fallos de climatización antes de la pérdida crítica.',
     },
     {
-      icon: <FileSpreadsheet className="w-5 h-5 text-[#104336]" />,
+      icon: <FileSpreadsheet className="w-5 h-5 text-canopy" />,
       eyebrow: 'AUDITORÍA GXP',
       metric: '99.9%',
       title: 'Trazabilidad y reportes de cumplimiento',
@@ -113,7 +111,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
     {
       eyebrow: 'ORQUESTACIÓN DE FLUJOS',
       name: 'Node-RED & Dead Letter Queue',
-      desc: 'Validación de integridad JSON en tiempo real y aislamiento automático de tramas corruptas.',
+      desc: 'Validación continua de integridad JSON y aislamiento automático de tramas corruptas.',
     },
     {
       eyebrow: 'CAPTURA EN CAMPO',
@@ -132,26 +130,26 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#f3f1ec] text-[#101f1e] selection:bg-[#104336] selection:text-[#ffffff] overflow-x-hidden">
+    <div className="relative min-h-screen bg-cream-paper text-bark selection:bg-canopy selection:text-sheet-white overflow-x-hidden">
       {/* Fondo 3D Interactivo con Three.js (paleta Arcadia: Canopy, Mint Pulse, Orb Violet) */}
       <EnvironmentalThreeBackground />
 
       {/* 1. ANNOUNCEMENT BAR — Full-bleed Canopy (#104336) */}
-      <div className="relative z-10 w-full bg-[#104336] text-[#ffffff] px-6 py-2.5 text-center text-[13px] font-normal flex items-center justify-center gap-2.5">
-        <span className="w-2 h-2 rounded-full bg-[#0fff87] shrink-0" />
+      <div className="relative z-10 w-full bg-canopy text-sheet-white px-6 py-2.5 text-center text-[13px] font-normal flex items-center justify-center gap-2.5">
+        <span className="w-2 h-2 rounded-full bg-mint-pulse shrink-0" />
         <span>
           SIMOA Observatorio v2.4 · Monitoreo ambiental IoT con telemetría MQTTS y diagnóstico IA en vivo
         </span>
         <button
           onClick={() => onEnterSystem('dashboard')}
-          className="hidden sm:inline-flex items-center gap-1 text-[#0fff87] hover:underline font-medium cursor-pointer"
+          className="hidden sm:inline-flex items-center gap-1 text-mint-pulse hover:underline font-medium cursor-pointer"
         >
           Explorar panel →
         </button>
       </div>
 
       {/* 2. TOP NAVIGATION — Sheet White (#ffffff), 72px height, 1px Sage Mist (#afc4bf) border */}
-      <header className="sticky top-0 z-50 bg-[#ffffff] border-b border-[#afc4bf]">
+      <header className="sticky top-0 z-50 bg-sheet-white border-b border-sage-mist">
         <div className="max-w-[1200px] mx-auto px-6 h-[72px] flex items-center justify-between gap-6">
           <a href="#inicio" className="flex items-center gap-3 shrink-0 focus:outline-none">
             <img
@@ -161,20 +159,20 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             />
           </a>
 
-          <nav className="hidden lg:flex items-center gap-7 text-[14px] font-normal text-[#101f1e]">
-            <a href="#observatorio" className="hover:text-[#104336] transition-colors">
+          <nav className="hidden lg:flex items-center gap-7 text-[14px] font-normal text-bark">
+            <a href="#observatorio" className="hover:text-canopy transition-colors">
               Observatorio
             </a>
-            <a href="#arquitectura" className="hover:text-[#104336] transition-colors">
+            <a href="#arquitectura" className="hover:text-canopy transition-colors">
               Arquitectura
             </a>
-            <a href="#capacidades" className="hover:text-[#104336] transition-colors">
+            <a href="#capacidades" className="hover:text-canopy transition-colors">
               Capacidades
             </a>
-            <a href="#tecnologias" className="hover:text-[#104336] transition-colors">
+            <a href="#tecnologias" className="hover:text-canopy transition-colors">
               Tecnologías
             </a>
-            <a href="#contacto" className="hover:text-[#104336] transition-colors">
+            <a href="#contacto" className="hover:text-canopy transition-colors">
               Contacto
             </a>
           </nav>
@@ -195,7 +193,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-[8px] border border-[#afc4bf] text-[#101f1e] cursor-pointer"
+              className="lg:hidden p-2 rounded-[8px] border border-sage-mist text-bark cursor-pointer"
               aria-label="Menú"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -204,7 +202,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </div>
 
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-[#ffffff] border-t border-[#afc4bf] px-6 py-4 space-y-3 text-[15px]">
+          <div className="lg:hidden bg-sheet-white border-t border-sage-mist px-6 py-4 space-y-3 text-[15px]">
             {[
               { href: '#observatorio', label: 'Observatorio' },
               { href: '#arquitectura', label: 'Arquitectura' },
@@ -216,7 +214,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block py-1.5 text-[#101f1e] hover:text-[#104336]"
+                className="block py-1.5 text-bark hover:text-canopy"
               >
                 {item.label}
               </a>
@@ -228,7 +226,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       {/* 3. HERO SECTION — Diagonal Hero Wash (#afc4bf -> #e8e7f5 -> #f1eee9) */}
       <section
         id="inicio"
-        className="relative z-10 pt-20 pb-24 px-6 border-b border-[#afc4bf]"
+        className="relative z-10 pt-20 pb-24 px-6 border-b border-sage-mist"
         style={{
           background:
             'linear-gradient(212.12deg, rgba(175, 196, 191, 0.55) 14.83%, rgba(232, 231, 245, 0.55) 52.99%, rgba(241, 238, 233, 0.65) 79.47%)',
@@ -242,13 +240,13 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           <div className="max-w-[1200px] mx-auto">
             {/* Centered Hero Text Stack */}
             <div className="max-w-[780px] mx-auto text-center space-y-6">
-              <p className="arcadia-eyebrow text-[#104336]">
+              <p className="arcadia-eyebrow text-canopy">
                 OBSERVATORIO AMBIENTAL IOT · SIMOA
               </p>
               <h1 className="arcadia-display">
                 Telemetría ambiental de alta precisión en un solo observatorio.
               </h1>
-              <p className="text-[18px] leading-[1.5] text-[#535e5d] font-normal max-w-[640px] mx-auto">
+              <p className="text-[18px] leading-[1.5] text-slate font-normal max-w-[640px] mx-auto">
                 Supervisa temperatura, humedad relativa y salud de nodos ESP32 en tiempo real.
                 Detecta anomalías térmicas con IA antes de comprometer tus recintos críticos.
               </p>
@@ -272,91 +270,91 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             {/* Embedded Product Dashboard Mockup Card — Sheet White (#ffffff), 16px radius, 1px Sage Mist (#afc4bf), zero shadow */}
             <div
               id="observatorio"
-              className="mt-16 max-w-[1000px] mx-auto bg-[#ffffff] rounded-[16px] border border-[#afc4bf] overflow-hidden"
+              className="mt-16 max-w-[1000px] mx-auto bg-sheet-white rounded-[16px] border border-sage-mist overflow-hidden"
             >
               <div className="flex flex-col md:flex-row">
                 {/* Left Vertical Canopy Icon Rail */}
-                <div className="bg-[#104336] text-[#ffffff] md:w-16 px-4 py-4 md:py-6 flex md:flex-col items-center justify-between gap-4 shrink-0">
-                  <div className="w-9 h-9 rounded-[8px] bg-[#0fff87] text-[#101f1e] flex items-center justify-center font-bold text-[13px]">
+                <div className="bg-canopy text-sheet-white md:w-16 px-4 py-4 md:py-6 flex md:flex-col items-center justify-between gap-4 shrink-0">
+                  <div className="w-9 h-9 rounded-[8px] bg-mint-pulse text-bark flex items-center justify-center font-bold text-[13px]">
                     S
                   </div>
-                  <div className="flex md:flex-col items-center gap-4 text-[#afc4bf]">
-                    <Activity className="w-5 h-5 text-[#0fff87]" />
+                  <div className="flex md:flex-col items-center gap-4 text-sage-mist">
+                    <Activity className="w-5 h-5 text-mint-pulse" />
                     <Thermometer className="w-5 h-5" />
                     <Cpu className="w-5 h-5" />
                     <BrainCircuit className="w-5 h-5" />
                   </div>
-                  <span className="hidden md:block w-2 h-2 rounded-full bg-[#0fff87]" />
+                  <span className="hidden md:block w-2 h-2 rounded-full bg-mint-pulse" />
                 </div>
 
                 {/* Dashboard Content Area */}
                 <div className="flex-1 p-6 sm:p-8 space-y-6">
-                  <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#afc4bf]">
+                  <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-sage-mist">
                     <div>
-                      <p className="arcadia-eyebrow text-[#535e5d]">PANEL DE TELEMETRÍA EN VIVO</p>
-                      <h2 className="text-[20px] font-medium text-[#101f1e] mt-1">
+                      <p className="arcadia-eyebrow text-slate">PANEL DE TELEMETRÍA EN VIVO</p>
+                      <h2 className="text-[20px] font-medium text-bark mt-1">
                         Laboratorio Central · Bioterio &amp; Cadena de Frío
                       </h2>
                     </div>
-                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[9999px] bg-[#f3f1ec] border border-[#afc4bf] text-[12px] font-bold uppercase tracking-[0.07em] text-[#104336]">
-                      <span className="w-2 h-2 rounded-full bg-[#0fff87] border border-[#104336]" />
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[9999px] bg-cream-paper border border-sage-mist text-[12px] font-bold uppercase tracking-[0.07em] text-canopy">
+                      <span className="w-2 h-2 rounded-full bg-mint-pulse border border-canopy" />
                       Streaming MQTTS 1 Hz
                     </span>
                   </div>
 
                   {/* 3 Stat Tiles */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-5 rounded-[16px] bg-[#f3f1ec] border border-[#afc4bf] space-y-2">
+                    <div className="p-5 rounded-[16px] bg-cream-paper border border-sage-mist space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="arcadia-eyebrow text-[#535e5d]">TEMPERATURA MEDIA</span>
-                        <Thermometer className="w-4 h-4 text-[#104336]" />
+                        <span className="arcadia-eyebrow text-slate">TEMPERATURA MEDIA</span>
+                        <Thermometer className="w-4 h-4 text-canopy" />
                       </div>
                       <div className="arcadia-stat-value">23.4 °C</div>
-                      <div className="flex items-center gap-1 text-[13px] font-medium text-[#104336]">
+                      <div className="flex items-center gap-1 text-[13px] font-medium text-canopy">
                         <ArrowDownRight className="w-4 h-4" />
                         <span>-0.3 °C respecto a umbral</span>
                       </div>
                     </div>
 
-                    <div className="p-5 rounded-[16px] bg-[#f3f1ec] border border-[#afc4bf] space-y-2">
+                    <div className="p-5 rounded-[16px] bg-cream-paper border border-sage-mist space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="arcadia-eyebrow text-[#535e5d]">HUMEDAD RELATIVA</span>
-                        <Activity className="w-4 h-4 text-[#104336]" />
+                        <span className="arcadia-eyebrow text-slate">HUMEDAD RELATIVA</span>
+                        <Activity className="w-4 h-4 text-canopy" />
                       </div>
                       <div className="arcadia-stat-value">61.8 %</div>
-                      <div className="flex items-center gap-1 text-[13px] font-medium text-[#104336]">
+                      <div className="flex items-center gap-1 text-[13px] font-medium text-canopy">
                         <ArrowUpRight className="w-4 h-4" />
                         <span>+1.2 % rango nominal</span>
                       </div>
                     </div>
 
-                    <div className="p-5 rounded-[16px] bg-[#f3f1ec] border border-[#afc4bf] space-y-2">
+                    <div className="p-5 rounded-[16px] bg-cream-paper border border-sage-mist space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="arcadia-eyebrow text-[#7c18d3]">ÍNDICE ANOMALÍA IA</span>
-                        <BrainCircuit className="w-4 h-4 text-[#7c18d3]" />
+                        <span className="arcadia-eyebrow text-orb-violet">ÍNDICE ANOMALÍA IA</span>
+                        <BrainCircuit className="w-4 h-4 text-orb-violet" />
                       </div>
                       <div className="arcadia-stat-value">0.04 σ</div>
-                      <div className="flex items-center gap-1 text-[13px] font-medium text-[#535e5d]">
+                      <div className="flex items-center gap-1 text-[13px] font-medium text-slate">
                         <span>Isolation Forest · Estable</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Minimalist Bar Chart Preview */}
-                  <div className="p-5 rounded-[16px] bg-[#ffffff] border border-[#afc4bf]">
+                  <div className="p-5 rounded-[16px] bg-sheet-white border border-sage-mist">
                     <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-                      <span className="arcadia-eyebrow text-[#535e5d]">
+                      <span className="arcadia-eyebrow text-slate">
                         PERFIL TÉRMICO E HIGROMÉTRICO (ÚLTIMAS 12 HORAS)
                       </span>
-                      <div className="flex items-center gap-4 text-[12px] uppercase tracking-[0.07em] font-bold text-[#535e5d]">
+                      <div className="flex items-center gap-4 text-[12px] uppercase tracking-[0.07em] font-bold text-slate">
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-[2px] bg-[#104336]" /> Temp
+                          <span className="w-2.5 h-2.5 rounded-[2px] bg-canopy" /> Temp
                         </span>
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-[2px] bg-[#0fff87] border border-[#104336]" /> Humedad
+                          <span className="w-2.5 h-2.5 rounded-[2px] bg-mint-pulse border border-canopy" /> Humedad
                         </span>
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-[2px] bg-[#7c18d3]" /> Score IA
+                          <span className="w-2.5 h-2.5 rounded-[2px] bg-orb-violet" /> Score IA
                         </span>
                       </div>
                     </div>
@@ -365,19 +363,19 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                         <div key={d.label} className="flex flex-col items-center gap-2 h-full justify-end">
                           <div className="flex items-end gap-1.5 h-24">
                             <div
-                              className="w-2.5 bg-[#104336] rounded-t-[2px]"
+                              className="w-2.5 bg-canopy rounded-t-[2px]"
                               style={{ height: `${d.temp}%` }}
                             />
                             <div
-                              className="w-2.5 bg-[#0fff87] border border-[#104336] rounded-t-[2px]"
+                              className="w-2.5 bg-mint-pulse border border-canopy rounded-t-[2px]"
                               style={{ height: `${d.hum}%` }}
                             />
                             <div
-                              className="w-2.5 bg-[#7c18d3] rounded-t-[2px]"
+                              className="w-2.5 bg-orb-violet rounded-t-[2px]"
                               style={{ height: `${d.ia}%` }}
                             />
                           </div>
-                          <span className="text-[12px] text-[#535e5d] font-mono">{d.label}</span>
+                          <span className="text-[12px] text-slate font-mono">{d.label}</span>
                         </div>
                       ))}
                     </div>
@@ -390,7 +388,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 4. LOGO STRIP — Sheet White (#ffffff), monochrome Bark (#101f1e) */}
-      <section className="relative z-10 bg-[#ffffff]/88 border-b border-[#afc4bf] py-12 px-6">
+      <section className="relative z-10 bg-sheet-white/88 border-b border-sage-mist py-12 px-6">
         <div className="max-w-[1200px] mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-8 items-center text-center">
             {[
@@ -403,7 +401,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             ].map((brand) => (
               <div
                 key={brand}
-                className="text-[13px] font-bold tracking-[0.07em] uppercase text-[#101f1e] opacity-85"
+                className="text-[13px] font-bold tracking-[0.07em] uppercase text-bark opacity-85"
               >
                 {brand}
               </div>
@@ -413,14 +411,14 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 5. NETWORK DIAGRAM SECTION ("Cómo entregamos resultados") — Cream Paper (#f3f1ec), Floating 3D-style Orbs */}
-      <section id="arquitectura" className="relative z-10 bg-[#f3f1ec]/75 py-24 px-6 border-b border-[#afc4bf]">
+      <section id="arquitectura" className="relative z-10 bg-cream-paper/75 py-24 px-6 border-b border-sage-mist">
         <div className="max-w-[1200px] mx-auto">
           <div className="max-w-[700px] mx-auto text-center space-y-4">
-            <p className="arcadia-eyebrow text-[#7c18d3]">CÓMO ENTREGAMOS RESULTADOS</p>
+            <p className="arcadia-eyebrow text-orb-violet">CÓMO ENTREGAMOS RESULTADOS</p>
             <h2 className="arcadia-heading">
               Una red conectada desde el sensor en campo hasta el diagnóstico predictivo.
             </h2>
-            <p className="text-[16px] text-[#535e5d] leading-[1.5]">
+            <p className="text-[16px] text-slate leading-[1.5]">
               Cada lectura ambiental viaja cifrada por MQTTS, se valida en Node-RED, se indexa en
               TimescaleDB y se evalúa con modelos de anomalías en menos de 200 ms.
             </p>
@@ -509,19 +507,19 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             {/* Mobile Network Fallback */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:hidden">
               {[
-                { step: '01 · SENSORES DHT22', color: 'bg-[#0fff87]' },
+                { step: '01 · SENSORES DHT22', color: 'bg-mint-pulse' },
                 { step: '02 · NODO ESP32', color: 'bg-[#e8e7f5]' },
-                { step: '03 · MQTTS TLS 8883', color: 'bg-[#7c18d3]' },
-                { step: '04 · MOTOR IA / DLQ', color: 'bg-[#7c18d3]' },
-                { step: '05 · TIMESCALEDB', color: 'bg-[#0fff87]' },
-                { step: '06 · DASHBOARD VIVO', color: 'bg-[#0fff87]' },
+                { step: '03 · MQTTS TLS 8883', color: 'bg-orb-violet' },
+                { step: '04 · MOTOR IA / DLQ', color: 'bg-orb-violet' },
+                { step: '05 · TIMESCALEDB', color: 'bg-mint-pulse' },
+                { step: '06 · DASHBOARD VIVO', color: 'bg-mint-pulse' },
               ].map((n) => (
                 <div
                   key={n.step}
-                  className="flex items-center gap-3 px-4 py-3 rounded-[9999px] bg-[#ffffff] border border-[#afc4bf]"
+                  className="flex items-center gap-3 px-4 py-3 rounded-[9999px] bg-sheet-white border border-sage-mist"
                 >
-                  <span className={`w-4 h-4 rounded-full ${n.color} border border-[#104336] shrink-0`} />
-                  <span className="arcadia-eyebrow text-[12px] text-[#101f1e]">{n.step}</span>
+                  <span className={`w-4 h-4 rounded-full ${n.color} border border-canopy shrink-0`} />
+                  <span className="arcadia-eyebrow text-[12px] text-bark">{n.step}</span>
                 </div>
               ))}
             </div>
@@ -531,7 +529,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
       {/* 6. ISOMETRIC FEATURE SECTION — Mint-Cream Gradient (#e8f0ec -> #f1eee9) */}
       <section
-        className="relative z-10 py-24 px-6 border-b border-[#afc4bf]"
+        className="relative z-10 py-24 px-6 border-b border-sage-mist"
         style={{
           background: 'linear-gradient(180deg, rgba(232, 240, 236, 0.78) 0%, rgba(241, 238, 233, 0.78) 100%)',
         }}
@@ -585,11 +583,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
           {/* Right Editorial Text Block */}
           <div className="space-y-6">
-            <p className="arcadia-eyebrow text-[#104336]">DETECCIÓN PREDICTIVA</p>
+            <p className="arcadia-eyebrow text-canopy">DETECCIÓN PREDICTIVA</p>
             <h2 className="arcadia-heading">
               Control ambiental diseñado para laboratorios, bioterios y cadena de frío.
             </h2>
-            <p className="text-[16px] text-[#535e5d] leading-[1.6]">
+            <p className="text-[16px] text-slate leading-[1.6]">
               SIMOA combina hardware accesible ESP32 con un motor analítico de grado industrial.
               Configura umbrales personalizados por recinto, recibe alertas con control anti-rebote
               y consulta el diagnóstico de causa raíz generado por IA.
@@ -614,10 +612,10 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 7. CAPABILITIES GRID — Sheet White (#ffffff) band, 16px cards, 1px Sage Mist (#afc4bf) */}
-      <section id="capacidades" className="relative z-10 bg-[#ffffff]/88 py-24 px-6 border-b border-[#afc4bf]">
+      <section id="capacidades" className="relative z-10 bg-sheet-white/88 py-24 px-6 border-b border-sage-mist">
         <div className="max-w-[1200px] mx-auto space-y-14">
           <div className="max-w-[680px] space-y-4">
-            <p className="arcadia-eyebrow text-[#104336]">CAPACIDADES DEL SISTEMA</p>
+            <p className="arcadia-eyebrow text-canopy">CAPACIDADES DEL SISTEMA</p>
             <h2 className="arcadia-heading">
               Todo lo necesario para auditar y proteger el entorno físico.
             </h2>
@@ -630,20 +628,20 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               {capabilities.map((cap) => (
                 <div
                   key={cap.title}
-                  className="p-7 rounded-[16px] bg-[#f3f1ec] border border-[#afc4bf] flex flex-col justify-between space-y-6"
+                  className="p-7 rounded-[16px] bg-cream-paper border border-sage-mist flex flex-col justify-between space-y-6"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="arcadia-eyebrow text-[12px] text-[#535e5d]">{cap.eyebrow}</span>
-                      <div className="w-9 h-9 rounded-[8px] bg-[#ffffff] border border-[#afc4bf] flex items-center justify-center">
+                      <span className="arcadia-eyebrow text-[12px] text-slate">{cap.eyebrow}</span>
+                      <div className="w-9 h-9 rounded-[8px] bg-sheet-white border border-sage-mist flex items-center justify-center">
                         {cap.icon}
                       </div>
                     </div>
                     <div className="arcadia-stat-value">{cap.metric}</div>
-                    <h3 className="text-[20px] font-medium text-[#101f1e] leading-[1.29]">
+                    <h3 className="text-[20px] font-medium text-bark leading-[1.29]">
                       {cap.title}
                     </h3>
-                    <p className="text-[15px] text-[#535e5d] leading-[1.5]">{cap.desc}</p>
+                    <p className="text-[15px] text-slate leading-[1.5]">{cap.desc}</p>
                   </div>
                 </div>
               ))}
@@ -653,23 +651,23 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 8. TECHNOLOGIES & CONTACT — Cream Paper (#f3f1ec) band */}
-      <section id="tecnologias" className="relative z-10 bg-[#f3f1ec]/80 py-24 px-6">
+      <section id="tecnologias" className="relative z-10 bg-cream-paper/80 py-24 px-6">
         <div className="max-w-[1200px] mx-auto space-y-20">
           {/* Tech Stack */}
           <div className="space-y-10">
             <div className="max-w-[640px] space-y-3">
-              <p className="arcadia-eyebrow text-[#104336]">STACK TECNOLÓGICO</p>
+              <p className="arcadia-eyebrow text-canopy">STACK TECNOLÓGICO</p>
               <h2 className="arcadia-heading">Estándares abiertos de ingeniería IoT.</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {techStack.map((t) => (
                 <div
                   key={t.name}
-                  className="p-7 rounded-[16px] bg-[#ffffff] border border-[#afc4bf] space-y-3"
+                  className="p-7 rounded-[16px] bg-sheet-white border border-sage-mist space-y-3"
                 >
-                  <span className="arcadia-eyebrow text-[12px] text-[#104336]">{t.eyebrow}</span>
-                  <h3 className="text-[22px] font-medium text-[#101f1e]">{t.name}</h3>
-                  <p className="text-[15px] text-[#535e5d] leading-[1.5]">{t.desc}</p>
+                  <span className="arcadia-eyebrow text-[12px] text-canopy">{t.eyebrow}</span>
+                  <h3 className="text-[22px] font-medium text-bark">{t.name}</h3>
+                  <p className="text-[15px] text-slate leading-[1.5]">{t.desc}</p>
                 </div>
               ))}
             </div>
@@ -678,26 +676,26 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           {/* Contact Form */}
           <div
             id="contacto"
-            className="p-8 sm:p-12 rounded-[16px] bg-[#ffffff] border border-[#afc4bf] grid grid-cols-1 lg:grid-cols-2 gap-10 items-start"
+            className="p-8 sm:p-12 rounded-[16px] bg-sheet-white border border-sage-mist grid grid-cols-1 lg:grid-cols-2 gap-10 items-start"
           >
             <div className="space-y-5">
-              <p className="arcadia-eyebrow text-[#104336]">CONTACTO TÉCNICO</p>
+              <p className="arcadia-eyebrow text-canopy">CONTACTO TÉCNICO</p>
               <h2 className="arcadia-heading">Despliega SIMOA en tu infraestructura.</h2>
-              <p className="text-[16px] text-[#535e5d] leading-[1.5]">
+              <p className="text-[16px] text-slate leading-[1.5]">
                 Solicita una demostración o integración con tus nodos ESP32, sensores DHT22/BME280
                 y servidores Mosquitto TLS.
               </p>
-              <div className="pt-2 space-y-3 text-[14px] text-[#101f1e]">
+              <div className="pt-2 space-y-3 text-[14px] text-bark">
                 <div className="flex items-center gap-2.5">
-                  <Server className="w-4 h-4 text-[#104336]" />
+                  <Server className="w-4 h-4 text-canopy" />
                   <span>Soporte MQTTS TLS 1.3 (Puerto 8883)</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-[#104336]" />
+                  <ShieldCheck className="w-4 h-4 text-canopy" />
                   <span>Trazabilidad auditada bajo especificación SRS</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <Radio className="w-4 h-4 text-[#104336]" />
+                  <Radio className="w-4 h-4 text-canopy" />
                   <span>Simulador de campo integrado en la plataforma</span>
                 </div>
               </div>
@@ -705,7 +703,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
             <form onSubmit={handleContactSubmit} className="space-y-4">
               <div>
-                <label className="block text-[13px] font-medium text-[#101f1e] mb-1.5">
+                <label className="block text-[13px] font-medium text-bark mb-1.5">
                   Nombre completo
                 </label>
                 <input
@@ -718,7 +716,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-[#101f1e] mb-1.5">
+                <label className="block text-[13px] font-medium text-bark mb-1.5">
                   Correo institucional
                 </label>
                 <input
@@ -731,7 +729,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 />
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-[#101f1e] mb-1.5">
+                <label className="block text-[13px] font-medium text-bark mb-1.5">
                   Hardware de interés
                 </label>
                 <select
@@ -745,7 +743,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 </select>
               </div>
               <div>
-                <label className="block text-[13px] font-medium text-[#101f1e] mb-1.5">
+                <label className="block text-[13px] font-medium text-bark mb-1.5">
                   Mensaje o requerimiento
                 </label>
                 <textarea
@@ -759,7 +757,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               </div>
 
               {contactSent ? (
-                <div className="p-3.5 rounded-[8px] bg-[#f3f1ec] border border-[#104336] text-[#104336] text-[14px] flex items-center gap-2 font-medium">
+                <div className="p-3.5 rounded-[8px] bg-cream-paper border border-canopy text-canopy text-[14px] flex items-center gap-2 font-medium">
                   <CheckCircle2 className="w-4 h-4" />
                   Solicitud registrada correctamente. Nuestro equipo responderá pronto.
                 </div>
@@ -778,28 +776,28 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       </section>
 
       {/* 9. FOOTER — Canopy (#104336) background, white DM Sans 13-15px text */}
-      <footer className="relative z-10 bg-[#104336] text-[#ffffff] py-20 px-6">
+      <footer className="relative z-10 bg-canopy text-sheet-white py-20 px-6">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-4 md:col-span-2">
             <div className="flex items-center gap-2.5">
-              <span className="w-3 h-3 rounded-full bg-[#0fff87]" />
-              <span className="text-[20px] font-medium tracking-[-0.02em] text-[#ffffff]">
+              <span className="w-3 h-3 rounded-full bg-mint-pulse" />
+              <span className="text-[20px] font-medium tracking-[-0.02em] text-sheet-white">
                 SIMOA
               </span>
             </div>
-            <p className="text-[14px] text-[#afc4bf] max-w-[380px] leading-[1.6]">
-              Sistema Inteligente de Monitoreo Ambiental IoT. Telemetría en tiempo real, gestión de
+            <p className="text-[14px] text-sage-mist max-w-[380px] leading-[1.6]">
+              Sistema Inteligente de Monitoreo Ambiental IoT. Telemetría continua, gestión de
               nodos ESP32 y diagnóstico predictivo con IA.
             </p>
           </div>
 
           <div className="space-y-3 text-[14px]">
-            <p className="arcadia-eyebrow text-[#0fff87]">PLATAFORMA</p>
-            <ul className="space-y-2.5 text-[#afc4bf]">
+            <p className="arcadia-eyebrow text-mint-pulse">PLATAFORMA</p>
+            <ul className="space-y-2.5 text-sage-mist">
               <li>
                 <button
                   onClick={() => onEnterSystem('dashboard')}
-                  className="hover:text-[#ffffff] cursor-pointer"
+                  className="hover:text-sheet-white cursor-pointer"
                 >
                   Monitoreo en Vivo
                 </button>
@@ -807,7 +805,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               <li>
                 <button
                   onClick={() => onEnterSystem('devices')}
-                  className="hover:text-[#ffffff] cursor-pointer"
+                  className="hover:text-sheet-white cursor-pointer"
                 >
                   Nodos y Sensores
                 </button>
@@ -815,7 +813,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               <li>
                 <button
                   onClick={() => onEnterSystem('analytics')}
-                  className="hover:text-[#ffffff] cursor-pointer"
+                  className="hover:text-sheet-white cursor-pointer"
                 >
                   Histórico y CSV
                 </button>
@@ -823,7 +821,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               <li>
                 <button
                   onClick={() => onEnterSystem('ai')}
-                  className="hover:text-[#ffffff] cursor-pointer"
+                  className="hover:text-sheet-white cursor-pointer"
                 >
                   Diagnóstico IA
                 </button>
@@ -832,28 +830,28 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </div>
 
           <div className="space-y-3 text-[14px]">
-            <p className="arcadia-eyebrow text-[#0fff87]">DOCUMENTACIÓN</p>
-            <ul className="space-y-2.5 text-[#afc4bf]">
+            <p className="arcadia-eyebrow text-mint-pulse">DOCUMENTACIÓN</p>
+            <ul className="space-y-2.5 text-sage-mist">
               <li>
                 <button
                   onClick={() => onEnterSystem('srs')}
-                  className="hover:text-[#ffffff] cursor-pointer"
+                  className="hover:text-sheet-white cursor-pointer"
                 >
                   Especificación SRS
                 </button>
               </li>
               <li>
-                <a href="#arquitectura" className="hover:text-[#ffffff]">
+                <a href="#arquitectura" className="hover:text-sheet-white">
                   Arquitectura MQTTS
                 </a>
               </li>
               <li>
-                <a href="#capacidades" className="hover:text-[#ffffff]">
+                <a href="#capacidades" className="hover:text-sheet-white">
                   Capacidades
                 </a>
               </li>
               <li>
-                <a href="#contacto" className="hover:text-[#ffffff]">
+                <a href="#contacto" className="hover:text-sheet-white">
                   Contacto
                 </a>
               </li>
@@ -861,7 +859,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </div>
         </div>
 
-        <div className="max-w-[1200px] mx-auto mt-14 pt-8 border-t border-[#afc4bf]/25 flex flex-wrap items-center justify-between gap-4 text-[13px] text-[#afc4bf]">
+        <div className="max-w-[1200px] mx-auto mt-14 pt-8 border-t border-sage-mist/25 flex flex-wrap items-center justify-between gap-4 text-[13px] text-sage-mist">
           <span>© 2026 SIMOA · Sistema Inteligente de Monitoreo Ambiental</span>
           <span>Observatorio IoT · Luz Eliana Sánchez Tovar</span>
         </div>

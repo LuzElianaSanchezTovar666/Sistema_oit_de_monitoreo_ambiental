@@ -56,11 +56,11 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="apple-card-heading text-[#101f1e] flex items-center gap-2.5">
+          <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
             <Wrench className="w-6 h-6 text-[#D97706]" />
             <span>Bitácora de Mantenimiento y Calibración Técnica</span>
           </h2>
-          <p className="text-[14px] text-[#535e5d] mt-1">
+          <p className="text-[14px] text-slate mt-1">
             Registro de intervenciones en sitio, trazabilidad metrológica y sustitución de hardware
           </p>
         </div>
@@ -81,30 +81,30 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
           return (
             <div
               key={s.id_sensor}
-              className="bg-[#FFFFFF] rounded-[16px] p-[16px] space-y-3 text-xs flex flex-col justify-between"
+              className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 text-xs flex flex-col justify-between"
             >
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-[14px] text-[#101f1e] flex items-center gap-1.5">
-                    <Cpu className="w-4 h-4 text-[#104336]" />
+                  <span className="font-semibold text-[14px] text-bark flex items-center gap-1.5">
+                    <Cpu className="w-4 h-4 text-canopy" />
                     {s.tipo_sensor}
                   </span>
-                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-mono font-semibold bg-[#104336]/15 text-[#104336]">
+                  <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-mono font-semibold bg-canopy/15 text-canopy">
                     {s.estado}
                   </span>
                 </div>
-                <div className="text-[#535e5d] font-mono truncate">
+                <div className="text-slate font-mono truncate">
                   Dispositivo: {dev?.nombre}
                 </div>
               </div>
-              <div className="pt-2.5 border-t border-[#afc4bf]/60 space-y-1 font-mono text-[11px] text-[#535e5d]">
+              <div className="pt-2.5 border-t border-sage-mist/60 space-y-1 font-mono text-[11px] text-slate">
                 <div className="flex items-center justify-between">
                   <span>Última Calibración:</span>
-                  <span className="text-[#101f1e]">{new Date(s.ultima_calibracion).toLocaleDateString()}</span>
+                  <span className="text-bark">{new Date(s.ultima_calibracion).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Próximo Vencimiento:</span>
-                  <span className="text-[#104336] font-semibold">90 días</span>
+                  <span className="text-canopy font-semibold">90 días</span>
                 </div>
               </div>
             </div>
@@ -113,16 +113,16 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
       </div>
 
       {/* Tabla de Intervenciones Registradas — Charcoal Stage (#FFFFFF, 28px radius) */}
-      <div className="bg-[#FFFFFF] rounded-[16px] overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#afc4bf]/60">
-          <h3 className="text-[17px] font-semibold text-[#101f1e]">
+      <div className="bg-sheet-white rounded-[16px] overflow-hidden">
+        <div className="px-6 py-4 border-b border-sage-mist/60">
+          <h3 className="text-[17px] font-semibold text-bark">
             Histórico de Intervenciones Realizadas
           </h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#f3f1ec] text-[#535e5d] font-mono text-[11px] uppercase tracking-wider border-b border-[#afc4bf]/60">
+            <thead className="bg-cream-paper text-slate font-mono text-[11px] uppercase tracking-wider border-b border-sage-mist/60">
               <tr>
                 <th className="px-5 py-3">Fecha</th>
                 <th className="px-5 py-3">Tipo</th>
@@ -137,27 +137,27 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
               {maintenances.map((mnt) => {
                 const dev = devices.find((d) => d.id_dispositivo === mnt.dispositivo_id);
                 return (
-                  <tr key={mnt.id_mantenimiento} className="hover:bg-[#f3f1ec]/50 transition-colors">
-                    <td className="px-5 py-3.5 font-mono text-[#535e5d]">
+                  <tr key={mnt.id_mantenimiento} className="hover:bg-cream-paper/50 transition-colors">
+                    <td className="px-5 py-3.5 font-mono text-slate">
                       {new Date(mnt.fecha_realizacion).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="apple-badge-orange font-mono">{mnt.tipo_mantenimiento}</span>
                     </td>
-                    <td className="px-5 py-3.5 font-semibold text-[#101f1e]">
+                    <td className="px-5 py-3.5 font-semibold text-bark">
                       {dev?.nombre}
                     </td>
-                    <td className="px-5 py-3.5 text-[#535e5d]">
+                    <td className="px-5 py-3.5 text-slate">
                       {mnt.tecnico_nombre}
                     </td>
-                    <td className="px-5 py-3.5 text-[#535e5d] max-w-xs truncate">
+                    <td className="px-5 py-3.5 text-slate max-w-xs truncate">
                       {mnt.descripcion}
                     </td>
-                    <td className="px-5 py-3.5 text-right font-mono font-semibold text-[#101f1e]">
+                    <td className="px-5 py-3.5 text-right font-mono font-semibold text-bark">
                       ${mnt.costo_estimado_usd || 0}
                     </td>
                     <td className="px-5 py-3.5 text-center">
-                      <span className="inline-flex items-center gap-1 text-[11px] text-[#104336] font-semibold">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-canopy font-semibold">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Completado
                       </span>
@@ -173,15 +173,15 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
       {/* Modal: Registrar Intervención */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-          <div className="bg-[#FFFFFF] border border-[#afc4bf] rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#afc4bf] pb-3">
-              <h3 className="text-[17px] font-semibold text-[#101f1e] flex items-center gap-2">
+          <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
+            <div className="flex items-center justify-between border-b border-sage-mist pb-3">
+              <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-[#D97706]" />
                 <span>Registrar Intervención de Mantenimiento</span>
               </h3>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-[#535e5d] hover:text-[#101f1e] text-sm font-semibold"
+                className="text-slate hover:text-bark text-sm font-semibold"
               >
                 ✕
               </button>
@@ -190,7 +190,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
             <form onSubmit={handleCreate} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#535e5d] font-semibold mb-1.5">
+                  <label className="block text-slate font-semibold mb-1.5">
                     Dispositivo / Nodo
                   </label>
                   <select
@@ -207,7 +207,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-[#535e5d] font-semibold mb-1.5">
+                  <label className="block text-slate font-semibold mb-1.5">
                     Tipo de Intervención
                   </label>
                   <select
@@ -225,7 +225,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
               </div>
 
               <div>
-                <label className="block text-[#535e5d] font-semibold mb-1.5">
+                <label className="block text-slate font-semibold mb-1.5">
                   Descripción Detallada de Trabajos y Hallazgos
                 </label>
                 <textarea
@@ -234,13 +234,13 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                   placeholder="ej. Se realizó calibración en 3 puntos con higrómetro de referencia certificado..."
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[16px] border border-[#4A7C59] bg-[#f3f1ec] text-[#101f1e] placeholder-[#4A7C59] focus:outline-none focus:border-[#104336]"
+                  className="w-full px-4 py-3 rounded-[16px] border border-[#4A7C59] bg-cream-paper text-bark placeholder-[#4A7C59] focus:outline-none focus:border-canopy"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#535e5d] font-semibold mb-1.5">
+                  <label className="block text-slate font-semibold mb-1.5">
                     Técnico Responsable
                   </label>
                   <input
@@ -251,7 +251,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-[#535e5d] font-semibold mb-1.5">
+                  <label className="block text-slate font-semibold mb-1.5">
                     Costo Estimado (USD)
                   </label>
                   <input
@@ -264,7 +264,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#afc4bf]">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-sage-mist">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}

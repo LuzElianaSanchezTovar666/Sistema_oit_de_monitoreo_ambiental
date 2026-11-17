@@ -90,28 +90,28 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   const activePoint = hoverIndex !== null && filteredReadings[hoverIndex] ? filteredReadings[hoverIndex] : null;
 
   return (
-    <div className="w-full bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
+    <div className="w-full bg-sheet-white rounded-[16px] p-6 space-y-4">
       {/* Controles de métrica y tiempo */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 className="text-[17px] font-semibold tracking-[-0.374px] text-[#101f1e] flex items-center gap-2">
+          <h3 className="text-[17px] font-semibold tracking-[-0.374px] text-bark flex items-center gap-2">
             <span>Serie Temporal de Telemetría</span>
-            <span className="text-xs text-[#535e5d] font-normal">· {locationName} ({sensorType})</span>
+            <span className="text-xs text-slate font-normal">· {locationName} ({sensorType})</span>
           </h3>
-          <p className="text-[12px] text-[#535e5d] mt-0.5">
+          <p className="text-[12px] text-slate mt-0.5">
             Streaming en vivo con detección de anomalías Isolation Forest
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Selector de Métrica en cápsula #f3f1ec */}
-          <div className="flex items-center p-1 bg-[#f3f1ec] rounded-[8px] text-[12px]">
+          <div className="flex items-center p-1 bg-cream-paper rounded-[8px] text-[12px]">
             <button
               onClick={() => setMetricMode('temp')}
               className={`px-3 py-1 rounded-[8px] transition-colors ${
                 metricMode === 'temp'
-                  ? 'bg-[#f3f1ec] text-[#104336] font-semibold'
-                  : 'text-[#535e5d] hover:text-[#101f1e]'
+                  ? 'bg-cream-paper text-canopy font-semibold'
+                  : 'text-slate hover:text-bark'
               }`}
             >
               Temp (°C)
@@ -120,8 +120,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
               onClick={() => setMetricMode('hum')}
               className={`px-3 py-1 rounded-[8px] transition-colors ${
                 metricMode === 'hum'
-                  ? 'bg-[#f3f1ec] text-[#0284C7] font-semibold'
-                  : 'text-[#535e5d] hover:text-[#101f1e]'
+                  ? 'bg-cream-paper text-[#0284C7] font-semibold'
+                  : 'text-slate hover:text-bark'
               }`}
             >
               Humedad (%)
@@ -130,8 +130,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
               onClick={() => setMetricMode('dual')}
               className={`px-3 py-1 rounded-[8px] transition-colors ${
                 metricMode === 'dual'
-                  ? 'bg-[#f3f1ec] text-[#101f1e] font-semibold'
-                  : 'text-[#535e5d] hover:text-[#101f1e]'
+                  ? 'bg-cream-paper text-bark font-semibold'
+                  : 'text-slate hover:text-bark'
               }`}
             >
               Ambas
@@ -139,15 +139,15 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           </div>
 
           {/* Selector de Rango de Tiempo */}
-          <div className="flex items-center p-1 bg-[#f3f1ec] rounded-[8px] text-[12px]">
+          <div className="flex items-center p-1 bg-cream-paper rounded-[8px] text-[12px]">
             {(['1h', '4h', '24h'] as const).map((w) => (
               <button
                 key={w}
                 onClick={() => setTimeWindow(w)}
                 className={`px-3 py-1 rounded-[8px] transition-colors uppercase ${
                   timeWindow === w
-                    ? 'bg-[#104336] text-[#ffffff] font-semibold'
-                    : 'text-[#535e5d] hover:text-[#101f1e]'
+                    ? 'bg-canopy text-sheet-white font-semibold'
+                    : 'text-slate hover:text-bark'
                 }`}
               >
                 {w}
@@ -158,7 +158,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       </div>
 
       {/* Canvas del Gráfico SVG en Verde Niebla Botánica (#f3f1ec, 28px radius) */}
-      <div className="relative w-full overflow-hidden bg-[#f3f1ec] border border-[#afc4bf] rounded-[16px] p-2">
+      <div className="relative w-full overflow-hidden bg-cream-paper border border-sage-mist rounded-[16px] p-2">
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="w-full h-auto cursor-crosshair select-none"
@@ -325,24 +325,24 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         {/* Tooltip flotante — Control Charcoal (#afc4bf) */}
         {activePoint && hoverIndex !== null && tempPoints[hoverIndex] && (
           <div
-            className="absolute top-3 pointer-events-none z-10 px-4 py-2.5 rounded-[16px] bg-[#f3f1ec]/95 text-[#101f1e] text-xs space-y-1 font-mono"
+            className="absolute top-3 pointer-events-none z-10 px-4 py-2.5 rounded-[16px] bg-cream-paper/95 text-bark text-xs space-y-1 font-mono"
             style={{
               left: `${Math.min(75, Math.max(10, (tempPoints[hoverIndex].x / width) * 100))}%`,
               transform: 'translateX(-50%)',
             }}
           >
-            <div className="text-[11px] text-[#535e5d] font-sans">
+            <div className="text-[11px] text-slate font-sans">
               {new Date(activePoint.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-[#104336] font-semibold">
+              <span className="text-canopy font-semibold">
                 {activePoint.temperatura.toFixed(2)}°C
               </span>
-              <span className="text-[#101f1e] font-semibold">
+              <span className="text-bark font-semibold">
                 {activePoint.humedad.toFixed(1)}%RH
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-[#535e5d]">
+            <div className="flex items-center gap-2 text-[10px] text-slate">
               <span>Z: {activePoint.z_score_temp}σ</span>
               <span>·</span>
               <span>Score IA: {activePoint.score_anomalia_ia}</span>
@@ -358,10 +358,10 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
       </div>
 
       {/* Leyenda y Notas del Gráfico */}
-      <div className="flex flex-wrap items-center justify-between text-[12px] text-[#535e5d] pt-2 border-t border-[#afc4bf]/60">
+      <div className="flex flex-wrap items-center justify-between text-[12px] text-slate pt-2 border-t border-sage-mist/60">
         <div className="flex items-center gap-5">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-1 bg-[#104336] rounded-full" />
+            <span className="w-3 h-1 bg-canopy rounded-full" />
             <span>Temperatura (°C)</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -374,7 +374,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           </div>
         </div>
         <div className="font-mono text-[11px]">
-          Frecuencia: <span className="font-semibold text-[#101f1e]">1 muestra / 2.5 seg</span>
+          Frecuencia: <span className="font-semibold text-bark">1 muestra / 2.5 seg</span>
         </div>
       </div>
     </div>

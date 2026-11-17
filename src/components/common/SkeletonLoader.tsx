@@ -6,9 +6,9 @@ export const SkeletonBox: React.FC<{
 }> = ({ className = 'h-4 w-full', rounded = 'rounded-[10px]' }) => {
   return (
     <div
-      className={`animate-pulse bg-[#FFFFFF] ${rounded} ${className} relative overflow-hidden`}
+      className={`animate-pulse bg-sheet-white ${rounded} ${className} relative overflow-hidden`}
     >
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[#afc4bf]/60 to-transparent" />
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-sage-mist/60 to-transparent" />
     </div>
   );
 };
@@ -27,7 +27,7 @@ export const HeroSkeleton: React.FC = () => {
             <SkeletonBox className="h-12 w-56" rounded="rounded-[36px]" />
             <SkeletonBox className="h-12 w-40" rounded="rounded-[999px]" />
           </div>
-          <div className="grid grid-cols-3 gap-4 pt-6 border-t border-[#afc4bf]">
+          <div className="grid grid-cols-3 gap-4 pt-6 border-t border-sage-mist">
             <SkeletonBox className="h-12 w-full" rounded="rounded-[16px]" />
             <SkeletonBox className="h-12 w-full" rounded="rounded-[16px]" />
             <SkeletonBox className="h-12 w-full" rounded="rounded-[16px]" />
@@ -50,7 +50,7 @@ export const CardGridSkeleton: React.FC<{ count?: number; cols?: string }> = ({
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="bg-[#FFFFFF] rounded-[16px] p-6 space-y-4"
+          className="bg-sheet-white rounded-[16px] p-6 space-y-4"
         >
           <div className="flex items-center justify-between">
             <SkeletonBox className="h-10 w-10" rounded="rounded-[8px]" />
@@ -59,7 +59,7 @@ export const CardGridSkeleton: React.FC<{ count?: number; cols?: string }> = ({
           <SkeletonBox className="h-6 w-3/4" />
           <SkeletonBox className="h-4 w-full" />
           <SkeletonBox className="h-4 w-5/6" />
-          <div className="pt-3 border-t border-[#afc4bf] flex justify-between">
+          <div className="pt-3 border-t border-sage-mist flex justify-between">
             <SkeletonBox className="h-4 w-24" />
             <SkeletonBox className="h-4 w-12" />
           </div>
@@ -75,7 +75,7 @@ export const FlowSequenceSkeleton: React.FC = () => {
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="bg-[#FFFFFF] rounded-[16px] p-4 space-y-3 text-center"
+          className="bg-sheet-white rounded-[16px] p-4 space-y-3 text-center"
         >
           <SkeletonBox className="h-10 w-10 mx-auto" rounded="rounded-[8px]" />
           <SkeletonBox className="h-4 w-20 mx-auto" />

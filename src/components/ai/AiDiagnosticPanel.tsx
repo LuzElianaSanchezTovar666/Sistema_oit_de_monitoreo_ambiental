@@ -89,11 +89,11 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="apple-card-heading text-[#101f1e] flex items-center gap-2.5">
-            <Sparkles className="w-6 h-6 text-[#104336]" />
+          <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
+            <Sparkles className="w-6 h-6 text-canopy" />
             <span>Motor Predictivo de IA y Detección de Anomalías</span>
           </h2>
-          <p className="text-[14px] text-[#535e5d] mt-1">
+          <p className="text-[14px] text-slate mt-1">
             Streaming de IA token a token · Timeout 6s · Caché Redis & Deduplicación de llamadas en vuelo
           </p>
         </div>
@@ -109,9 +109,9 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
       </div>
 
       {/* Selector de Ubicación — Charcoal Stage (#FFFFFF, 28px radius) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FFFFFF] p-4 rounded-[16px]">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-sheet-white p-4 rounded-[16px]">
         <div className="flex items-center gap-3">
-          <span className="text-xs text-[#535e5d]">Espacio Seleccionado:</span>
+          <span className="text-xs text-slate">Espacio Seleccionado:</span>
           <select
             value={selectedLocId}
             onChange={(e) => {
@@ -128,8 +128,8 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
           </select>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] font-mono text-[#104336]">
-          <Radio className={`w-3.5 h-3.5 ${loading ? 'animate-ping text-[#104336]' : 'text-[#104336]'}`} />
+        <div className="flex items-center gap-2 text-[11px] font-mono text-canopy">
+          <Radio className={`w-3.5 h-3.5 ${loading ? 'animate-ping text-canopy' : 'text-canopy'}`} />
           <span>{loading ? `STREAMING TOKEN #${streamedTokensCount}` : 'STREAMING TOKEN-A-TOKEN LISTO'}</span>
         </div>
       </div>
@@ -138,7 +138,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
       {(loading || report) && (
         <div className="space-y-4">
           <div
-            className={`rounded-[16px] bg-[#FFFFFF] p-6 space-y-5 ${
+            className={`rounded-[16px] bg-sheet-white p-6 space-y-5 ${
               report?.nivel_riesgo === 'CRITICO'
                 ? 'border border-[#DC2626]/50'
                 : report?.nivel_riesgo === 'MODERADO'
@@ -151,10 +151,10 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
                 <div
                   className={`w-11 h-11 rounded-full flex items-center justify-center ${
                     report?.nivel_riesgo === 'CRITICO'
-                      ? 'bg-[#DC2626] text-[#ffffff]'
+                      ? 'bg-[#DC2626] text-sheet-white'
                       : report?.nivel_riesgo === 'MODERADO'
-                      ? 'bg-[#f3f1ec] text-[#D97706]'
-                      : 'bg-[#104336]/15 text-[#104336]'
+                      ? 'bg-cream-paper text-[#D97706]'
+                      : 'bg-canopy/15 text-canopy'
                   }`}
                 >
                   {report?.nivel_riesgo === 'CRITICO' ? (
@@ -171,26 +171,26 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
                           ? 'text-[#DC2626]'
                           : report?.nivel_riesgo === 'MODERADO'
                           ? 'text-[#D97706]'
-                          : 'text-[#104336]'
+                          : 'text-canopy'
                       }`}
                     >
                       Nivel de Riesgo Operacional: {report?.nivel_riesgo || 'EVALUANDO...'}
                     </span>
-                    <span className="text-[#535e5d]">·</span>
-                    <span className="text-xs text-[#535e5d] font-mono">
+                    <span className="text-slate">·</span>
+                    <span className="text-xs text-slate font-mono">
                       {currentLocation?.nombre}
                     </span>
                   </div>
-                  <h3 className="text-[17px] font-semibold text-[#101f1e] mt-0.5">
+                  <h3 className="text-[17px] font-semibold text-bark mt-0.5">
                     Evaluación Termodinámica e Higrométrica (Stream en Vivo)
                   </h3>
                 </div>
               </div>
 
               {report && (
-                <div className="flex items-center gap-3 text-xs font-mono text-[#535e5d]">
+                <div className="flex items-center gap-3 text-xs font-mono text-slate">
                   <span className="flex items-center gap-1">
-                    <Zap className="w-3.5 h-3.5 text-[#104336]" />
+                    <Zap className="w-3.5 h-3.5 text-canopy" />
                     Inferencia: {report.tiempo_inferencia_ms}ms
                   </span>
                   <span>·</span>
@@ -203,40 +203,40 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
             </div>
 
             {/* Salida Token a Token con cursor activo */}
-            <div className="apple-body text-[#101f1e] bg-[#f3f1ec] p-5 rounded-[16px] font-sans">
+            <div className="apple-body text-bark bg-cream-paper p-5 rounded-[16px] font-sans">
               <span>{streamedText || report?.diagnostico_general}</span>
               {loading && (
-                <span className="inline-block w-2 h-4 ml-1 bg-[#104336] animate-pulse align-middle" />
+                <span className="inline-block w-2 h-4 ml-1 bg-canopy animate-pulse align-middle" />
               )}
             </div>
 
             {/* Dos Columnas: Patrones y Recomendaciones */}
             {report && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-[16px]">
-                <div className="bg-[#f3f1ec] rounded-[16px] p-5 space-y-3">
-                  <h4 className="text-[14px] font-semibold text-[#101f1e] flex items-center gap-2">
-                    <BrainCircuit className="w-4 h-4 text-[#104336]" />
+                <div className="bg-cream-paper rounded-[16px] p-5 space-y-3">
+                  <h4 className="text-[14px] font-semibold text-bark flex items-center gap-2">
+                    <BrainCircuit className="w-4 h-4 text-canopy" />
                     <span>Patrones en Series Temporales</span>
                   </h4>
-                  <ul className="space-y-2 text-[14px] text-[#535e5d]">
+                  <ul className="space-y-2 text-[14px] text-slate">
                     {report.patrones_detectados.map((pat, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="text-[#104336] font-bold shrink-0 mt-0.5">›</span>
+                        <span className="text-canopy font-bold shrink-0 mt-0.5">›</span>
                         <span>{pat}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="bg-[#f3f1ec] rounded-[16px] p-5 space-y-3">
-                  <h4 className="text-[14px] font-semibold text-[#101f1e] flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-[#104336]" />
+                <div className="bg-cream-paper rounded-[16px] p-5 space-y-3">
+                  <h4 className="text-[14px] font-semibold text-bark flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-canopy" />
                     <span>Recomendaciones Preventivas</span>
                   </h4>
-                  <ul className="space-y-2 text-[14px] text-[#535e5d]">
+                  <ul className="space-y-2 text-[14px] text-slate">
                     {report.recomendaciones_preventivas.map((rec, idx) => (
                       <li key={idx} className="flex items-start gap-2">
-                        <span className="text-[#104336] font-bold shrink-0 mt-0.5">✓</span>
+                        <span className="text-canopy font-bold shrink-0 mt-0.5">✓</span>
                         <span>{rec}</span>
                       </li>
                     ))}
@@ -249,25 +249,25 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
       )}
 
       {/* Tarjeta Explicativa de Arquitectura IA */}
-      <div className="bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
-        <h4 className="text-[14px] font-semibold text-[#101f1e]">
+      <div className="bg-sheet-white rounded-[16px] p-6 space-y-4">
+        <h4 className="text-[14px] font-semibold text-bark">
           Métricas de Desempeño del Motor de IA (Especificación SRS SIMOA)
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px] text-xs font-mono">
-          <div className="p-[16px] rounded-[16px] bg-[#f3f1ec] space-y-1">
-            <span className="text-[11px] text-[#535e5d] block font-sans">Meta de Latencia Inferencia</span>
-            <span className="apple-metric-display text-[#104336] block py-1">&le;200ms</span>
-            <span className="text-[11px] text-[#535e5d] block font-sans">Streaming Token-a-Token</span>
+          <div className="p-[16px] rounded-[16px] bg-cream-paper space-y-1">
+            <span className="text-[11px] text-slate block font-sans">Meta de Latencia Inferencia</span>
+            <span className="apple-metric-display text-canopy block py-1">&le;200ms</span>
+            <span className="text-[11px] text-slate block font-sans">Streaming Token-a-Token</span>
           </div>
-          <div className="p-[16px] rounded-[16px] bg-[#f3f1ec] space-y-1">
-            <span className="text-[11px] text-[#535e5d] block font-sans">Timeout API Externa</span>
-            <span className="apple-metric-display text-[#104336] block py-1">6.0s</span>
-            <span className="text-[11px] text-[#535e5d] block font-sans">AbortController + Fallback</span>
+          <div className="p-[16px] rounded-[16px] bg-cream-paper space-y-1">
+            <span className="text-[11px] text-slate block font-sans">Timeout API Externa</span>
+            <span className="apple-metric-display text-canopy block py-1">6.0s</span>
+            <span className="text-[11px] text-slate block font-sans">AbortController + Fallback</span>
           </div>
-          <div className="p-[16px] rounded-[16px] bg-[#f3f1ec] space-y-1">
-            <span className="text-[11px] text-[#535e5d] block font-sans">Algoritmo Híbrido</span>
-            <span className="apple-metric-display text-[#101f1e] block py-1">3.0σ</span>
-            <span className="text-[11px] text-[#535e5d] block font-sans">Isolation Forest + Z-Score</span>
+          <div className="p-[16px] rounded-[16px] bg-cream-paper space-y-1">
+            <span className="text-[11px] text-slate block font-sans">Algoritmo Híbrido</span>
+            <span className="apple-metric-display text-bark block py-1">3.0σ</span>
+            <span className="text-[11px] text-slate block font-sans">Isolation Forest + Z-Score</span>
           </div>
         </div>
       </div>

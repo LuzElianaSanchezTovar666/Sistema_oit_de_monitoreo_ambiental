@@ -108,11 +108,11 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="apple-card-heading text-[#101f1e] flex items-center gap-2.5">
+          <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
             <AlertTriangle className="w-6 h-6 text-[#DC2626]" />
             <span>Centro de Alertas e Incidencias Ambientales</span>
           </h2>
-          <p className="text-[14px] text-[#535e5d] mt-1">
+          <p className="text-[14px] text-slate mt-1">
             Gestión con Optimistic UI · Búsqueda con debounce · Índices O(1) sin N+1 · Paginación activa
           </p>
         </div>
@@ -120,12 +120,12 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#f3f1ec] text-[12px] font-medium text-[#101f1e] hover:bg-[#f3f1ec]/80 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-cream-paper text-[12px] font-medium text-bark hover:bg-cream-paper/80 transition-colors"
           >
             {soundEnabled ? (
-              <Volume2 className="w-3.5 h-3.5 text-[#104336]" />
+              <Volume2 className="w-3.5 h-3.5 text-canopy" />
             ) : (
-              <VolumeX className="w-3.5 h-3.5 text-[#535e5d]" />
+              <VolumeX className="w-3.5 h-3.5 text-slate" />
             )}
             <span>{soundEnabled ? 'Alarma Sonora Activa' : 'Alarma Silenciada'}</span>
           </button>
@@ -134,52 +134,52 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-[16px]">
-        <div className="bg-[#FFFFFF] rounded-[16px] p-[16px] flex items-center justify-between">
+        <div className="bg-sheet-white rounded-[16px] p-[16px] flex items-center justify-between">
           <div>
-            <span className="text-[12px] font-semibold text-[#535e5d] uppercase tracking-wider">
+            <span className="text-[12px] font-semibold text-slate uppercase tracking-wider">
               Pendientes
             </span>
             <div className="apple-metric-display text-[#DC2626] mt-1 tabular-nums">
               {pendingCount}
             </div>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#f3f1ec] flex items-center justify-center text-[#DC2626]">
+          <div className="w-11 h-11 rounded-full bg-cream-paper flex items-center justify-center text-[#DC2626]">
             <AlertOctagon className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#FFFFFF] rounded-[16px] p-[16px] flex items-center justify-between">
+        <div className="bg-sheet-white rounded-[16px] p-[16px] flex items-center justify-between">
           <div>
-            <span className="text-[12px] font-semibold text-[#535e5d] uppercase tracking-wider">
+            <span className="text-[12px] font-semibold text-slate uppercase tracking-wider">
               En Atención
             </span>
             <div className="apple-metric-display text-[#D97706] mt-1 tabular-nums">
               {inProgressCount}
             </div>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#f3f1ec] flex items-center justify-center text-[#D97706]">
+          <div className="w-11 h-11 rounded-full bg-cream-paper flex items-center justify-center text-[#D97706]">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#FFFFFF] rounded-[16px] p-[16px] flex items-center justify-between">
+        <div className="bg-sheet-white rounded-[16px] p-[16px] flex items-center justify-between">
           <div>
-            <span className="text-[12px] font-semibold text-[#535e5d] uppercase tracking-wider">
+            <span className="text-[12px] font-semibold text-slate uppercase tracking-wider">
               Resueltas
             </span>
-            <div className="apple-metric-display text-[#104336] mt-1 tabular-nums">
+            <div className="apple-metric-display text-canopy mt-1 tabular-nums">
               {resolvedCount}
             </div>
           </div>
-          <div className="w-11 h-11 rounded-full bg-[#f3f1ec] flex items-center justify-center text-[#104336]">
+          <div className="w-11 h-11 rounded-full bg-cream-paper flex items-center justify-center text-canopy">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Filtros y Búsqueda con Debounce */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[#FFFFFF] p-4 rounded-[16px]">
-        <div className="flex flex-wrap items-center gap-1 p-1 bg-[#f3f1ec] rounded-[8px] text-[12px]">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-sheet-white p-4 rounded-[16px]">
+        <div className="flex flex-wrap items-center gap-1 p-1 bg-cream-paper rounded-[8px] text-[12px]">
           <button
             onClick={() => {
               setFilterStatus('all');
@@ -187,8 +187,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
             }}
             className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               filterStatus === 'all'
-                ? 'bg-[#f3f1ec] text-[#101f1e] font-semibold'
-                : 'text-[#535e5d] hover:text-[#101f1e]'
+                ? 'bg-cream-paper text-bark font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             Todas ({alerts.length})
@@ -200,8 +200,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
             }}
             className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               filterStatus === 'PENDIENTE'
-                ? 'bg-[#f3f1ec] text-[#DC2626] font-semibold'
-                : 'text-[#535e5d] hover:text-[#101f1e]'
+                ? 'bg-cream-paper text-[#DC2626] font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             Pendientes ({pendingCount})
@@ -213,8 +213,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
             }}
             className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               filterStatus === 'EN_ATENCION'
-                ? 'bg-[#f3f1ec] text-[#D97706] font-semibold'
-                : 'text-[#535e5d] hover:text-[#101f1e]'
+                ? 'bg-cream-paper text-[#D97706] font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             En Atención ({inProgressCount})
@@ -226,8 +226,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
             }}
             className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               filterStatus === 'RESUELTA'
-                ? 'bg-[#f3f1ec] text-[#104336] font-semibold'
-                : 'text-[#535e5d] hover:text-[#101f1e]'
+                ? 'bg-cream-paper text-canopy font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             Resueltas ({resolvedCount})
@@ -236,7 +236,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
 
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3.5 top-2.5 text-[#535e5d]" />
+            <Search className="w-3.5 h-3.5 absolute left-3.5 top-2.5 text-slate" />
             <input
               type="text"
               placeholder="Filtrar alertas..."
@@ -249,7 +249,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
             />
           </div>
 
-          <Filter className="w-3.5 h-3.5 text-[#535e5d] ml-1" />
+          <Filter className="w-3.5 h-3.5 text-slate ml-1" />
           <select
             value={filterSeverity}
             onChange={(e) => {
@@ -268,12 +268,12 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
       {/* Lista Paginada de Alertas (Sin consultas N+1) */}
       <div className="space-y-3">
         {paginatedAlerts.items.length === 0 ? (
-          <div className="bg-[#FFFFFF] rounded-[16px] p-12 text-center space-y-2">
-            <CheckCircle2 className="w-10 h-10 text-[#104336] mx-auto" />
-            <h4 className="text-[17px] font-semibold text-[#101f1e]">
+          <div className="bg-sheet-white rounded-[16px] p-12 text-center space-y-2">
+            <CheckCircle2 className="w-10 h-10 text-canopy mx-auto" />
+            <h4 className="text-[17px] font-semibold text-bark">
               No existen alertas registradas con los filtros seleccionados
             </h4>
-            <p className="text-[14px] text-[#535e5d] max-w-sm mx-auto">
+            <p className="text-[14px] text-slate max-w-sm mx-auto">
               Todos los recintos e instalaciones se encuentran operando dentro de sus rangos ambientales nominales.
             </p>
           </div>
@@ -288,7 +288,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
             return (
               <div
                 key={alt.id_alerta}
-                className={`bg-[#FFFFFF] rounded-[16px] p-5 transition-all ${
+                className={`bg-sheet-white rounded-[16px] p-5 transition-all ${
                   isPending
                     ? 'border border-[#DC2626]/50'
                     : isResolved
@@ -302,7 +302,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
                       className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                         alt.nivel === 'CRITICA'
                           ? 'bg-[#DC2626]/20 text-[#DC2626]'
-                          : 'bg-[#f3f1ec] text-[#D97706]'
+                          : 'bg-cream-paper text-[#D97706]'
                       }`}
                     >
                       {alt.nivel === 'CRITICA' ? (
@@ -317,37 +317,37 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
                         <span
                           className={`text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-[5px] ${
                             alt.nivel === 'CRITICA'
-                              ? 'bg-[#DC2626] text-[#ffffff]'
+                              ? 'bg-[#DC2626] text-sheet-white'
                               : 'apple-badge-orange'
                           }`}
                         >
                           {alt.nivel}
                         </span>
-                        <span className="text-[14px] font-semibold text-[#101f1e]">
+                        <span className="text-[14px] font-semibold text-bark">
                           {loc?.nombre || 'Ubicación'}
                         </span>
-                        <span className="text-[#535e5d]">·</span>
-                        <span className="text-xs text-[#535e5d] font-mono">
+                        <span className="text-slate">·</span>
+                        <span className="text-xs text-slate font-mono">
                           {sensor?.tipo_sensor} ({dev?.nombre})
                         </span>
-                        <span className="text-[#535e5d]">·</span>
-                        <span className="text-xs text-[#535e5d] font-mono">
+                        <span className="text-slate">·</span>
+                        <span className="text-xs text-slate font-mono">
                           {new Date(alt.fecha_hora).toLocaleTimeString()}
                         </span>
                       </div>
 
-                      <p className="text-[14px] text-[#101f1e]">
+                      <p className="text-[14px] text-bark">
                         {alt.mensaje}
                       </p>
 
                       {isResolved && (
-                        <div className="text-[12px] text-[#104336] bg-[#f3f1ec] p-3 rounded-[16px] mt-2 space-y-0.5">
+                        <div className="text-[12px] text-canopy bg-cream-paper p-3 rounded-[16px] mt-2 space-y-0.5">
                           <div className="font-semibold flex items-center gap-1.5">
                             <Check className="w-3.5 h-3.5" />
                             <span>Resuelta por: {alt.atendido_por || 'Personal de Turno'}</span>
                           </div>
-                          <div className="text-[#535e5d]">Causa: {alt.motivo_resolucion}</div>
-                          {alt.notas_resolucion && <div className="text-[#535e5d]">Notas: {alt.notas_resolucion}</div>}
+                          <div className="text-slate">Causa: {alt.motivo_resolucion}</div>
+                          {alt.notas_resolucion && <div className="text-slate">Notas: {alt.notas_resolucion}</div>}
                         </div>
                       )}
                     </div>
@@ -371,8 +371,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
       </div>
 
       {/* Paginación de Alertas */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#FFFFFF] px-5 py-3.5 rounded-[16px] text-xs">
-        <span className="text-[#535e5d] font-mono">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-sheet-white px-5 py-3.5 rounded-[16px] text-xs">
+        <span className="text-slate font-mono">
           Página {paginatedAlerts.page} de {paginatedAlerts.totalPages} · {paginatedAlerts.totalItems} alertas totales
         </span>
         <div className="flex items-center gap-2">
@@ -398,32 +398,32 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
       {/* Modal: Atender y Resolver Alerta */}
       {selectedAlertForModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-          <div className="bg-[#FFFFFF] border border-[#afc4bf] rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#afc4bf] pb-3">
-              <h3 className="text-[17px] font-semibold text-[#101f1e] flex items-center gap-2">
+          <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
+            <div className="flex items-center justify-between border-b border-sage-mist pb-3">
+              <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
                 <AlertOctagon className="w-5 h-5 text-[#DC2626]" />
                 <span>Protocolo de Atención de Incidencia</span>
               </h3>
               <button
                 onClick={onCloseModal}
-                className="text-[#535e5d] hover:text-[#101f1e] text-sm font-semibold"
+                className="text-slate hover:text-bark text-sm font-semibold"
               >
                 ✕
               </button>
             </div>
 
-            <div className="p-4 bg-[#f3f1ec] rounded-[16px] border border-[#DC2626]/40 text-xs space-y-1">
-              <div className="font-semibold text-[#101f1e]">
+            <div className="p-4 bg-cream-paper rounded-[16px] border border-[#DC2626]/40 text-xs space-y-1">
+              <div className="font-semibold text-bark">
                 {selectedAlertForModal.mensaje}
               </div>
-              <div className="text-[11px] text-[#535e5d] font-mono">
+              <div className="text-[11px] text-slate font-mono">
                 Estampa: {new Date(selectedAlertForModal.fecha_hora).toLocaleString()} · Operador: {currentUser.nombre}
               </div>
             </div>
 
             <form onSubmit={handleSubmitResolution} className="space-y-4 text-xs">
               <div>
-                <label className="block text-[#535e5d] font-semibold mb-1.5">
+                <label className="block text-slate font-semibold mb-1.5">
                   Causa Raíz Identificada (Catálogo Normalizado)
                 </label>
                 <select
@@ -440,7 +440,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
               </div>
 
               <div>
-                <label className="block text-[#535e5d] font-semibold mb-1.5">
+                <label className="block text-slate font-semibold mb-1.5">
                   Acción Correctiva Ejecutada / Observaciones Técnicas
                 </label>
                 <textarea
@@ -449,12 +449,12 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
                   placeholder="ej. Se restableció compuerta frigorífica y se confirmó estabilización térmica..."
                   value={customNotas}
                   onChange={(e) => setCustomNotas(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[16px] border border-[#4A7C59] bg-[#f3f1ec] text-[#101f1e] placeholder-[#4A7C59] focus:outline-none focus:border-[#104336]"
+                  className="w-full px-4 py-3 rounded-[16px] border border-[#4A7C59] bg-cream-paper text-bark placeholder-[#4A7C59] focus:outline-none focus:border-canopy"
                 />
               </div>
 
               <div>
-                <label className="block text-[#535e5d] font-semibold mb-1.5">
+                <label className="block text-slate font-semibold mb-1.5">
                   Estado de Cierre
                 </label>
                 <div className="grid grid-cols-2 gap-2.5">
@@ -463,8 +463,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
                     onClick={() => setTargetState('RESUELTA')}
                     className={`py-2.5 px-4 rounded-[8px] border font-semibold transition-colors ${
                       targetState === 'RESUELTA'
-                        ? 'bg-[#104336] text-[#f3f1ec] border-[#104336]'
-                        : 'border-[#4A7C59] text-[#101f1e]'
+                        ? 'bg-canopy text-cream-paper border-canopy'
+                        : 'border-[#4A7C59] text-bark'
                     }`}
                   >
                     Marcar como Resuelta
@@ -474,8 +474,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
                     onClick={() => setTargetState('EN_ATENCION')}
                     className={`py-2.5 px-4 rounded-[8px] border font-semibold transition-colors ${
                       targetState === 'EN_ATENCION'
-                        ? 'bg-[#D97706] text-[#f3f1ec] border-[#D97706]'
-                        : 'border-[#4A7C59] text-[#101f1e]'
+                        ? 'bg-[#D97706] text-cream-paper border-[#D97706]'
+                        : 'border-[#4A7C59] text-bark'
                     }`}
                   >
                     En Atención / Seguimiento
@@ -483,7 +483,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#afc4bf]">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-sage-mist">
                 <button
                   type="button"
                   onClick={onCloseModal}

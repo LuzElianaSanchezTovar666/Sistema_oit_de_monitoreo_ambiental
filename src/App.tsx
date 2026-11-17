@@ -57,9 +57,9 @@ class SystemErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-8 bg-[#FFFFFF] border border-[#afc4bf] rounded-[16px] text-center space-y-4">
-          <h3 className="text-lg font-semibold text-[#101f1e]">Ocurrió un error al cargar el módulo</h3>
-          <p className="text-sm text-[#535e5d]">{this.state.message}</p>
+        <div className="p-8 bg-sheet-white border border-sage-mist rounded-[16px] text-center space-y-4">
+          <h3 className="text-lg font-semibold text-bark">Ocurrió un error al cargar el módulo</h3>
+          <p className="text-sm text-slate">{this.state.message}</p>
           <button
             onClick={() => {
               this.setState({ hasError: false, message: '' });
@@ -124,12 +124,8 @@ const SrsDocumentationView = React.lazy(() =>
 );
 
 export default function App() {
-  // Theme state — SIMOA Environmental Eco-Tech palette
-  const [darkMode, setDarkMode] = useState<boolean>(false);
-
   useEffect(() => {
     document.documentElement.classList.remove('dark');
-    localStorage.setItem('ecosense_theme', 'environmental');
     if ('serviceWorker' in navigator && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
       navigator.serviceWorker.getRegistrations().then((regs) => {
         regs.forEach((r) => r.unregister());
@@ -138,7 +134,7 @@ export default function App() {
         caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
       }
     }
-  }, [darkMode]);
+  }, []);
 
   // Mode: 'landing' (Página pública de presentación) vs 'system' (Plataforma de gestión IoT)
   const [viewMode, setViewMode] = useState<'landing' | 'system'>(() => {
@@ -260,21 +256,6 @@ export default function App() {
           setAlerts(loadedAlerts);
           setMaintenances(loadedMaint);
           setDlqEntries(loadedDlq);
-
-          const initialBuf = telemetryEngineInstance.generateInitialHistory(
-            loadedDevices,
-            loadedSensors
-          );
-          setReadingsHistory({ ...initialBuf });
-
-          const latest: { [sensorId: string]: Medicion } = {};
-          loadedSensors.forEach((s) => {
-            const history = initialBuf[s.id_sensor] || [];
-            if (history.length > 0) {
-              latest[s.id_sensor] = history[history.length - 1];
-            }
-          });
-          setLatestReadings(latest);
           setInitialLoading(false);
         }
       );
@@ -444,32 +425,32 @@ export default function App() {
   // Wrapper de simulación móvil cuando el usuario elige probar en celulares (iPhone 15 390px / Android 412px)
   const mobileFrameClass =
     viewportProfile === 'iphone-15'
-      ? 'max-w-[390px] mx-auto border-x-4 border-[#afc4bf]  min-h-screen'
+      ? 'max-w-[390px] mx-auto border-x-4 border-sage-mist  min-h-screen'
       : viewportProfile === 'android-mid'
-      ? 'max-w-[412px] mx-auto border-x-4 border-[#afc4bf]  min-h-screen'
+      ? 'max-w-[412px] mx-auto border-x-4 border-sage-mist  min-h-screen'
       : '';
 
   // Estado de carga inicial con Skeleton Shimmer en Gallery Black
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-[#f3f1ec] p-6 flex flex-col justify-center items-center">
+      <div className="min-h-screen bg-cream-paper p-6 flex flex-col justify-center items-center">
         <HeroSkeleton />
       </div>
     );
   }
 
   return (
-    <div className={`bg-[#f3f1ec] min-h-screen ${mobileFrameClass}`}>
+    <div className={`bg-cream-paper min-h-screen ${mobileFrameClass}`}>
       {/* Barra superior de Simulación de Celular activa */}
       {viewportProfile !== 'desktop' && (
-        <div className="sticky top-0 z-50 bg-[#104336] text-[#ffffff] px-4 py-1.5 text-[11px] font-semibold flex items-center justify-between">
+        <div className="sticky top-0 z-50 bg-canopy text-sheet-white px-4 py-1.5 text-[11px] font-semibold flex items-center justify-between">
           <span className="flex items-center gap-1.5 font-mono">
             <Smartphone className="w-3.5 h-3.5" />
             Simulador Móvil: {viewportProfile === 'iphone-15' ? 'iPhone 15 Pro (390px)' : 'Android Gama Media (412px)'}
           </span>
           <button
             onClick={() => networkSimulator.setViewport('desktop')}
-            className="px-2.5 py-0.5 rounded-[8px] bg-[#FFFFFF]/25 hover:bg-[#0A2E17]/55 text-[10px]"
+            className="px-2.5 py-0.5 rounded-[8px] bg-sheet-white/25 hover:bg-[#0A2E17]/55 text-[10px]"
           >
             Salir a Desktop
           </button>
@@ -478,7 +459,7 @@ export default function App() {
 
       <Suspense
         fallback={
-          <div className="min-h-screen bg-[#f3f1ec] p-6 flex flex-col justify-center items-center">
+          <div className="min-h-screen bg-cream-paper p-6 flex flex-col justify-center items-center">
             <HeroSkeleton />
           </div>
         }
@@ -494,14 +475,12 @@ export default function App() {
               setViewMode('system');
               window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
             }}
-            darkMode={darkMode}
-            onToggleDarkMode={() => setDarkMode(!darkMode)}
             skeletonMode={skeletonMode}
             onToggleSkeletonMode={() => setSkeletonMode(!skeletonMode)}
             onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
           />
         ) : (
-          <div className="min-h-screen bg-[#f3f1ec] text-[#101f1e] flex flex-col transition-colors">
+          <div className="min-h-screen bg-cream-paper text-bark flex flex-col transition-colors">
             {/* Top Navigation Bar con acceso a volver a la Landing y Consola RUM */}
             <Navbar
               currentUser={currentUser}
@@ -511,8 +490,6 @@ export default function App() {
               onOpenAlerts={() => setActiveTab('alerts')}
               onOpenSimulator={() => setShowSimulator(true)}
               onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
-              darkMode={darkMode}
-              onToggleDarkMode={() => setDarkMode(!darkMode)}
               activeTab={activeTab}
               onTabChange={setActiveTab}
               isStreaming={isStreaming}
@@ -536,12 +513,12 @@ export default function App() {
                 {skeletonMode ? (
                   <div className="space-y-6">
                     <div className="flex justify-between items-center pb-2">
-                      <span className="font-semibold text-xs text-[#104336] font-mono">
+                      <span className="font-semibold text-xs text-canopy font-mono">
                         [Vista Skeleton Activa en Panel de Gestión]
                       </span>
                       <button
                         onClick={() => setSkeletonMode(false)}
-                        className="px-4 py-1.5 text-xs rounded-[8px] bg-[#104336] text-[#ffffff] font-semibold"
+                        className="px-4 py-1.5 text-xs rounded-[8px] bg-canopy text-sheet-white font-semibold"
                       >
                         Ver Datos Reales
                       </button>
@@ -632,12 +609,12 @@ export default function App() {
 
                     {activeTab === 'simulator' && (
                       <div className="space-y-6">
-                        <div className="bg-[#FFFFFF] p-8 rounded-[16px] space-y-4">
+                        <div className="bg-sheet-white p-8 rounded-[16px] space-y-4">
                           <span className="apple-badge-orange inline-block">ENTORNO DE PRUEBAS E2E</span>
-                          <h3 className="apple-card-heading text-[#101f1e]">
+                          <h3 className="apple-card-heading text-bark">
                             Simulador de Campo &amp; Pruebas de Resiliencia
                           </h3>
-                          <p className="apple-body text-[#535e5d] max-w-2xl">
+                          <p className="apple-body text-slate max-w-2xl">
                             Abra la consola de control para emular microcontroladores ESP32 en condiciones de sobrecalentamiento, desconexión de red o ingesta de paquetes corruptos hacia la Dead Letter Queue (DLQ).
                           </p>
                           <div className="pt-2 flex flex-wrap gap-3">
@@ -713,10 +690,10 @@ export default function App() {
       {/* Global Toast Notification — SIMOA Eco Capsule */}
       {toastMessage && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-[36px] bg-[#FFFFFF] border border-[#104336]  text-[#101f1e] text-[14px] font-semibold leading-[18px] tracking-[-0.224px] animate-slideUp"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-[36px] bg-sheet-white border border-canopy  text-bark text-[14px] font-semibold leading-[18px] tracking-[-0.224px] animate-slideUp"
         >
           {toastType === 'success' ? (
-            <Check className="w-4 h-4 text-[#104336] shrink-0" />
+            <Check className="w-4 h-4 text-canopy shrink-0" />
           ) : (
             <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
           )}

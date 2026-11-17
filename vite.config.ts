@@ -42,6 +42,12 @@ export default defineConfig(() => {
         'Cache-Control': 'public, max-age=3600',
         'X-CDN-Pop': 'simoa-local-edge',
       },
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+        },
+      },
     },
   };
 });
