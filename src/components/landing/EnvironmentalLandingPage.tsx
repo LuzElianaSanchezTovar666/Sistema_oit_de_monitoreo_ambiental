@@ -150,14 +150,14 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </button>
       </div>
 
-      {/* 2. TOP NAVIGATION — Sheet White (#ffffff), 68px height, 1px Sage Mist (#afc4bf) border */}
+      {/* 2. TOP NAVIGATION — Sheet White (#ffffff), 72px height, 1px Sage Mist (#afc4bf) border */}
       <header className="sticky top-0 z-50 bg-[#ffffff] border-b border-[#afc4bf]">
-        <div className="max-w-[1200px] mx-auto px-6 h-[68px] flex items-center justify-between gap-6">
+        <div className="max-w-[1200px] mx-auto px-6 h-[72px] flex items-center justify-between gap-6">
           <a href="#inicio" className="flex items-center gap-3 shrink-0 focus:outline-none">
             <img
               src="/assets/images/simoa-logo.webp"
               alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-              className="h-9 w-auto object-contain"
+              className="h-12 sm:h-14 w-auto object-contain"
             />
           </a>
 

@@ -79,8 +79,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
       </div>
 
-      {/* Top Navigation — Sheet White (#ffffff), 68px height, 1px Sage Mist (#afc4bf) border */}
-      <header className="flex items-center justify-between gap-6 px-6 h-[68px] bg-[#ffffff] border-b border-[#afc4bf]">
+      {/* Top Navigation — Sheet White (#ffffff), 72px height, 1px Sage Mist (#afc4bf) border */}
+      <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-[#ffffff] border-b border-[#afc4bf]">
         {/* Brand Logo */}
         <div className="flex items-center gap-3 shrink-0">
           <button
@@ -91,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <img
               src="/assets/images/simoa-logo.webp"
               alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-              className="h-9 w-auto object-contain"
+              className="h-12 sm:h-14 w-auto object-contain"
             />
           </button>
         </div>

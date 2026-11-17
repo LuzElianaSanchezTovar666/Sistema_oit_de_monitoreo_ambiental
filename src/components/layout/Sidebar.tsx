@@ -92,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <img
             src="/assets/images/simoa-logo.webp"
             alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-            className="h-9 w-auto object-contain"
+            className="h-14 w-auto object-contain"
           />
         </div>
 
