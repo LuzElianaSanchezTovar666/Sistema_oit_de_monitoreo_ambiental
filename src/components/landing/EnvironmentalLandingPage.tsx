@@ -1,4 +1,4 @@
-﻿import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Activity,
   Cpu,
@@ -140,12 +140,6 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         <span>
           SIMOA Observatorio v2.4 · Monitoreo ambiental IoT con telemetría MQTTS y diagnóstico IA en vivo
         </span>
-        <button
-          onClick={() => onEnterSystem('dashboard')}
-          className="hidden sm:inline-flex items-center gap-1 text-mint-pulse hover:underline font-medium cursor-pointer"
-        >
-          Explorar panel →
-        </button>
       </div>
 
       {/* 2. TOP NAVIGATION — Sheet White (#ffffff), 72px height, 1px Sage Mist (#afc4bf) border */}
@@ -178,13 +172,13 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </nav>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => onEnterSystem('dashboard')}
-              className="arcadia-btn-primary px-5 py-2.5 text-[14px] cursor-pointer flex items-center gap-2"
+            <a
+              href="#contacto"
+              className="arcadia-btn-primary px-5 py-2.5 text-[14px] inline-flex items-center gap-2"
             >
-              Abrir plataforma
+              Solicitar demo
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </a>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden p-2 rounded-[8px] border border-sage-mist text-bark cursor-pointer"
