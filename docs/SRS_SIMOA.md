@@ -49,7 +49,7 @@
    - 2.4 Suposiciones y Dependencias
 3. [Requisitos Específicos del Sistema](#3-requisitos-específicos-del-sistema)
    - 3.1 Requisitos Comunes de las Interfaces (UI, Hardware, Software, Comunicaciones)
-   - 3.2 Diagramas de Casos de Uso (Muy General, General y Específicos)
+   - 3.2 Diagramas de Casos de Uso (General, Específicos y Matriz de Coherencia)
    - 3.3 Catálogo y Fichas Detalladas de Requerimientos Funcionales (RF-01 al RF-20)
    - 3.4 Catálogo y Fichas Detalladas de Requerimientos No Funcionales (RNF-01 al RNF-12)
    - 3.5 Historias de Usuario (HU-01 a HU-13) con Criterios de Aceptación
@@ -174,8 +174,10 @@ SIMOA es un sistema híbrido ciberfísico autónomo compuesto por tres subsistem
 
 | Perfil de Usuario | Nivel Técnico | Responsabilidades en SIMOA |
 | :--- | :--- | :--- |
-| **Administrador del Sistema** | Alto | Registro de nuevos nodos ESP32, asignación de sensores, configuración de umbrales críticos de temperatura/humedad, auditoría de usuarios y parametrización de backups. |
-| **Operador Ambiental** | Medio / Básico | Monitoreo visual de tacómetros en tiempo real, supervisión de alertas, consulta y filtrado de gráficos históricos, descarga de reportes CSV. |
+| **Administrador del Sistema** | Alto | Gestión de cuentas de usuario y asignación de permisos/roles, registro de nuevos nodos ESP32, gestión de dispositivos y sensores, configuración de parámetros del sistema y umbrales críticos de temperatura/humedad, auditoría y parametrización de backups. |
+| **Usuario (Operador Ambiental)** | Medio / Básico | Inicio de sesión seguro, monitoreo visual de temperatura y humedad en tiempo real, visualización de gráficas de tendencia, consulta de alertas, historiales y análisis de anomalías, y descarga de reportes. |
+| **Técnico de Mantenimiento** | Medio / Alto | Inicio de sesión seguro, consulta del estado operativo de los equipos, verificación de conexiones Wi-Fi/MQTT (en línea/desconectado) y ejecución de las funciones de mantenimiento, calibración y actualización de estado técnico establecidas en el SRS. |
+| **Supervisor** | Medio | Inicio de sesión seguro, lectura de paneles de monitoreo ambiental en tiempo real, consulta de históricos, gráficas y anomalías IA, supervisión/gestión del estado de alertas y exportación de reportes consolidados. |
 
 ### 2.3 Restricciones Técnicas y Operativas
 - **Tiempo de entrega:** 4 semanas estrictas según cronograma Scrum.
@@ -216,13 +218,17 @@ SIMOA es un sistema híbrido ciberfísico autónomo compuesto por tres subsistem
 
 ### 3.2 Diagramas de Casos de Uso
 
-#### Diagrama de Casos de Uso General
+#### 3.2.1 Diagrama de Casos de Uso General
+
+El siguiente diagrama representa la visión global de las funcionalidades de **SIMOA** y la interacción de todos los actores del sistema (perfiles humanos y nodo físico IoT):
 
 ```mermaid
 flowchart LR
     subgraph Actores
-        Operador["👤 Operador Ambiental"]
-        Admin["👤 Administrador del Sistema"]
+        Usuario["👤 Usuario / Operador Ambiental"]
+        Admin["👤 Administrador"]
+        Tecnico["👤 Técnico de Mantenimiento"]
+        Supervisor["👤 Supervisor"]
         ESP32Node["📡 Dispositivo IoT (ESP32)"]
     end
 
@@ -232,20 +238,24 @@ flowchart LR
         CU03(["CU-03: Visualizar Dashboard en Tiempo Real"])
         CU04(["CU-04: Consultar Históricos y Gráficas"])
         CU05(["CU-05: Gestionar Dispositivos y Sensores"])
-        CU06(["CU-06: Configurar Umbrales de Alerta"])
-        CU07(["CU-07: Gestionar y Despachar Alertas"])
-        CU08(["CU-08: Consultar Análisis de Anomalías IA"])
+        CU06(["CU-06: Configurar Parámetros y Umbrales"])
+        CU07(["CU-07: Gestionar y Consultar Alertas"])
+        CU08(["CU-08: Detectar y Consultar Anomalías IA"])
         CU09(["CU-09: Exportar Reportes (CSV/PDF)"])
+        CU10(["CU-10: Gestionar Cuentas y Permisos"])
+        CU11(["CU-11: Verificar Equipos, Conexiones y Mantenimiento"])
     end
 
     ESP32Node --> CU02
-    CU02 --> CU07
-    
-    Operador --> CU01
-    Operador --> CU03
-    Operador --> CU04
-    Operador --> CU08
-    Operador --> CU09
+    CU02 -.->|«include»| CU07
+    CU02 -.->|«include»| CU08
+
+    Usuario --> CU01
+    Usuario --> CU03
+    Usuario --> CU04
+    Usuario --> CU07
+    Usuario --> CU08
+    Usuario --> CU09
 
     Admin --> CU01
     Admin --> CU03
@@ -254,7 +264,513 @@ flowchart LR
     Admin --> CU07
     Admin --> CU08
     Admin --> CU09
+    Admin --> CU10
+
+    Tecnico --> CU01
+    Tecnico --> CU03
+    Tecnico --> CU11
+
+    Supervisor --> CU01
+    Supervisor --> CU03
+    Supervisor --> CU04
+    Supervisor --> CU07
+    Supervisor --> CU08
+    Supervisor --> CU09
 ```
+
+---
+
+#### 3.2.2 Diagramas de Casos de Uso Específicos
+
+A continuación se detallan los **11 diagramas de casos de uso específicos** que se desprenden del diagrama general, numerados y organizados por módulos y procesos del sistema.
+
+---
+
+##### MÓDULO 1: SEGURIDAD Y CONTROL DE ACCESO
+
+###### Diagrama 3.2.2.1 — CU-01: Autenticación en Plataforma (Inicio de Sesión)
+Este diagrama detalla el proceso de validación de identidad y emisión de credenciales de sesión para todos los perfiles autorizados del sistema.
+
+```mermaid
+flowchart LR
+    Usuario["👤 Usuario / Operador"]
+    Admin["👤 Administrador"]
+    Tecnico["👤 Técnico de Mantenimiento"]
+    Supervisor["👤 Supervisor"]
+
+    subgraph "Módulo Seguridad (CU-01)"
+        CU01_Main(["CU-01: Iniciar Sesión en Plataforma"])
+        CU01_Val(["CU-01.1: Validar Credenciales y Hash Bcrypt"])
+        CU01_JWT(["CU-01.2: Generar Token JWT y Cargar Rol"])
+        CU01_Err(["CU-01.3: Notificar Credenciales Inválidas o Cuenta Inactiva"])
+    end
+
+    Usuario --> CU01_Main
+    Admin --> CU01_Main
+    Tecnico --> CU01_Main
+    Supervisor --> CU01_Main
+
+    CU01_Main -.->|«include»| CU01_Val
+    CU01_Main -.->|«include»| CU01_JWT
+    CU01_Err -.->|«extend»| CU01_Val
+```
+
+- **Nombre del caso de uso:** Autenticación en Plataforma (Inicio de Sesión).
+- **Actores que participan:** Usuario (Operador Ambiental), Administrador, Técnico de Mantenimiento, Supervisor.
+- **Objetivo del caso de uso:** Verificar la identidad del actor mediante sus credenciales y otorgar acceso controlado según su rol asignado.
+- **Descripción breve del proceso:** El usuario ingresa su correo electrónico y contraseña en la pantalla de acceso; el backend en FastAPI verifica el hash en MySQL y retorna un token JWT con el perfil correspondiente.
+- **Condiciones previas:** El actor debe contar con una cuenta registrada y activa en la tabla `usuarios` de la base de datos.
+- **Condiciones posteriores:** Sesión autenticada mediante token Bearer JWT almacenado en el cliente web y redirección al panel correspondiente al rol.
+- **Flujo principal de eventos:**
+  1. El actor accede al formulario de inicio de sesión en la interfaz web.
+  2. Ingresa su correo electrónico y contraseña y envía la solicitud (`POST /api/auth/login`).
+  3. El sistema incluye la validación del usuario y el cotejo del hash `bcrypt` (`CU-01.1`).
+  4. El sistema incluye la generación del token JWT firmado con vigencia de 8 horas y la carga de permisos por rol (`CU-01.2`).
+  5. La plataforma redirige al actor al Dashboard de SIMOA.
+- **Flujos alternativos:**
+  - *FA-01 (Credenciales erróneas):* Si el correo o la contraseña no coinciden, se extiende el flujo (`CU-01.3`) mostrando el mensaje *"Correo o contraseña incorrectos"* y denegando el acceso.
+  - *FA-02 (Cuenta deshabilitada):* Si el usuario está marcado como inactivo, el sistema bloquea el ingreso e indica contactar al Administrador.
+- **Relaciones UML:** `«include»` hacia `CU-01.1` y `CU-01.2` (obligatorias en cada inicio de sesión exitoso); `«extend»` desde `CU-01.3` (condicional ante fallo de validación).
+
+---
+
+###### Diagrama 3.2.2.2 — CU-10: Gestión de Cuentas de Usuario y Asignación de Permisos
+Detalla la administración exclusiva de cuentas de usuario y la asignación de roles/permisos dentro de la plataforma.
+
+```mermaid
+flowchart LR
+    Admin["👤 Administrador"]
+
+    subgraph "Módulo Administración de Usuarios (CU-10)"
+        CU10_Main(["CU-10: Gestionar Cuentas de Usuario"])
+        CU10_Create(["CU-10.1: Registrar / Editar Cuenta"])
+        CU10_Role(["CU-10.2: Asignar Rol y Permisos"])
+        CU10_Audit(["CU-10.3: Validar Unicidad de Correo y Cifrar Clave"])
+        CU10_Deact(["CU-10.4: Activar o Deshabilitar Cuenta"])
+    end
+
+    Admin --> CU10_Main
+    CU10_Main -.->|«include»| CU10_Create
+    CU10_Main -.->|«include»| CU10_Role
+    CU10_Create -.->|«include»| CU10_Audit
+    CU10_Deact -.->|«extend»| CU10_Main
+```
+
+- **Nombre del caso de uso:** Gestión de Cuentas de Usuario y Asignación de Permisos.
+- **Actores que participan:** Administrador.
+- **Objetivo del caso de uso:** Permitir al Administrador crear, modificar y controlar las cuentas de acceso y los permisos por rol (`Administrador`, `Usuario`, `Técnico de Mantenimiento`, `Supervisor`).
+- **Descripción breve del proceso:** El Administrador administra el catálogo de usuarios del sistema, garantizando la unicidad del correo electrónico, el cifrado seguro de contraseñas y la correcta asignación de privilegios.
+- **Condiciones previas:** El Administrador debe haber iniciado sesión (`CU-01`) con rol autorizado.
+- **Condiciones posteriores:** Cuenta creada, actualizada o deshabilitada en la tabla `usuarios`, reflejando de inmediato los permisos efectivos en futuros inicios de sesión.
+- **Flujo principal de eventos:**
+  1. El Administrador ingresa a la sección de gestión de usuarios.
+  2. Selecciona crear una nueva cuenta o editar una existente (`CU-10.1`).
+  3. Ingresa nombre, correo electrónico, contraseña inicial y selecciona el perfil de rol/permisos (`CU-10.2`).
+  4. El sistema valida que el correo no exista previamente y cifra la contraseña con `bcrypt` (`CU-10.3`).
+  5. El sistema guarda los cambios en MySQL y confirma la operación en pantalla.
+- **Flujos alternativos:**
+  - *FA-01 (Correo duplicado):* Si el correo ya existe (RN-01), el sistema rechaza el registro e informa que debe ser único.
+  - *FA-02 (Cambio de estado):* El Administrador puede activar o deshabilitar una cuenta existente (`CU-10.4`) sin eliminar su historial de auditoría.
+- **Relaciones UML:** `«include»` hacia `CU-10.1`, `CU-10.2` y `CU-10.3`; `«extend»` desde `CU-10.4` para suspensión/reactivación opcional.
+
+---
+
+##### MÓDULO 2: ADQUISICIÓN Y COMUNICACIÓN IOT (ESP32, MQTT, NODE-RED Y PYTHON)
+
+###### Diagrama 3.2.2.3 — CU-02: Transmisión, Mediación e Ingestión de Telemetría MQTT
+Describe el flujo completo de captura ambiental en campo, publicación mediante MQTT, mediación en Node-RED y recepción asíncrona en el backend Python.
+
+```mermaid
+flowchart LR
+    ESP32["📡 Dispositivo IoT (ESP32 + DHT22)"]
+
+    subgraph "Módulo Comunicaciones y Adquisición (CU-02)"
+        CU02_Read(["CU-02.1: Capturar Temperatura y Humedad (DHT22)"])
+        CU02_Pub(["CU-02: Publicar Telemetría JSON vía MQTT"])
+        CU02_Route(["CU-02.2: Enrutar y Mediar Flujo en Broker / Node-RED"])
+        CU02_Save(["CU-02.3: Validar Payload y Persistir en MySQL"])
+        CU02_Err(["CU-02.4: Descartar Trama Corrupta o Nodo No Autorizado"])
+    end
+
+    ESP32 --> CU02_Pub
+    CU02_Pub -.->|«include»| CU02_Read
+    CU02_Pub -.->|«include»| CU02_Route
+    CU02_Pub -.->|«include»| CU02_Save
+    CU02_Err -.->|«extend»| CU02_Save
+```
+
+- **Nombre del caso de uso:** Transmisión, Mediación e Ingestión de Telemetría MQTT.
+- **Actores que participan:** Dispositivo IoT (ESP32 + DHT22).
+- **Objetivo del caso de uso:** Adquirir lecturas ambientales periódicas en campo, transmitirlas mediante el protocolo MQTT y almacenarlas de forma confiable en la base de datos.
+- **Descripción breve del proceso:** Cada 5 a 10 segundos el ESP32 lee el sensor DHT22, empaqueta la lectura en JSON y la publica al broker Eclipse Mosquitto; Node-RED supervisa/enruta los flujos y FastAPI consume el tópico para persistir los datos en MySQL y disparar evaluación de alertas e IA.
+- **Condiciones previas:** Nodo ESP32 conectado a Wi-Fi, registrado como activo en el sistema y broker Mosquitto operativo.
+- **Condiciones posteriores:** Nueva medición almacenada en `mediciones` con marca de tiempo UTC, última conexión del nodo actualizada y evaluación de umbrales/IA ejecutada.
+- **Flujo principal de eventos:**
+  1. El ESP32 lee los valores de temperatura (°C) y humedad relativa (%HR) desde el sensor DHT22 (`CU-02.1`).
+  2. Construye el paquete JSON y lo publica en el tópico `simoa/dispositivos/{codigo}/telemetria` (`CU-02`).
+  3. El broker Mosquitto y Node-RED reciben y enrutan el mensaje hacia el consumidor backend (`CU-02.2`).
+  4. FastAPI valida que el dispositivo esté registrado, comprueba rangos físicos válidos (RN-02) e inserta el registro en MySQL (`CU-02.3`).
+  5. El backend invoca la evaluación de alertas (`CU-07`) y el análisis estadístico de IA (`CU-08`).
+- **Flujos alternativos:**
+  - *FA-01 (Payload malformado o lectura física fuera de escala):* Si el JSON es inválido o excede los límites físicos del DHT22 (`<-10 °C` o `>60 °C`), se extiende hacia `CU-02.4` registrando el error en el log sin contaminar las mediciones ni disparar falsas alarmas.
+- **Relaciones UML:** `«include»` hacia `CU-02.1`, `CU-02.2` y `CU-02.3`; `«extend»` desde `CU-02.4` ante paquetes defectuosos o dispositivos no reconocidos.
+
+---
+
+##### MÓDULO 3: MONITOREO AMBIENTAL Y ANALÍTICA
+
+###### Diagrama 3.2.2.4 — CU-03: Visualización del Dashboard Ambiental en Tiempo Real
+Representa la consulta en vivo de temperatura, humedad relativa y estado de los nodos ambientales por parte de los cuatro perfiles humanos.
+
+```mermaid
+flowchart LR
+    Usuario["👤 Usuario / Operador"]
+    Admin["👤 Administrador"]
+    Tecnico["👤 Técnico de Mantenimiento"]
+    Supervisor["👤 Supervisor"]
+
+    subgraph "Módulo Monitoreo en Tiempo Real (CU-03)"
+        CU03_Main(["CU-03: Visualizar Dashboard en Tiempo Real"])
+        CU03_TempHum(["CU-03.1: Consultar Temperatura y Humedad Actual"])
+        CU03_Status(["CU-03.2: Visualizar Estado de Conexión de Nodos"])
+        CU03_Filter(["CU-03.3: Filtrar por Dispositivo o Ubicación"])
+    end
+
+    Usuario --> CU03_Main
+    Admin --> CU03_Main
+    Tecnico --> CU03_Main
+    Supervisor --> CU03_Main
+
+    CU03_Main -.->|«include»| CU03_TempHum
+    CU03_Main -.->|«include»| CU03_Status
+    CU03_Filter -.->|«extend»| CU03_Main
+```
+
+- **Nombre del caso de uso:** Visualización del Dashboard Ambiental en Tiempo Real.
+- **Actores que participan:** Usuario (Operador Ambiental), Administrador, Técnico de Mantenimiento, Supervisor.
+- **Objetivo del caso de uso:** Permitir la supervisión continua e inmediata de las variables ambientales actuales y del estado operativo de los dispositivos.
+- **Descripción breve del proceso:** Al ingresar al panel principal, el cliente React consulta periódicamente la API REST (`/api/mediciones/actuales`) y renderiza tarjetas KPI, tacómetros, códigos de color por estado y resumen de nodos activos.
+- **Condiciones previas:** Actor autenticado en la plataforma (`CU-01`) y al menos un dispositivo registrado.
+- **Condiciones posteriores:** Variables actuales desplegadas en pantalla y actualizadas automáticamente sin recargar la página.
+- **Flujo principal de eventos:**
+  1. El actor accede al Dashboard principal tras autenticarse.
+  2. La interfaz solicita al backend las últimas lecturas registradas por dispositivo.
+  3. El sistema incluye la renderización de temperatura (°C) y humedad relativa (%HR) actuales (`CU-03.1`).
+  4. El sistema incluye la visualización del estado de red de cada nodo (`En línea` / `Desconectado` / `Alerta`) (`CU-03.2`).
+  5. El panel actualiza automáticamente las cifras conforme arriban nuevas mediciones.
+- **Flujos alternativos:**
+  - *FA-01 (Selección de ubicación específica):* El actor puede filtrar el panel por aula, laboratorio o dispositivo específico (`CU-03.3`).
+- **Relaciones UML:** `«include»` hacia `CU-03.1` y `CU-03.2`; `«extend»` desde `CU-03.3` para filtrado por recinto.
+
+---
+
+###### Diagrama 3.2.2.5 — CU-04: Consulta de Historiales y Visualización de Gráficas
+Detalla la exploración retrospectiva de mediciones y la generación interactiva de gráficas de tendencia temporal.
+
+```mermaid
+flowchart LR
+    Usuario["👤 Usuario / Operador"]
+    Supervisor["👤 Supervisor"]
+
+    subgraph "Módulo Analítica e Históricos (CU-04)"
+        CU04_Main(["CU-04: Consultar Históricos y Gráficas"])
+        CU04_Filter(["CU-04.1: Aplicar Filtros de Fecha y Dispositivo"])
+        CU04_Chart(["CU-04.2: Renderizar Gráficas Dinámicas de Tendencia"])
+        CU04_Empty(["CU-04.3: Mostrar Aviso de Sin Registros en Rango"])
+    end
+
+    Usuario --> CU04_Main
+    Supervisor --> CU04_Main
+
+    CU04_Main -.->|«include»| CU04_Filter
+    CU04_Main -.->|«include»| CU04_Chart
+    CU04_Empty -.->|«extend»| CU04_Main
+```
+
+- **Nombre del caso de uso:** Consulta de Historiales y Visualización de Gráficas.
+- **Actores que participan:** Usuario (Operador Ambiental), Supervisor.
+- **Objetivo del caso de uso:** Consultar el comportamiento histórico de temperatura y humedad en un intervalo temporal y visualizarlo mediante gráficas interactivas.
+- **Descripción breve del proceso:** El actor selecciona un dispositivo y rango de fechas; el backend consulta los registros indexados en MySQL (`/api/mediciones/historico`) y el frontend dibuja la tabla paginada y las curvas de temperatura/humedad con Chart.js.
+- **Condiciones previas:** Actor autenticado y existencia de registros históricos en la tabla `mediciones`.
+- **Condiciones posteriores:** Gráfica interactiva y tabla de histórico presentadas en pantalla.
+- **Flujo principal de eventos:**
+  1. El actor ingresa al módulo de Históricos y Analítica.
+  2. Selecciona el dispositivo/sensor y define la fecha inicial y final (`CU-04.1`).
+  3. El sistema consulta los registros ordenados cronológicamente en MySQL.
+  4. El sistema incluye la renderización de la gráfica de líneas de temperatura y humedad con tooltips interactivos (`CU-04.2`).
+  5. El actor explora los puntos de la serie temporal y navega por la tabla paginada.
+- **Flujos alternativos:**
+  - *FA-01 (Sin datos en el rango):* Si no existen mediciones para las fechas seleccionadas, se extiende hacia `CU-04.3` mostrando un mensaje informativo sin error de sistema.
+- **Relaciones UML:** `«include»` hacia `CU-04.1` y `CU-04.2`; `«extend»` desde `CU-04.3`.
+
+---
+
+##### MÓDULO 4: GESTIÓN DE INFRAESTRUCTURA Y MANTENIMIENTO
+
+###### Diagrama 3.2.2.6 — CU-05: Gestión de Dispositivos IoT y Sensores Ambientales
+Detalla el ciclo de administración de nodos ESP32, asignación de ubicación física y vinculación de sensores DHT22.
+
+```mermaid
+flowchart LR
+    Admin["👤 Administrador"]
+
+    subgraph "Módulo Dispositivos y Sensores (CU-05)"
+        CU05_Main(["CU-05: Gestionar Dispositivos y Sensores"])
+        CU05_Dev(["CU-05.1: Registrar / Editar Dispositivo ESP32"])
+        CU05_Loc(["CU-05.2: Asignar Código Único y Ubicación Física"])
+        CU05_Sen(["CU-05.3: Vincular Sensor DHT22 y Magnitudes (°C, %HR)"])
+        CU05_Dup(["CU-05.4: Rechazar Código o MAC Duplicada"])
+    end
+
+    Admin --> CU05_Main
+    CU05_Main -.->|«include»| CU05_Dev
+    CU05_Dev -.->|«include»| CU05_Loc
+    CU05_Main -.->|«include»| CU05_Sen
+    CU05_Dup -.->|«extend»| CU05_Dev
+```
+
+- **Nombre del caso de uso:** Gestión de Dispositivos IoT y Sensores Ambientales.
+- **Actores que participan:** Administrador.
+- **Objetivo del caso de uso:** Registrar, actualizar y organizar los nodos microcontroladores ESP32 y sus sensores DHT22 asociados en cada espacio físico.
+- **Descripción breve del proceso:** El Administrador da de alta un nuevo dispositivo IoT con su identificador único y ubicación física, y le asocia los sensores digitales con sus magnitudes y pines GPIO correspondientes.
+- **Condiciones previas:** El Administrador debe estar autenticado (`CU-01`).
+- **Condiciones posteriores:** Dispositivo y sensores guardados en las tablas `dispositivos` y `sensores`, habilitados para recibir telemetría MQTT.
+- **Flujo principal de eventos:**
+  1. El Administrador accede al módulo de Gestión de Dispositivos.
+  2. Selecciona registrar un nuevo nodo o editar uno existente (`CU-05.1`).
+  3. Define el código único (ej. `ESP32-LAB01`), nombre, dirección MAC y ubicación física (`CU-05.2`).
+  4. Asocia el sensor DHT22 indicando tipo, modelo, pin GPIO y magnitudes (`Temperatura °C`, `Humedad %HR`) (`CU-05.3`).
+  5. El sistema persiste la configuración en MySQL y actualiza el inventario visible.
+- **Flujos alternativos:**
+  - *FA-01 (Código duplicado):* Si el código del ESP32 ya existe (RN-01), se extiende hacia `CU-05.4` solicitando un identificador único.
+- **Relaciones UML:** `«include»` hacia `CU-05.1`, `CU-05.2` y `CU-05.3`; `«extend»` desde `CU-05.4`.
+
+---
+
+###### Diagrama 3.2.2.7 — CU-11: Verificación de Estado de Equipos, Conexiones y Mantenimiento Técnico
+Detalla las operaciones técnicas de supervisión de conectividad, diagnóstico físico de nodos/sensores y registro de mantenimiento establecidas en el SRS.
+
+```mermaid
+flowchart LR
+    Tecnico["👤 Técnico de Mantenimiento"]
+
+    subgraph "Módulo Mantenimiento y Diagnóstico (CU-11)"
+        CU11_Main(["CU-11: Gestionar Mantenimiento y Conectividad"])
+        CU11_Check(["CU-11.1: Consultar Estado Técnico de Equipos"])
+        CU11_Conn(["CU-11.2: Verificar Conexión Wi-Fi / Heartbeat MQTT"])
+        CU11_Maint(["CU-11.3: Registrar Intervención y Cambiar Estado Técnico"])
+        CU11_Offline(["CU-11.4: Diagnosticar Nodo Desconectado (>60s)"])
+    end
+
+    Tecnico --> CU11_Main
+    CU11_Main -.->|«include»| CU11_Check
+    CU11_Main -.->|«include»| CU11_Conn
+    CU11_Main -.->|«include»| CU11_Maint
+    CU11_Offline -.->|«extend»| CU11_Conn
+```
+
+- **Nombre del caso de uso:** Verificación de Estado de Equipos, Conexiones y Mantenimiento Técnico.
+- **Actores que participan:** Técnico de Mantenimiento.
+- **Objetivo del caso de uso:** Permitir al Técnico supervisar la salud física y conectividad de los equipos ESP32/DHT22 y registrar las actividades de mantenimiento preventivo o correctivo.
+- **Descripción breve del proceso:** El Técnico consulta la ficha técnica e historial de cada dispositivo, verifica su estado de enlace MQTT (en línea/desconectado según RN-03), realiza calibración o revisión en sitio y actualiza el estado del equipo (`Activo` o `Mantenimiento`).
+- **Condiciones previas:** El Técnico de Mantenimiento debe estar autenticado en la plataforma (`CU-01`) y existir dispositivos registrados.
+- **Condiciones posteriores:** Estado operativo del equipo actualizado en la tabla `dispositivos` (`Activo`/`Mantenimiento`) y verificación de conectividad completada.
+- **Flujo principal de eventos:**
+  1. El Técnico ingresa al listado y ficha técnica de dispositivos (`RF-19`, `RF-20`).
+  2. Consulta el estado operativo actual de cada equipo y sus sensores asociados (`CU-11.1`).
+  3. Verifica la marca de última conexión (`ultima_conexion`) y latido MQTT para comprobar la estabilidad de red (`CU-11.2`).
+  4. Ejecuta la inspección, limpieza o calibración de hardware y registra el cambio de estado o intervención técnica (`CU-11.3`).
+  5. Al finalizar la labor, restablece el dispositivo a estado `Activo` y comprueba la reanudación de lecturas en el Dashboard.
+- **Flujos alternativos:**
+  - *FA-01 (Equipo desconectado):* Si un nodo supera los 60 segundos sin emitir paquetes (RN-03 / `RF-15`), el sistema lo marca como `DESCONECTADO` y se extiende el flujo hacia `CU-11.4` para inspección física de alimentación o señal Wi-Fi.
+- **Relaciones UML:** `«include»` hacia `CU-11.1`, `CU-11.2` y `CU-11.3`; `«extend»` desde `CU-11.4`.
+
+---
+
+##### MÓDULO 5: ALERTAS, INTELIGENCIA ARTIFICIAL Y REPORTES
+
+###### Diagrama 3.2.2.8 — CU-06: Configuración de Parámetros y Umbrales de Alerta
+Detalla la parametrización del sistema y la definición de rangos operativos seguros por sensor.
+
+```mermaid
+flowchart LR
+    Admin["👤 Administrador"]
+
+    subgraph "Módulo Configuración del Sistema (CU-06)"
+        CU06_Main(["CU-06: Configurar Parámetros y Umbrales"])
+        CU06_Range(["CU-06.1: Definir Límite Mínimo y Máximo (°C / %HR)"])
+        CU06_Val(["CU-06.2: Validar Regla (Mínimo < Máximo)"])
+        CU06_Reload(["CU-06.3: Persistir y Recargar Motor de Reglas"])
+        CU06_Invalid(["CU-06.4: Notificar Rango Inválido"])
+    end
+
+    Admin --> CU06_Main
+    CU06_Main -.->|«include»| CU06_Range
+    CU06_Main -.->|«include»| CU06_Val
+    CU06_Main -.->|«include»| CU06_Reload
+    CU06_Invalid -.->|«extend»| CU06_Val
+```
+
+- **Nombre del caso de uso:** Configuración de Parámetros y Umbrales de Alerta.
+- **Actores que participan:** Administrador.
+- **Objetivo del caso de uso:** Establecer los límites mínimos y máximos permitidos de temperatura y humedad y activar/desactivar las reglas de evaluación ambiental.
+- **Descripción breve del proceso:** El Administrador selecciona un sensor, ajusta sus parámetros operativos (`valor_minimo`, `valor_maximo`, estado activo) mediante `POST /api/configuraciones` y el backend valida la consistencia lógica antes de actualizar el motor de alertas.
+- **Condiciones previas:** Administrador autenticado y sensor previamente registrado (`CU-05`).
+- **Condiciones posteriores:** Configuración guardada en la tabla `configuraciones` y aplicada de inmediato a las siguientes mediciones entrantes.
+- **Flujo principal de eventos:**
+  1. El Administrador accede al módulo de Configuración Ambiental.
+  2. Selecciona el dispositivo y el sensor a parametrizar.
+  3. Ingresa los valores mínimo y máximo permitidos y habilita las alertas (`CU-06.1`).
+  4. El sistema valida que `valor_minimo < valor_maximo` y que no haya campos nulos (`CU-06.2`).
+  5. El sistema guarda la configuración en MySQL y recarga las reglas en memoria (`CU-06.3`).
+- **Flujos alternativos:**
+  - *FA-01 (Umbral inconsistente):* Si `valor_minimo >= valor_maximo`, se extiende hacia `CU-06.4` mostrando el error correspondiente y cancelando el guardado.
+- **Relaciones UML:** `«include»` hacia `CU-06.1`, `CU-06.2` y `CU-06.3`; `«extend»` desde `CU-06.4`.
+
+---
+
+###### Diagrama 3.2.2.9 — CU-07: Generación, Consulta y Gestión de Alertas Ambientales
+Modela tanto la generación automática de alertas ante desbordes de umbral como su consulta y seguimiento por parte de los actores autorizados.
+
+```mermaid
+flowchart LR
+    ESP32["📡 Dispositivo IoT (ESP32)"]
+    Usuario["👤 Usuario / Operador"]
+    Supervisor["👤 Supervisor"]
+    Admin["👤 Administrador"]
+
+    subgraph "Módulo Gestión de Alertas (CU-07)"
+        CU07_Eval(["CU-07.1: Evaluar Medición contra Umbrales"])
+        CU07_Gen(["CU-07.2: Generar Registro de Alerta y Notificar UI"])
+        CU07_Consult(["CU-07.3: Consultar Bitácora de Alertas"])
+        CU07_Manage(["CU-07.4: Revisar / Resolver Estado de Alerta"])
+        CU07_Dup(["CU-07.5: Evitar Duplicado en Ventana de 1 Minuto"])
+    end
+
+    ESP32 -->|Telemetría| CU07_Eval
+    CU07_Eval -.->|«include»| CU07_Gen
+    CU07_Dup -.->|«extend»| CU07_Gen
+
+    Usuario --> CU07_Consult
+    Supervisor --> CU07_Consult
+    Supervisor --> CU07_Manage
+    Admin --> CU07_Consult
+    Admin --> CU07_Manage
+```
+
+- **Nombre del caso de uso:** Generación, Consulta y Gestión de Alertas Ambientales.
+- **Actores que participan:** Dispositivo IoT (ESP32 - disparador vía telemetría), Usuario (consulta), Supervisor (consulta y gestión de estado), Administrador (consulta y gestión de estado).
+- **Objetivo del caso de uso:** Detectar automáticamente condiciones ambientales fuera de rango, notificar en pantalla y permitir el seguimiento de su estado (`Activa`, `Revisada`, `Resuelta`).
+- **Descripción breve del proceso:** Cada lectura entrante es comparada contra los umbrales activos; si los supera, se registra una alerta en MySQL y se muestra visualmente en el Dashboard para que el Usuario la consulte y el Supervisor/Administrador gestionen su atención.
+- **Condiciones previas:** Umbrales configurados (`CU-06`) y flujo de telemetría activo (`CU-02`).
+- **Condiciones posteriores:** Alerta registrada en `alertas`, notificada visualmente en el panel y actualizada tras su revisión o resolución.
+- **Flujo principal de eventos:**
+  1. Al llegar una medición, el motor de reglas compara el valor contra `valor_minimo` y `valor_maximo` (`CU-07.1`).
+  2. Al detectar desborde, crea la alerta con estado `Activa` y emite la notificación visual en el Dashboard (`CU-07.2`).
+  3. El Usuario, Supervisor o Administrador consultan la lista y bitácora histórica de alertas (`CU-07.3`).
+  4. El Supervisor o Administrador revisan la incidencia y actualizan su estado a `Revisada` o `Resuelta` (`CU-07.4`).
+- **Flujos alternativos:**
+  - *FA-01 (Prevención de spam de alertas):* Si ya existe una alerta activa en la misma franja de 1 minuto (RN-06), se extiende hacia `CU-07.5` evitando duplicados.
+- **Relaciones UML:** `«include»` de `CU-07.1` hacia `CU-07.2`; `«extend»` desde `CU-07.5`.
+
+---
+
+###### Diagrama 3.2.2.10 — CU-08: Detección y Consulta de Anomalías mediante Inteligencia Artificial
+Detalla el análisis estadístico no supervisado ejecutado en Python (`Isolation Forest`) y la visualización de resultados atípicos en el Dashboard.
+
+```mermaid
+flowchart LR
+    ESP32["📡 Dispositivo IoT (ESP32)"]
+    Usuario["👤 Usuario / Operador"]
+    Supervisor["👤 Supervisor"]
+    Admin["👤 Administrador"]
+
+    subgraph "Módulo Inteligencia Artificial (CU-08)"
+        CU08_Exec(["CU-08.1: Ejecutar Modelo Isolation Forest (Python)"])
+        CU08_Mark(["CU-08.2: Calcular Anomaly Score y Etiquetar Registro"])
+        CU08_View(["CU-08.3: Consultar Listado y Gráfica de Anomalías"])
+        CU08_Skip(["CU-08.4: Posponer Inferencia (<50 Registros)"])
+    end
+
+    ESP32 -->|Alimenta Dataset| CU08_Exec
+    CU08_Exec -.->|«include»| CU08_Mark
+    CU08_Skip -.->|«extend»| CU08_Exec
+
+    Usuario --> CU08_View
+    Supervisor --> CU08_View
+    Admin --> CU08_View
+```
+
+- **Nombre del caso de uso:** Detección y Consulta de Anomalías mediante Inteligencia Artificial.
+- **Actores que participan:** Dispositivo IoT (ESP32 - fuente de datos), Usuario, Supervisor, Administrador.
+- **Objetivo del caso de uso:** Identificar automáticamente comportamientos atípicos en temperatura y humedad mediante `Isolation Forest` y presentarlos de forma clara en el panel analítico.
+- **Descripción breve del proceso:** Una tarea en segundo plano de FastAPI/Scikit-learn analiza ventanas recientes de mediciones (`[T, H, ΔT/Δt]`), marca las muestras anómalas en MySQL y las expone en `/api/ia/anomalias` para auditoría visual.
+- **Condiciones previas:** Al menos 50 mediciones históricas almacenadas para el sensor evaluado.
+- **Condiciones posteriores:** Mediciones evaluadas con `es_anomalia_ia` y `score_anomalia` actualizados en la tabla `mediciones`.
+- **Flujo principal de eventos:**
+  1. El servicio en segundo plano extrae las últimas $N$ mediciones de temperatura y humedad (`CU-08.1`).
+  2. Normaliza los vectores y calcula el `anomaly_score`, etiquetando los valores atípicos (`CU-08.2`).
+  3. El Usuario, Supervisor o Administrador ingresan a la vista de Análisis de Anomalías (`CU-08.3`).
+  4. El sistema muestra la gráfica diferenciada y el listado de lecturas marcadas como anómalas.
+- **Flujos alternativos:**
+  - *FA-01 (Dataset insuficiente):* Si hay menos de 50 mediciones registradas, se extiende hacia `CU-08.4` posponiendo la inferencia sin generar errores al usuario.
+- **Relaciones UML:** `«include»` hacia `CU-08.2`; `«extend»` desde `CU-08.4`.
+
+---
+
+###### Diagrama 3.2.2.11 — CU-09: Generación y Exportación de Reportes Ambientales (CSV/PDF)
+Describe el proceso de consolidación y descarga de reportes históricos para auditoría y análisis externo.
+
+```mermaid
+flowchart LR
+    Usuario["👤 Usuario / Operador"]
+    Supervisor["👤 Supervisor"]
+    Admin["👤 Administrador"]
+
+    subgraph "Módulo Reportes (CU-09)"
+        CU09_Main(["CU-09: Exportar Reportes Ambientales"])
+        CU09_Param(["CU-09.1: Seleccionar Rango de Fechas y Formato (CSV/PDF)"])
+        CU09_Build(["CU-09.2: Consultar Datos y Generar Archivo"])
+        CU09_Down(["CU-09.3: Descargar Reporte en Navegador"])
+        CU09_NoData(["CU-09.4: Notificar Ausencia de Datos para Exportar"])
+    end
+
+    Usuario --> CU09_Main
+    Supervisor --> CU09_Main
+    Admin --> CU09_Main
+
+    CU09_Main -.->|«include»| CU09_Param
+    CU09_Main -.->|«include»| CU09_Build
+    CU09_Main -.->|«include»| CU09_Down
+    CU09_NoData -.->|«extend»| CU09_Build
+```
+
+- **Nombre del caso de uso:** Generación y Exportación de Reportes Ambientales (CSV/PDF).
+- **Actores que participan:** Usuario (Operador Ambiental), Supervisor, Administrador.
+- **Objetivo del caso de uso:** Consolidar mediciones históricas en archivos descargables CSV o PDF para análisis en herramientas externas o auditorías de calidad.
+- **Descripción breve del proceso:** El actor filtra las fechas y formato deseado; el backend extrae las lecturas de MySQL (`/api/reportes/exportar`), construye el archivo tabular o documento y lo entrega al navegador para descarga directa.
+- **Condiciones previas:** Actor autenticado (`CU-01`) y existencia de mediciones dentro del periodo consultado.
+- **Condiciones posteriores:** Archivo `.csv` o `.pdf` generado y descargado correctamente en el equipo del usuario.
+- **Flujo principal de eventos:**
+  1. El actor accede al módulo de Reportes.
+  2. Selecciona el rango de fechas, dispositivo(s) y formato de salida (`CSV` o `PDF`) (`CU-09.1`).
+  3. El backend consulta los registros y construye el archivo con encabezados limpios (`CU-09.2`).
+  4. El navegador inicia la descarga automática del reporte (`CU-09.3`).
+- **Flujos alternativos:**
+  - *FA-01 (Sin registros):* Si el filtro no arroja mediciones, se extiende hacia `CU-09.4` informando al usuario antes de descargar un archivo vacío.
+- **Relaciones UML:** `«include»` hacia `CU-09.1`, `CU-09.2` y `CU-09.3`; `«extend»` desde `CU-09.4`.
+
+---
+
+#### 3.2.3 Matriz de Coherencia (Actores, Casos de Uso, Módulos y Requisitos Funcionales)
+
+| Actor | Casos de Uso Asociados | Módulos del Sistema | Requisitos Funcionales |
+| :--- | :--- | :--- | :--- |
+| **Administrador** | CU-01, CU-03, CU-05, CU-06, CU-07, CU-08, CU-09, CU-10 | Seguridad, Administración de Usuarios, Dashboard, Dispositivos y Sensores, Alertas, IA, Reportes | RF-01 a RF-05, RF-08 a RF-14, RF-16 a RF-20 |
+| **Usuario (Operador Ambiental)** | CU-01, CU-03, CU-04, CU-07, CU-08, CU-09 | Seguridad, Dashboard, Históricos y Analítica, Alertas, IA, Reportes | RF-01, RF-08 a RF-11, RF-14, RF-16 a RF-18 |
+| **Técnico de Mantenimiento** | CU-01, CU-03, CU-11 | Seguridad, Dashboard, Dispositivos y Monitoreo / Mantenimiento | RF-01, RF-08, RF-09, RF-15, RF-19, RF-20 |
+| **Supervisor** | CU-01, CU-03, CU-04, CU-07, CU-08, CU-09 | Seguridad, Dashboard, Históricos, Alertas, IA, Reportes | RF-01, RF-08 a RF-11, RF-13, RF-14, RF-16 a RF-18 |
+| **Dispositivo IoT (ESP32)** | CU-02 (dispara CU-07 y CU-08) | Comunicaciones MQTT, Persistencia, Alertas, IA | RF-06, RF-07, RF-13, RF-15, RF-18 |
 
 ---
 
