@@ -220,556 +220,143 @@ SIMOA es un sistema híbrido ciberfísico autónomo compuesto por tres subsistem
 
 #### 3.2.1 Diagrama de Casos de Uso General
 
-El siguiente diagrama representa la visión global de las funcionalidades de **SIMOA** y sirve como referencia principal para todos los casos de uso específicos derivados de las historias de usuario (`HU-01` a `HU-13`), manteniendo los cuatro perfiles de usuario del sistema y el dispositivo físico IoT:
+El siguiente diagrama UML representa de manera general las funcionalidades del sistema **SIMOA**, los límites del sistema y la interacción de todos los actores (**Usuario**, **Administrador**, **Técnico de Mantenimiento**, **Supervisor** y **Dispositivo IoT ESP32**), sirviendo como referencia base para los diagramas individuales:
 
-```mermaid
-flowchart LR
-    subgraph Actores
-        Usuario["👤 Usuario (Operador Ambiental)"]
-        Admin["👤 Administrador"]
-        Tecnico["👤 Técnico de Mantenimiento"]
-        Supervisor["👤 Supervisor"]
-        ESP32Node["📡 Dispositivo IoT (ESP32)"]
-    end
-
-    subgraph "Sistema SIMOA"
-        CUG01(["CUG-01: Autenticarse en Plataforma"])
-        CUG02(["CUG-02: Transmitir Telemetría MQTT"])
-        CUG03(["CUG-03: Monitorear Variables en Tiempo Real"])
-        CUG04(["CUG-04: Consultar Históricos y Gráficas"])
-        CUG05(["CUG-05: Gestionar Dispositivos y Sensores"])
-        CUG06(["CUG-06: Configurar Umbrales de Alerta"])
-        CUG07(["CUG-07: Gestionar y Recibir Alertas"])
-        CUG08(["CUG-08: Analizar y Consultar Anomalías IA"])
-        CUG09(["CUG-09: Exportar Reportes (CSV/PDF)"])
-        CUG10(["CUG-10: Verificar Estado de Conexión y Equipos"])
-    end
-
-    ESP32Node --> CUG02
-    CUG02 -.->|«include»| CUG07
-    CUG02 -.->|«include»| CUG08
-
-    Usuario --> CUG01
-    Usuario --> CUG03
-    Usuario --> CUG04
-    Usuario --> CUG07
-    Usuario --> CUG08
-
-    Admin --> CUG01
-    Admin --> CUG05
-    Admin --> CUG06
-    Admin --> CUG07
-    Admin --> CUG09
-    Admin --> CUG10
-
-    Tecnico --> CUG01
-    Tecnico --> CUG03
-    Tecnico --> CUG10
-
-    Supervisor --> CUG01
-    Supervisor --> CUG03
-    Supervisor --> CUG04
-    Supervisor --> CUG07
-    Supervisor --> CUG08
-    Supervisor --> CUG09
-```
+![Diagrama de Casos de Uso General - Sistema SIMOA](./diagrams/cug-general.png)
 
 ---
 
-#### 3.2.2 Casos de Uso Específicos por Historia de Usuario (CU-01 a CU-13)
+#### 3.2.2 Diagramas de Casos de Uso Específicos por Historia de Usuario (CU-01 a CU-13)
 
-En coherencia estricta con la sección **3.5 Historias de Usuario (`HU-01` a `HU-13`)**, existe un caso de uso específico e individual por cada historia de usuario (`HU-01 → CU-01` hasta `HU-13 → CU-13`). Cada caso de uso está vinculado directamente a una funcionalidad del diagrama general (`CUG-01` a `CUG-10`).
+A continuación se presenta un diagrama UML individual por cada una de las 13 historias de usuario (`HU-01` a `HU-13`), manteniendo correspondencia directa con el diagrama general:
 
----
+##### CU-01: Iniciar sesión en plataforma (HU-01)
+- **Código del caso de uso:** `CU-01`
+- **Nombre del caso de uso:** Iniciar sesión en plataforma
+- **Historia de usuario relacionada:** `HU-01`
+- **Caso de uso general relacionado:** CUG-01: Autenticarse en plataforma
 
-##### Diagrama 3.2.2.1 — CU-01: Iniciar sesión en plataforma (`HU-01`)
-
-```mermaid
-flowchart LR
-    Admin["👤 Administrador"]
-    Usuario["👤 Usuario (Operador Ambiental)"]
-    Tecnico["👤 Técnico de Mantenimiento"]
-    Supervisor["👤 Supervisor"]
-
-    subgraph "SIMOA · Seguridad"
-        CU01(["CU-01: Iniciar sesión en plataforma"])
-        CU01_Err(["Notificar credenciales inválidas o cuenta inactiva"])
-    end
-
-    Admin --> CU01
-    Usuario --> CU01
-    Tecnico --> CU01
-    Supervisor --> CU01
-    CU01_Err -.->|«extend»| CU01
-```
-
-1. **Identificador:** `CU-01`
-2. **Nombre del caso de uso:** Iniciar sesión en plataforma.
-3. **Historia de usuario relacionada:** `HU-01` (*Como Administrador, quiero iniciar sesión con credenciales seguras para acceder a las opciones de administración de SIMOA*).
-4. **Actor principal:** Administrador.
-5. **Actores secundarios:** Usuario (Operador Ambiental), Técnico de Mantenimiento, Supervisor (también utilizan el acceso autenticado según su rol).
-6. **Objetivo:** Validar las credenciales del usuario y otorgarle acceso seguro a las funcionalidades autorizadas para su perfil mediante un token JWT.
-7. **Descripción:** El usuario ingresa su correo electrónico y contraseña en el formulario de inicio de sesión; el backend FastAPI coteja el hash `bcrypt` en MySQL y emite un token JWT firmado.
-8. **Precondiciones:** El usuario debe estar registrado y activo en la tabla `usuarios` de la base de datos.
-9. **Flujo principal:**
-   1. El actor accede a la pantalla de inicio de sesión de SIMOA.
-   2. Ingresa su correo electrónico y contraseña y presiona ingresar (`POST /api/auth/login`).
-   3. El sistema consulta la base de datos y verifica la contraseña mediante el hash `bcrypt`.
-   4. Al confirmar la validez, el sistema genera un token JWT con vigencia de 8 horas y carga el rol correspondiente.
-   5. El frontend almacena el token y redirige al actor hacia su panel principal.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Credenciales incorrectas):* El sistema extiende el flujo para mostrar *"Correo o contraseña incorrectos"* y deniega el acceso.
-    - *FA-02 (Cuenta inactiva):* El sistema bloquea el ingreso e indica contactar al Administrador.
-11. **Postcondiciones:** Sesión autenticada en el navegador con token Bearer JWT activo y acceso habilitado según el rol.
-12. **Relaciones include o extend:** `«extend»` hacia *Notificar credenciales inválidas o cuenta inactiva* ante fallo de validación.
+![Diagrama UML CU-01 - Iniciar sesión en plataforma](./diagrams/cu-01.png)
 
 ---
 
-##### Diagrama 3.2.2.2 — CU-02: Registrar dispositivo IoT (`HU-02`)
+##### CU-02: Registrar dispositivo IoT (HU-02)
+- **Código del caso de uso:** `CU-02`
+- **Nombre del caso de uso:** Registrar dispositivo IoT
+- **Historia de usuario relacionada:** `HU-02`
+- **Caso de uso general relacionado:** CUG-05: Gestionar dispositivos y sensores
 
-```mermaid
-flowchart LR
-    Admin["👤 Administrador"]
-
-    subgraph "SIMOA · Gestión de Dispositivos"
-        CU02(["CU-02: Registrar dispositivo IoT"])
-        CU02_Err(["Rechazar código o MAC duplicada"])
-    end
-
-    Admin --> CU02
-    CU02_Err -.->|«extend»| CU02
-```
-
-1. **Identificador:** `CU-02`
-2. **Nombre del caso de uso:** Registrar dispositivo IoT.
-3. **Historia de usuario relacionada:** `HU-02` (*Como Administrador, quiero registrar dispositivos IoT para tener identificados los nodos ESP32 en el sistema*).
-4. **Actor principal:** Administrador.
-5. **Actores secundarios:** Ninguno.
-6. **Objetivo:** Dar de alta un nuevo nodo microcontrolador ESP32 en el inventario del sistema con identificador único y estado inicial activo.
-7. **Descripción:** El Administrador diligencia el formulario de registro de dispositivo (`POST /api/dispositivos`) ingresando código único, nombre y dirección MAC para habilitar el nodo en la red SIMOA.
-8. **Precondiciones:** El Administrador debe haber iniciado sesión (`CU-01`).
-9. **Flujo principal:**
-   1. El Administrador ingresa al módulo de Gestión de Dispositivos.
-   2. Selecciona la opción para registrar un nuevo dispositivo IoT.
-   3. Ingresa los campos obligatorios: código único (ej. `ESP32-LAB01`), nombre descriptivo y dirección MAC.
-   4. El sistema valida que el código no exista en la base de datos (RN-01).
-   5. El sistema guarda el registro en la tabla `dispositivos` con estado inicial `Activo` y confirma en pantalla.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Código duplicado o campos vacíos):* El sistema extiende el flujo mostrando un mensaje de error de validación y solicita corregir el código antes de guardar.
-11. **Postcondiciones:** Dispositivo IoT almacenado en MySQL y disponible para asociarle sensores y ubicación.
-12. **Relaciones include o extend:** `«extend»` hacia *Rechazar código o MAC duplicada* cuando se incumple RN-01.
+![Diagrama UML CU-02 - Registrar dispositivo IoT](./diagrams/cu-02.png)
 
 ---
 
-##### Diagrama 3.2.2.3 — CU-03: Asignar ubicación física a dispositivos (`HU-03`)
+##### CU-03: Asignar ubicación física a dispositivos (HU-03)
+- **Código del caso de uso:** `CU-03`
+- **Nombre del caso de uso:** Asignar ubicación física a dispositivos
+- **Historia de usuario relacionada:** `HU-03`
+- **Caso de uso general relacionado:** CUG-05: Gestionar dispositivos y sensores
 
-```mermaid
-flowchart LR
-    Admin["👤 Administrador"]
-
-    subgraph "SIMOA · Gestión de Dispositivos"
-        CU03(["CU-03: Asignar ubicación física a dispositivos"])
-    end
-
-    Admin --> CU03
-```
-
-1. **Identificador:** `CU-03`
-2. **Nombre del caso de uso:** Asignar ubicación física a dispositivos.
-3. **Historia de usuario relacionada:** `HU-03` (*Como Administrador, quiero asignar una ubicación física a cada dispositivo para saber con exactitud en qué aula o laboratorio se efectúan las mediciones*).
-4. **Actor principal:** Administrador.
-5. **Actores secundarios:** Ninguno.
-6. **Objetivo:** Asociar o actualizar la ubicación física (aula, laboratorio, oficina o bodega) de un dispositivo IoT registrado.
-7. **Descripción:** El Administrador selecciona un nodo ESP32 existente y define o edita el campo descriptivo de ubicación (`PUT /api/dispositivos/{id}`) para identificar el espacio monitoreado.
-8. **Precondiciones:** El Administrador debe haber iniciado sesión (`CU-01`) y el dispositivo debe existir previamente (`CU-02`).
-9. **Flujo principal:**
-   1. El Administrador ingresa al módulo de Gestión de Dispositivos y selecciona un nodo registrado.
-   2. Abre la opción de edición del dispositivo.
-   3. Ingresa o modifica el campo de ubicación física (ej. *"Laboratorio 3 - CIES"*).
-   4. Guarda los cambios mediante `PUT /api/dispositivos/{id}`.
-   5. El sistema actualiza el atributo `ubicacion` en MySQL y muestra el nuevo valor en la tabla.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Campo de ubicación vacío):* El sistema solicita ingresar una descripción válida antes de confirmar la actualización.
-11. **Postcondiciones:** El dispositivo queda vinculado a su ubicación física actualizada en toda la interfaz y reportes.
-12. **Relaciones include o extend:** Ninguna.
+![Diagrama UML CU-03 - Asignar ubicación física a dispositivos](./diagrams/cu-03.png)
 
 ---
 
-##### Diagrama 3.2.2.4 — CU-04: Asociar sensores DHT22 a dispositivos (`HU-04`)
+##### CU-04: Asociar sensores DHT22 a dispositivos (HU-04)
+- **Código del caso de uso:** `CU-04`
+- **Nombre del caso de uso:** Asociar sensores DHT22 a dispositivos
+- **Historia de usuario relacionada:** `HU-04`
+- **Caso de uso general relacionado:** CUG-05: Gestionar dispositivos y sensores
 
-```mermaid
-flowchart LR
-    Admin["👤 Administrador"]
-
-    subgraph "SIMOA · Gestión de Sensores"
-        CU04(["CU-04: Asociar sensores DHT22 a dispositivos"])
-    end
-
-    Admin --> CU04
-```
-
-1. **Identificador:** `CU-04`
-2. **Nombre del caso de uso:** Asociar sensores DHT22 a dispositivos.
-3. **Historia de usuario relacionada:** `HU-04` (*Como Administrador, quiero asociar sensores DHT22 a cada nodo para especificar qué variables ambientales registra*).
-4. **Actor principal:** Administrador.
-5. **Actores secundarios:** Ninguno.
-6. **Objetivo:** Vincular uno o varios sensores digitales (ej. DHT22) a un dispositivo IoT especificando la variable monitoreada y su unidad de medida.
-7. **Descripción:** El Administrador registra un sensor (`POST /api/sensores`) asociándolo a un nodo ESP32 y definiendo el tipo de variable (`Temperatura` / `Humedad`), modelo, pin GPIO y unidad (`°C` / `%HR`).
-8. **Precondiciones:** El Administrador debe estar autenticado (`CU-01`) y el dispositivo IoT debe estar registrado (`CU-02`).
-9. **Flujo principal:**
-   1. El Administrador selecciona un dispositivo en el módulo de Gestión de Dispositivos y Sensores.
-   2. Selecciona agregar un nuevo sensor al nodo.
-   3. Define el tipo de variable (temperatura o humedad), el modelo (`DHT22`), la unidad de medida (`°C` o `%HR`) y el pin GPIO.
-   4. Envía el registro al backend (`POST /api/sensores`).
-   5. El sistema almacena el sensor en la tabla `sensores` con estado activo.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Datos incompletos o dispositivo inexistente):* El sistema rechaza la asociación e informa los campos requeridos.
-11. **Postcondiciones:** Sensor vinculado al dispositivo y habilitado para recibir mediciones y configurar umbrales.
-12. **Relaciones include o extend:** Ninguna.
+![Diagrama UML CU-04 - Asociar sensores DHT22 a dispositivos](./diagrams/cu-04.png)
 
 ---
 
-##### Diagrama 3.2.2.5 — CU-05: Visualizar temperatura actual en tiempo real (`HU-05`)
+##### CU-05: Visualizar temperatura actual en tiempo real (HU-05)
+- **Código del caso de uso:** `CU-05`
+- **Nombre del caso de uso:** Visualizar temperatura actual en tiempo real
+- **Historia de usuario relacionada:** `HU-05`
+- **Caso de uso general relacionado:** CUG-03: Visualizar temperatura y humedad en vivo
 
-```mermaid
-flowchart LR
-    Usuario["👤 Usuario (Operador Ambiental)"]
-    Supervisor["👤 Supervisor"]
-    Tecnico["👤 Técnico de Mantenimiento"]
-
-    subgraph "SIMOA · Monitoreo en Tiempo Real"
-        CU05(["CU-05: Visualizar temperatura actual en tiempo real"])
-    end
-
-    Usuario --> CU05
-    Supervisor --> CU05
-    Tecnico --> CU05
-```
-
-1. **Identificador:** `CU-05`
-2. **Nombre del caso de uso:** Visualizar temperatura actual en tiempo real.
-3. **Historia de usuario relacionada:** `HU-05` (*Como Operador, quiero visualizar la temperatura actual en tiempo real para verificar el confort térmico inmediato del ambiente*).
-4. **Actor principal:** Usuario (Operador Ambiental).
-5. **Actores secundarios:** Supervisor, Técnico de Mantenimiento (consultan las lecturas actuales para supervisión u operación técnica).
-6. **Objetivo:** Mostrar de forma continua el valor numérico de temperatura actual en grados Celsius (`°C`), su hora de última lectura y su estado visual.
-7. **Descripción:** El Dashboard consulta el endpoint `/api/mediciones/actuales` y actualiza dinámicamente la tarjeta KPI y el indicador de temperatura en tiempo real sin recargar la página.
-8. **Precondiciones:** El actor debe estar autenticado (`CU-01`) y debe existir al menos un sensor de temperatura con mediciones recibidas vía MQTT.
-9. **Flujo principal:**
-   1. El actor ingresa al Dashboard principal de monitoreo.
-   2. Selecciona el dispositivo o recinto deseado (o visualiza la vista general).
-   3. El frontend solicita las últimas mediciones al backend (`GET /api/mediciones/actuales`).
-   4. El sistema despliega el valor de temperatura actual en `°C`, la marca temporal de la última actualización y el indicador visual de estado (Normal, Advertencia o Crítico).
-   5. El valor se refresca automáticamente conforme llegan nuevas lecturas.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Sin mediciones recientes):* El panel indica *"Sin lecturas recientes"* o estado desconectado si el nodo no transmite.
-11. **Postcondiciones:** El actor visualiza el estado térmico actualizado del ambiente monitoreado.
-12. **Relaciones include o extend:** Ninguna.
+![Diagrama UML CU-05 - Visualizar temperatura actual en tiempo real](./diagrams/cu-05.png)
 
 ---
 
-##### Diagrama 3.2.2.6 — CU-06: Visualizar humedad relativa actual en tiempo real (`HU-06`)
+##### CU-06: Visualizar humedad relativa actual en tiempo real (HU-06)
+- **Código del caso de uso:** `CU-06`
+- **Nombre del caso de uso:** Visualizar humedad relativa actual en tiempo real
+- **Historia de usuario relacionada:** `HU-06`
+- **Caso de uso general relacionado:** CUG-03: Visualizar temperatura y humedad en vivo
 
-```mermaid
-flowchart LR
-    Usuario["👤 Usuario (Operador Ambiental)"]
-    Supervisor["👤 Supervisor"]
-    Tecnico["👤 Técnico de Mantenimiento"]
-
-    subgraph "SIMOA · Monitoreo en Tiempo Real"
-        CU06(["CU-06: Visualizar humedad relativa actual"])
-    end
-
-    Usuario --> CU06
-    Supervisor --> CU06
-    Tecnico --> CU06
-```
-
-1. **Identificador:** `CU-06`
-2. **Nombre del caso de uso:** Visualizar humedad relativa actual en tiempo real.
-3. **Historia de usuario relacionada:** `HU-06` (*Como Operador, quiero visualizar la humedad relativa actual para comprobar que los niveles de vapor de agua estén en rangos seguros*).
-4. **Actor principal:** Usuario (Operador Ambiental).
-5. **Actores secundarios:** Supervisor, Técnico de Mantenimiento.
-6. **Objetivo:** Presentar el porcentaje actual de humedad relativa (`%HR`) junto con su código de color según cercanía a los límites configurados.
-7. **Descripción:** El Dashboard obtiene el dato más reciente del sensor de humedad desde `/api/mediciones/actuales` y lo muestra en porcentaje (`%HR`) con actualización periódica automática.
-8. **Precondiciones:** Actor autenticado (`CU-01`) y sensor de humedad activo con datos almacenados.
-9. **Flujo principal:**
-   1. El actor accede al Dashboard principal de SIMOA.
-   2. Selecciona el ambiente o dispositivo a inspeccionar.
-   3. El sistema consulta la última medición de humedad relativa en el backend.
-   4. Se muestra el porcentaje (`%HR`) en la tarjeta KPI y cambia el color del indicador según la proximidad a los límites configurados.
-   5. La lectura se actualiza automáticamente en pantalla con cada nuevo ciclo de telemetría.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Lectura fuera de rango físico 0%-100%):* Según RN-02, el sistema descarta la lectura defectuosa del DHT22 y conserva el último estado válido o reporta falla del sensor.
-11. **Postcondiciones:** El nivel de humedad relativa queda consultado y reflejado visualmente en el panel.
-12. **Relaciones include o extend:** Ninguna.
+![Diagrama UML CU-06 - Visualizar humedad relativa actual en tiempo real](./diagrams/cu-06.png)
 
 ---
 
-##### Diagrama 3.2.2.7 — CU-07: Consultar historial de mediciones por rango de fechas (`HU-07`)
+##### CU-07: Consultar historial de mediciones por rango de fechas (HU-07)
+- **Código del caso de uso:** `CU-07`
+- **Nombre del caso de uso:** Consultar historial de mediciones por rango de fechas
+- **Historia de usuario relacionada:** `HU-07`
+- **Caso de uso general relacionado:** CUG-04: Consultar históricos y gráficas
 
-```mermaid
-flowchart LR
-    Usuario["👤 Usuario (Operador Ambiental)"]
-    Supervisor["👤 Supervisor"]
-
-    subgraph "SIMOA · Históricos"
-        CU07(["CU-07: Consultar historial de mediciones"])
-        CU07_Empty(["Mostrar aviso de sin registros en rango"])
-    end
-
-    Usuario --> CU07
-    Supervisor --> CU07
-    CU07_Empty -.->|«extend»| CU07
-```
-
-1. **Identificador:** `CU-07`
-2. **Nombre del caso de uso:** Consultar historial de mediciones por rango de fechas.
-3. **Historia de usuario relacionada:** `HU-07` (*Como Operador, quiero consultar el historial de mediciones por rango de fechas para auditar comportamientos térmicos pasados*).
-4. **Actor principal:** Usuario (Operador Ambiental).
-5. **Actores secundarios:** Supervisor.
-6. **Objetivo:** Permitir la búsqueda, filtrado y revisión paginada de registros históricos de temperatura y humedad entre dos fechas determinadas.
-7. **Descripción:** El actor selecciona un dispositivo y un rango de fechas (`desde` y `hasta`); el backend consulta la tabla `mediciones` (`/api/mediciones/historico`) y entrega los registros ordenados en una tabla paginada.
-8. **Precondiciones:** El actor debe haber iniciado sesión (`CU-01`) y deben existir mediciones almacenadas.
-9. **Flujo principal:**
-   1. El actor ingresa al módulo de Históricos.
-   2. Selecciona el dispositivo/sensor y define la fecha inicial y la fecha final del periodo.
-   3. El sistema envía la consulta (`GET /api/mediciones/historico?desde=...&hasta=...`).
-   4. El backend recupera los registros indexados en MySQL ordenados cronológicamente.
-   5. La interfaz despliega los datos en tabla con paginación y ordenamiento por columna.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Sin registros en el rango):* Si la búsqueda no arroja mediciones, se extiende el flujo mostrando un mensaje informativo sin error.
-    - *FA-02 (Rango de fechas inválido):* Si la fecha inicial es posterior a la final, el sistema solicita corregir el filtro.
-11. **Postcondiciones:** Listado histórico desplegado y listo para auditoría visual.
-12. **Relaciones include o extend:** `«extend»` hacia *Mostrar aviso de sin registros en rango* cuando no existen mediciones en el intervalo consultado.
+![Diagrama UML CU-07 - Consultar historial de mediciones por rango de fechas](./diagrams/cu-07.png)
 
 ---
 
-##### Diagrama 3.2.2.8 — CU-08: Configurar umbrales mínimos y máximos (`HU-08`)
+##### CU-08: Configurar umbrales mínimos y máximos (HU-08)
+- **Código del caso de uso:** `CU-08`
+- **Nombre del caso de uso:** Configurar umbrales mínimos y máximos
+- **Historia de usuario relacionada:** `HU-08`
+- **Caso de uso general relacionado:** CUG-06: Configurar umbrales de alerta
 
-```mermaid
-flowchart LR
-    Admin["👤 Administrador"]
-
-    subgraph "SIMOA · Configuración de Parámetros"
-        CU08(["CU-08: Configurar umbrales mínimos y máximos"])
-        CU08_Err(["Notificar rango inválido (mínimo >= máximo)"])
-    end
-
-    Admin --> CU08
-    CU08_Err -.->|«extend»| CU08
-```
-
-1. **Identificador:** `CU-08`
-2. **Nombre del caso de uso:** Configurar umbrales mínimos y máximos.
-3. **Historia de usuario relacionada:** `HU-08` (*Como Administrador, quiero configurar umbrales mínimos y máximos para establecer los límites seguros de operación ambiental*).
-4. **Actor principal:** Administrador.
-5. **Actores secundarios:** Ninguno.
-6. **Objetivo:** Definir los límites operativos permisibles (`valor_minimo` y `valor_maximo`) de temperatura y humedad para activar la evaluación automática de alertas.
-7. **Descripción:** El Administrador ingresa al módulo de Configuración de Umbrales, ajusta los rangos para un sensor específico y guarda los parámetros (`POST /api/configuraciones`).
-8. **Precondiciones:** El Administrador debe haber iniciado sesión (`CU-01`) y el sensor debe estar registrado (`CU-04`).
-9. **Flujo principal:**
-   1. El Administrador accede al módulo de Configuración de Umbrales.
-   2. Selecciona el dispositivo y el sensor a configurar.
-   3. Ingresa el valor mínimo y el valor máximo permitido y activa la regla de alerta.
-   4. El sistema verifica que `valor_minimo < valor_maximo` y que los valores sean numéricos válidos.
-   5. El backend actualiza la tabla `configuraciones` en MySQL y recarga las reglas en memoria de forma inmediata.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (`valor_minimo >= valor_maximo`):* Se extiende el flujo mostrando *"El límite mínimo debe ser estrictamente menor que el límite máximo"* sin guardar cambios.
-11. **Postcondiciones:** Nuevos umbrales guardados y aplicados de inmediato sobre las mediciones entrantes.
-12. **Relaciones include o extend:** `«extend»` hacia *Notificar rango inválido* si falla la validación de límites.
+![Diagrama UML CU-08 - Configurar umbrales mínimos y máximos](./diagrams/cu-08.png)
 
 ---
 
-##### Diagrama 3.2.2.9 — CU-09: Recibir alertas visibles en tiempo real (`HU-09`)
+##### CU-09: Recibir alertas visibles en tiempo real (HU-09)
+- **Código del caso de uso:** `CU-09`
+- **Nombre del caso de uso:** Recibir alertas visibles en tiempo real
+- **Historia de usuario relacionada:** `HU-09`
+- **Caso de uso general relacionado:** CUG-07: Gestionar y recibir alertas
 
-```mermaid
-flowchart LR
-    Usuario["👤 Usuario (Operador Ambiental)"]
-    Supervisor["👤 Supervisor"]
-    Admin["👤 Administrador"]
-    ESP32["📡 Dispositivo IoT (ESP32)"]
-
-    subgraph "SIMOA · Sistema de Alertas"
-        CU09(["CU-09: Recibir alertas visibles en tiempo real"])
-        CU09_Dup(["Evitar alerta duplicada en ventana de 1 min"])
-    end
-
-    ESP32 -->|Envía medición fuera de rango| CU09
-    Usuario --> CU09
-    Supervisor --> CU09
-    Admin --> CU09
-    CU09_Dup -.->|«extend»| CU09
-```
-
-1. **Identificador:** `CU-09`
-2. **Nombre del caso de uso:** Recibir alertas visibles en tiempo real.
-3. **Historia de usuario relacionada:** `HU-09` (*Como Operador, quiero recibir alertas visibles cuando una variable supere los umbrales para actuar oportunamente ante emergencias*).
-4. **Actor principal:** Usuario (Operador Ambiental).
-5. **Actores secundarios:** Supervisor, Administrador (reciben y supervisan las alertas), Dispositivo IoT ESP32 (origina la medición que dispara la alerta).
-6. **Objetivo:** Detectar cuando una lectura supera el umbral mínimo o máximo y mostrar inmediatamente una alerta visual con el detalle del evento.
-7. **Descripción:** El backend compara cada medición entrante contra los umbrales configurados (`CU-08`); ante un desborde, registra el evento en `alertas` y la interfaz web lo muestra como banner/notificación y en la línea de tiempo de alertas.
-8. **Precondiciones:** Umbrales activos configurados (`CU-08`), flujo MQTT operativo y usuario autenticado en el Dashboard (`CU-01`).
-9. **Flujo principal:**
-   1. Llega una nueva medición desde el ESP32 vía MQTT.
-   2. El motor de reglas compara el valor contra `valor_minimo` y `valor_maximo`.
-   3. Al detectar superación, el sistema crea un registro en la tabla `alertas` con tipo, mensaje, valor detectado, hora y estado `Activa`.
-   4. El Dashboard consulta `/api/alertas` y resalta el dispositivo afectado en rojo con campana y banner de alerta en pantalla.
-   5. El actor visualiza la notificación e identifica el dispositivo y la magnitud que originó el evento.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Alerta repetida en menos de 1 minuto):* Según RN-06, se extiende el flujo evitando duplicar alertas si ya existe una alerta activa en la misma franja temporal.
-11. **Postcondiciones:** Alerta registrada en MySQL y visible en tiempo real para los operadores y supervisores.
-12. **Relaciones include o extend:** `«extend»` hacia *Evitar alerta duplicada en ventana de 1 min* según RN-06.
+![Diagrama UML CU-09 - Recibir alertas visibles en tiempo real](./diagrams/cu-09.png)
 
 ---
 
-##### Diagrama 3.2.2.10 — CU-10: Consultar estado de conexión de los nodos ESP32 (`HU-10`)
+##### CU-10: Consultar estado de conexión de los nodos ESP32 (HU-10)
+- **Código del caso de uso:** `CU-10`
+- **Nombre del caso de uso:** Consultar estado de conexión de los nodos ESP32
+- **Historia de usuario relacionada:** `HU-10`
+- **Caso de uso general relacionado:** CUG-10: Consultar estado de conexión ESP32
 
-```mermaid
-flowchart LR
-    Admin["👤 Administrador"]
-    Tecnico["👤 Técnico de Mantenimiento"]
-
-    subgraph "SIMOA · Monitoreo de Equipos y Conexión"
-        CU10(["CU-10: Consultar estado de conexión de nodos ESP32"])
-        CU10_Off(["Marcar nodo como Desconectado (>60s)"])
-    end
-
-    Admin --> CU10
-    Tecnico --> CU10
-    CU10_Off -.->|«extend»| CU10
-```
-
-1. **Identificador:** `CU-10`
-2. **Nombre del caso de uso:** Consultar estado de conexión de los nodos ESP32.
-3. **Historia de usuario relacionada:** `HU-10` (*Como Administrador, quiero ver el estado de conexión de los ESP32 para identificar nodos apagados o con problemas de señal Wi-Fi*).
-4. **Actor principal:** Administrador.
-5. **Actores secundarios:** Técnico de Mantenimiento (verifica conexiones y atiende fallas de red/equipos según el SRS).
-6. **Objetivo:** Permitir visualizar en tiempo real qué nodos ESP32 se encuentran en línea y cuáles han perdido conectividad.
-7. **Descripción:** El sistema verifica el timestamp `ultima_conexion` de cada dispositivo registrado y muestra en el panel el indicador visual `En línea` o `Desconectado` (`GET /api/dispositivos`).
-8. **Precondiciones:** Actor autenticado (`CU-01`) y nodos ESP32 registrados en el sistema (`CU-02`).
-9. **Flujo principal:**
-   1. El Administrador o el Técnico de Mantenimiento ingresa al Dashboard o al módulo de Dispositivos.
-   2. El sistema consulta la lista de dispositivos y compara `ultima_conexion` contra la hora actual UTC.
-   3. Los nodos que emitieron telemetría dentro de los últimos 60 segundos se muestran con indicador verde `EN LÍNEA`.
-   4. El actor revisa el estado de cada equipo y su última marca temporal de comunicación.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Tiempo sin transmisión mayor a 60 segundos):* Según RN-03, se extiende el flujo cambiando automáticamente el estado del nodo a `DESCONECTADO` (gris/rojo) para alertar sobre posible caída Wi-Fi o apagado.
-11. **Postcondiciones:** Estado de conectividad de todos los nodos visible y actualizado para diagnóstico o mantenimiento.
-12. **Relaciones include o extend:** `«extend»` hacia *Marcar nodo como Desconectado (>60s)* cuando se cumple la regla RN-03.
+![Diagrama UML CU-10 - Consultar estado de conexión de los nodos ESP32](./diagrams/cu-10.png)
 
 ---
 
-##### Diagrama 3.2.2.11 — CU-11: Visualizar gráficos de líneas dinámicos (`HU-11`)
+##### CU-11: Visualizar gráficos de líneas dinámicos (HU-11)
+- **Código del caso de uso:** `CU-11`
+- **Nombre del caso de uso:** Visualizar gráficos de líneas dinámicos
+- **Historia de usuario relacionada:** `HU-11`
+- **Caso de uso general relacionado:** CUG-04: Consultar históricos y gráficas
 
-```mermaid
-flowchart LR
-    Usuario["👤 Usuario (Operador Ambiental)"]
-    Supervisor["👤 Supervisor"]
-
-    subgraph "SIMOA · Analítica Visual"
-        CU11(["CU-11: Visualizar gráficos de líneas dinámicos"])
-    end
-
-    Usuario --> CU11
-    Supervisor --> CU11
-```
-
-1. **Identificador:** `CU-11`
-2. **Nombre del caso de uso:** Visualizar gráficos de líneas dinámicos.
-3. **Historia de usuario relacionada:** `HU-11` (*Como Operador, quiero ver gráficos de líneas dinámicos para analizar visualmente la tendencia de temperatura y humedad en el tiempo*).
-4. **Actor principal:** Usuario (Operador Ambiental).
-5. **Actores secundarios:** Supervisor.
-6. **Objetivo:** Graficar de forma interactiva la evolución temporal de temperatura y humedad relativa para facilitar la interpretación de tendencias.
-7. **Descripción:** La interfaz web construye gráficas de líneas dinámicas mediante Chart.js con ejes diferenciados por color y tooltips interactivos al pasar el cursor sobre cada punto.
-8. **Precondiciones:** Actor autenticado (`CU-01`) y existencia de series temporales para el dispositivo seleccionado.
-9. **Flujo principal:**
-   1. El actor accede al Dashboard o al módulo de Analítica.
-   2. Selecciona el dispositivo y la ventana temporal deseada.
-   3. El frontend recupera la serie de mediciones desde el backend.
-   4. Renderiza la gráfica de líneas diferenciando temperatura y humedad con colores distintos.
-   5. El actor interactúa con los puntos de la curva para inspeccionar valores exactos y marcas de tiempo en el tooltip.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Sin datos suficientes para trazar curva):* El lienzo de la gráfica muestra un estado vacío informativo sin bloquear la interfaz.
-11. **Postcondiciones:** Tendencia ambiental graficada e interactiva en pantalla.
-12. **Relaciones include o extend:** Ninguna.
+![Diagrama UML CU-11 - Visualizar gráficos de líneas dinámicos](./diagrams/cu-11.png)
 
 ---
 
-##### Diagrama 3.2.2.12 — CU-12: Exportar mediciones a archivo CSV (`HU-12`)
+##### CU-12: Exportar mediciones a archivo CSV (HU-12)
+- **Código del caso de uso:** `CU-12`
+- **Nombre del caso de uso:** Exportar mediciones a archivo CSV
+- **Historia de usuario relacionada:** `HU-12`
+- **Caso de uso general relacionado:** CUG-09: Exportar reportes en CSV
 
-```mermaid
-flowchart LR
-    Admin["👤 Administrador"]
-    Supervisor["👤 Supervisor"]
-
-    subgraph "SIMOA · Reportes"
-        CU12(["CU-12: Exportar mediciones a archivo CSV"])
-        CU12_Empty(["Informar ausencia de datos en rango"])
-    end
-
-    Admin --> CU12
-    Supervisor --> CU12
-    CU12_Empty -.->|«extend»| CU12
-```
-
-1. **Identificador:** `CU-12`
-2. **Nombre del caso de uso:** Exportar mediciones a archivo CSV.
-3. **Historia de usuario relacionada:** `HU-12` (*Como Administrador, quiero exportar las mediciones a un archivo CSV para analizarlas en herramientas externas como Excel o Python*).
-4. **Actor principal:** Administrador.
-5. **Actores secundarios:** Supervisor (exporta reportes consolidados según sus responsabilidades en el sistema).
-6. **Objetivo:** Generar y descargar un archivo tabular `.csv` con los registros de mediciones filtrados por fecha para análisis externo o auditoría.
-7. **Descripción:** El actor selecciona los parámetros de fecha en el módulo de Reportes; el backend (`/api/reportes/exportar`) consulta MySQL y genera un archivo CSV con encabezados `id, dispositivo, sensor, variable, valor, fecha_hora`.
-8. **Precondiciones:** Actor autenticado (`CU-01`) y existencia de registros históricos en el rango seleccionado.
-9. **Flujo principal:**
-   1. El actor ingresa al módulo de Reportes.
-   2. Selecciona el rango de fechas y opcionalmente el dispositivo a exportar.
-   3. Presiona exportar CSV (`GET /api/reportes/exportar?formato=csv&desde=...`).
-   4. El backend consulta las mediciones en MySQL y construye el archivo tabular con encabezados limpios.
-   5. El navegador descarga el archivo `.csv` directamente en el equipo del actor.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Sin registros en el rango elegido):* Se extiende el flujo notificando al actor que no existen datos para exportar en ese periodo.
-11. **Postcondiciones:** Archivo `.csv` descargado y disponible para su apertura en Excel o herramientas de análisis.
-12. **Relaciones include o extend:** `«extend»` hacia *Informar ausencia de datos en rango* cuando el resultado de la consulta está vacío.
+![Diagrama UML CU-12 - Exportar mediciones a archivo CSV](./diagrams/cu-12.png)
 
 ---
 
-##### Diagrama 3.2.2.13 — CU-13: Visualizar anomalías detectadas por IA (`HU-13`)
+##### CU-13: Visualizar anomalías detectadas por IA (HU-13)
+- **Código del caso de uso:** `CU-13`
+- **Nombre del caso de uso:** Visualizar anomalías detectadas por IA
+- **Historia de usuario relacionada:** `HU-13`
+- **Caso de uso general relacionado:** CUG-08: Visualizar anomalías con IA
 
-```mermaid
-flowchart LR
-    Usuario["👤 Usuario (Operador Ambiental)"]
-    Supervisor["👤 Supervisor"]
-    Admin["👤 Administrador"]
-
-    subgraph "SIMOA · Inteligencia Artificial (Isolation Forest)"
-        CU13(["CU-13: Visualizar anomalías detectadas por IA"])
-        CU13_Insuf(["Mostrar aviso de histórico insuficiente (<50 registros)"])
-    end
-
-    Usuario --> CU13
-    Supervisor --> CU13
-    Admin --> CU13
-    CU13_Insuf -.->|«extend»| CU13
-```
-
-1. **Identificador:** `CU-13`
-2. **Nombre del caso de uso:** Visualizar anomalías detectadas por IA.
-3. **Historia de usuario relacionada:** `HU-13` (*Como Operador, quiero visualizar las anomalías marcadas por el modelo de IA para investigar comportamientos atípicos no detectados por los umbrales comunes*).
-4. **Actor principal:** Usuario (Operador Ambiental).
-5. **Actores secundarios:** Supervisor, Administrador.
-6. **Objetivo:** Consultar las mediciones clasificadas como estadísticamente atípicas por el algoritmo *Isolation Forest* junto con su puntaje de anomalía y representación visual diferenciada.
-7. **Descripción:** El módulo de IA en Python ejecuta *Isolation Forest* en segundo plano marcando `es_anomalia_ia = true` y `score_anomalia`; el frontend consulta `/api/ia/anomalias` para resaltar dichos puntos en color distintivo y mostrar su listado.
-8. **Precondiciones:** Actor autenticado (`CU-01`) y existencia de al menos 50 mediciones registradas para que el modelo realice inferencia.
-9. **Flujo principal:**
-   1. El actor ingresa al módulo de Análisis Inteligente de Anomalías.
-   2. El frontend consulta el endpoint `GET /api/ia/anomalias`.
-   3. El sistema retorna los registros etiquetados por *Isolation Forest* con su `score_anomalia` y marca de tiempo.
-   4. La interfaz grafica los puntos anómalos en color distintivo (ámbar/púrpura) sobre la serie temporal y despliega el listado detallado.
-   5. El actor revisa los eventos atípicos para investigar posibles fallas incipientes de sensor o climatización.
-10. **Flujos alternativos o excepciones:**
-    - *FA-01 (Dataset menor a 50 registros):* Se extiende el flujo indicando que el modelo está recopilando histórico suficiente para iniciar la detección sin mostrar errores.
-11. **Postcondiciones:** Anomalías identificadas por IA consultadas y auditadas visualmente en el panel.
-12. **Relaciones include o extend:** `«extend»` hacia *Mostrar aviso de histórico insuficiente (<50 registros)* cuando no se alcanza el mínimo de muestras.
+![Diagrama UML CU-13 - Visualizar anomalías detectadas por IA](./diagrams/cu-13.png)
 
 ---
 
@@ -777,19 +364,19 @@ flowchart LR
 
 | Historia de usuario | Actor | Caso de uso | Caso de uso general relacionado |
 | :--- | :--- | :--- | :--- |
-| **HU-01:** Iniciar sesión con credenciales seguras | Administrador (y roles autorizados: Usuario, Técnico, Supervisor) | **CU-01:** Iniciar sesión en plataforma | **CUG-01:** Autenticarse en Plataforma |
-| **HU-02:** Registrar dispositivos IoT | Administrador | **CU-02:** Registrar dispositivo IoT | **CUG-05:** Gestionar Dispositivos y Sensores |
-| **HU-03:** Asignar ubicación física a dispositivos | Administrador | **CU-03:** Asignar ubicación física a dispositivos | **CUG-05:** Gestionar Dispositivos y Sensores |
-| **HU-04:** Asociar sensores DHT22 a cada nodo | Administrador | **CU-04:** Asociar sensores DHT22 a dispositivos | **CUG-05:** Gestionar Dispositivos y Sensores |
-| **HU-05:** Visualizar temperatura actual en tiempo real | Usuario (Operador Ambiental) / Supervisor / Técnico | **CU-05:** Visualizar temperatura actual en tiempo real | **CUG-03:** Monitorear Variables en Tiempo Real |
-| **HU-06:** Visualizar humedad relativa actual | Usuario (Operador Ambiental) / Supervisor / Técnico | **CU-06:** Visualizar humedad relativa actual en tiempo real | **CUG-03:** Monitorear Variables en Tiempo Real |
-| **HU-07:** Consultar historial de mediciones por rango de fechas | Usuario (Operador Ambiental) / Supervisor | **CU-07:** Consultar historial de mediciones por rango de fechas | **CUG-04:** Consultar Históricos y Gráficas |
-| **HU-08:** Configurar umbrales mínimos y máximos | Administrador | **CU-08:** Configurar umbrales mínimos y máximos | **CUG-06:** Configurar Umbrales de Alerta |
-| **HU-09:** Recibir alertas visibles en tiempo real | Usuario (Operador Ambiental) / Supervisor / Administrador | **CU-09:** Recibir alertas visibles en tiempo real | **CUG-07:** Gestionar y Recibir Alertas |
-| **HU-10:** Consultar estado de conexión de los nodos ESP32 | Administrador / Técnico de Mantenimiento | **CU-10:** Consultar estado de conexión de los nodos ESP32 | **CUG-10:** Verificar Estado de Conexión y Equipos |
-| **HU-11:** Visualizar gráficos de líneas dinámicos | Usuario (Operador Ambiental) / Supervisor | **CU-11:** Visualizar gráficos de líneas dinámicos | **CUG-04:** Consultar Históricos y Gráficas |
-| **HU-12:** Exportar mediciones a archivo CSV | Administrador / Supervisor | **CU-12:** Exportar mediciones a archivo CSV | **CUG-09:** Exportar Reportes (CSV/PDF) |
-| **HU-13:** Visualizar anomalías detectadas por IA | Usuario (Operador Ambiental) / Supervisor / Administrador | **CU-13:** Visualizar anomalías detectadas por IA | **CUG-08:** Analizar y Consultar Anomalías IA |
+| **HU-01:** Iniciar sesión con credenciales seguras | Administrador / Usuario / Técnico / Supervisor | **CU-01:** Iniciar sesión en plataforma | Autenticarse en plataforma |
+| **HU-02:** Registrar dispositivos IoT | Administrador | **CU-02:** Registrar dispositivo IoT | Gestionar dispositivos y sensores |
+| **HU-03:** Asignar ubicación física a dispositivos | Administrador | **CU-03:** Asignar ubicación física a dispositivos | Gestionar dispositivos y sensores |
+| **HU-04:** Asociar sensores DHT22 a cada nodo | Administrador | **CU-04:** Asociar sensores DHT22 a dispositivos | Gestionar dispositivos y sensores |
+| **HU-05:** Visualizar temperatura actual en tiempo real | Usuario (Operador) / Supervisor | **CU-05:** Visualizar temperatura actual en tiempo real | Visualizar temperatura y humedad en vivo |
+| **HU-06:** Visualizar humedad relativa actual | Usuario (Operador) / Supervisor | **CU-06:** Visualizar humedad relativa actual en tiempo real | Visualizar temperatura y humedad en vivo |
+| **HU-07:** Consultar historial de mediciones por rango de fechas | Usuario (Operador) / Supervisor | **CU-07:** Consultar historial de mediciones por rango de fechas | Consultar históricos y gráficas |
+| **HU-08:** Configurar umbrales mínimos y máximos | Administrador | **CU-08:** Configurar umbrales mínimos y máximos | Configurar umbrales de alerta |
+| **HU-09:** Recibir alertas visibles en tiempo real | Usuario (Operador) / Supervisor / Administrador | **CU-09:** Recibir alertas visibles en tiempo real | Gestionar y recibir alertas |
+| **HU-10:** Consultar estado de conexión de los nodos ESP32 | Administrador / Técnico de Mantenimiento | **CU-10:** Consultar estado de conexión de los nodos ESP32 | Consultar estado de conexión ESP32 |
+| **HU-11:** Visualizar gráficos de líneas dinámicos | Usuario (Operador) / Supervisor | **CU-11:** Visualizar gráficos de líneas dinámicos | Consultar históricos y gráficas |
+| **HU-12:** Exportar mediciones a archivo CSV | Administrador / Supervisor | **CU-12:** Exportar mediciones a archivo CSV | Exportar reportes en CSV |
+| **HU-13:** Visualizar anomalías detectadas por IA | Usuario (Operador) / Supervisor / Administrador | **CU-13:** Visualizar anomalías detectadas por IA | Visualizar anomalías con IA |
 
 ---
 
