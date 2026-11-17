@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -57,9 +57,9 @@ class SystemErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-8 bg-[#FFFFFF] border border-[#C8E6C9] rounded-[28px] text-center space-y-4">
-          <h3 className="text-lg font-semibold text-[#0D3B1E]">Ocurrió un error al cargar el módulo</h3>
-          <p className="text-sm text-[#3B694C]">{this.state.message}</p>
+        <div className="p-8 bg-[#FFFFFF] border border-[#afc4bf] rounded-[16px] text-center space-y-4">
+          <h3 className="text-lg font-semibold text-[#101f1e]">Ocurrió un error al cargar el módulo</h3>
+          <p className="text-sm text-[#535e5d]">{this.state.message}</p>
           <button
             onClick={() => {
               this.setState({ hasError: false, message: '' });
@@ -444,32 +444,32 @@ export default function App() {
   // Wrapper de simulación móvil cuando el usuario elige probar en celulares (iPhone 15 390px / Android 412px)
   const mobileFrameClass =
     viewportProfile === 'iphone-15'
-      ? 'max-w-[390px] mx-auto border-x-4 border-[#C8E6C9] shadow-2xl min-h-screen'
+      ? 'max-w-[390px] mx-auto border-x-4 border-[#afc4bf]  min-h-screen'
       : viewportProfile === 'android-mid'
-      ? 'max-w-[412px] mx-auto border-x-4 border-[#C8E6C9] shadow-2xl min-h-screen'
+      ? 'max-w-[412px] mx-auto border-x-4 border-[#afc4bf]  min-h-screen'
       : '';
 
   // Estado de carga inicial con Skeleton Shimmer en Gallery Black
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-[#F2F8F4] p-6 flex flex-col justify-center items-center">
+      <div className="min-h-screen bg-[#f3f1ec] p-6 flex flex-col justify-center items-center">
         <HeroSkeleton />
       </div>
     );
   }
 
   return (
-    <div className={`bg-[#F2F8F4] min-h-screen ${mobileFrameClass}`}>
+    <div className={`bg-[#f3f1ec] min-h-screen ${mobileFrameClass}`}>
       {/* Barra superior de Simulación de Celular activa */}
       {viewportProfile !== 'desktop' && (
-        <div className="sticky top-0 z-50 bg-[#1B5E20] text-[#ffffff] px-4 py-1.5 text-[11px] font-semibold flex items-center justify-between">
+        <div className="sticky top-0 z-50 bg-[#104336] text-[#ffffff] px-4 py-1.5 text-[11px] font-semibold flex items-center justify-between">
           <span className="flex items-center gap-1.5 font-mono">
             <Smartphone className="w-3.5 h-3.5" />
             Simulador Móvil: {viewportProfile === 'iphone-15' ? 'iPhone 15 Pro (390px)' : 'Android Gama Media (412px)'}
           </span>
           <button
             onClick={() => networkSimulator.setViewport('desktop')}
-            className="px-2.5 py-0.5 rounded-[980px] bg-[#FFFFFF]/25 hover:bg-[#0A2E17]/55 text-[10px]"
+            className="px-2.5 py-0.5 rounded-[8px] bg-[#FFFFFF]/25 hover:bg-[#0A2E17]/55 text-[10px]"
           >
             Salir a Desktop
           </button>
@@ -478,7 +478,7 @@ export default function App() {
 
       <Suspense
         fallback={
-          <div className="min-h-screen bg-[#F2F8F4] p-6 flex flex-col justify-center items-center">
+          <div className="min-h-screen bg-[#f3f1ec] p-6 flex flex-col justify-center items-center">
             <HeroSkeleton />
           </div>
         }
@@ -501,7 +501,7 @@ export default function App() {
             onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
           />
         ) : (
-          <div className="min-h-screen bg-[#F2F8F4] text-[#0D3B1E] flex flex-col transition-colors">
+          <div className="min-h-screen bg-[#f3f1ec] text-[#101f1e] flex flex-col transition-colors">
             {/* Top Navigation Bar con acceso a volver a la Landing y Consola RUM */}
             <Navbar
               currentUser={currentUser}
@@ -536,12 +536,12 @@ export default function App() {
                 {skeletonMode ? (
                   <div className="space-y-6">
                     <div className="flex justify-between items-center pb-2">
-                      <span className="font-semibold text-xs text-[#15803D] font-mono">
+                      <span className="font-semibold text-xs text-[#104336] font-mono">
                         [Vista Skeleton Activa en Panel de Gestión]
                       </span>
                       <button
                         onClick={() => setSkeletonMode(false)}
-                        className="px-4 py-1.5 text-xs rounded-[980px] bg-[#1B5E20] text-[#ffffff] font-semibold"
+                        className="px-4 py-1.5 text-xs rounded-[8px] bg-[#104336] text-[#ffffff] font-semibold"
                       >
                         Ver Datos Reales
                       </button>
@@ -632,12 +632,12 @@ export default function App() {
 
                     {activeTab === 'simulator' && (
                       <div className="space-y-6">
-                        <div className="bg-[#FFFFFF] p-8 rounded-[28px] space-y-4">
+                        <div className="bg-[#FFFFFF] p-8 rounded-[16px] space-y-4">
                           <span className="apple-badge-orange inline-block">ENTORNO DE PRUEBAS E2E</span>
-                          <h3 className="apple-card-heading text-[#0D3B1E]">
+                          <h3 className="apple-card-heading text-[#101f1e]">
                             Simulador de Campo &amp; Pruebas de Resiliencia
                           </h3>
-                          <p className="apple-body text-[#3B694C] max-w-2xl">
+                          <p className="apple-body text-[#535e5d] max-w-2xl">
                             Abra la consola de control para emular microcontroladores ESP32 en condiciones de sobrecalentamiento, desconexión de red o ingesta de paquetes corruptos hacia la Dead Letter Queue (DLQ).
                           </p>
                           <div className="pt-2 flex flex-wrap gap-3">
@@ -713,10 +713,10 @@ export default function App() {
       {/* Global Toast Notification — SIMOA Eco Capsule */}
       {toastMessage && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-[36px] bg-[#FFFFFF] border border-[#2E7D32] shadow-lg text-[#0D3B1E] text-[14px] font-semibold leading-[18px] tracking-[-0.224px] animate-slideUp"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-[36px] bg-[#FFFFFF] border border-[#104336]  text-[#101f1e] text-[14px] font-semibold leading-[18px] tracking-[-0.224px] animate-slideUp"
         >
           {toastType === 'success' ? (
-            <Check className="w-4 h-4 text-[#15803D] shrink-0" />
+            <Check className="w-4 h-4 text-[#104336] shrink-0" />
           ) : (
             <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
           )}

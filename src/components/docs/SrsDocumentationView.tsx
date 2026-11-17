@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import {
   FileText,
   CheckCircle2,
@@ -276,11 +276,11 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
   return (
     <div className="space-y-[24px]">
       {/* Portada Oficial del Proyecto ADSO — Charcoal Stage (#FFFFFF, 28px radius) */}
-      <div className="bg-[#FFFFFF] rounded-[28px] p-6 sm:p-8 border border-[#C8E6C9]/60 space-y-6">
+      <div className="bg-[#FFFFFF] rounded-[16px] p-6 sm:p-8 border border-[#afc4bf]/60 space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="px-3 py-1.5 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9]">
+              <div className="px-3 py-1.5 rounded-xl bg-[#f3f1ec] border border-[#afc4bf]">
                 <img
                   src="/assets/images/simoa-logo.webp"
                   alt="SIMOA"
@@ -288,14 +288,14 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                 />
               </div>
               <span className="apple-badge-orange font-mono">PROYECTO ADSO · SENA</span>
-              <span className="px-3 py-1 rounded-[980px] bg-[#F2F8F4] border border-[#C8E6C9] text-[#15803D] text-xs font-mono">
+              <span className="px-3 py-1 rounded-[8px] bg-[#f3f1ec] border border-[#afc4bf] text-[#104336] text-xs font-mono">
                 MVP · 4 Semanas · Metodología Scrum
               </span>
             </div>
-            <h2 className="apple-section-heading text-[#0D3B1E]">
+            <h2 className="apple-section-heading text-[#101f1e]">
               Especificación Técnica SRS — SIMOA
             </h2>
-            <p className="text-[14px] text-[#3B694C] max-w-3xl">
+            <p className="text-[14px] text-[#535e5d] max-w-3xl">
               Sistema IoT de Monitoreo Ambiental que registra, transmite por MQTT, almacena y visualiza variables de temperatura y humedad con alertas y detección de anomalías mediante Inteligencia Artificial.
             </p>
           </div>
@@ -323,57 +323,57 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
 
         {/* Tarjetas de Identificación Oficial */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
-          <div className="bg-[#F2F8F4] rounded-[20px] p-4 space-y-1">
-            <span className="text-[11px] text-[#3B694C] flex items-center gap-1.5">
-              <UserCheck className="w-3.5 h-3.5 text-[#15803D]" /> Integrante / Autora
+          <div className="bg-[#f3f1ec] rounded-[16px] p-4 space-y-1">
+            <span className="text-[11px] text-[#535e5d] flex items-center gap-1.5">
+              <UserCheck className="w-3.5 h-3.5 text-[#104336]" /> Integrante / Autora
             </span>
-            <div className="text-[15px] font-semibold text-[#0D3B1E]">
+            <div className="text-[15px] font-semibold text-[#101f1e]">
               Luz Eliana Sánchez Tovar
             </div>
-            <div className="text-[11px] font-mono text-[#3B694C]">
+            <div className="text-[11px] font-mono text-[#535e5d]">
               LEST32992732@soy.sena.edu.co
             </div>
           </div>
 
-          <div className="bg-[#F2F8F4] rounded-[20px] p-4 space-y-1">
-            <span className="text-[11px] text-[#3B694C] flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-[#1B5E20]" /> Presentado al Instructor
+          <div className="bg-[#f3f1ec] rounded-[16px] p-4 space-y-1">
+            <span className="text-[11px] text-[#535e5d] flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5 text-[#104336]" /> Presentado al Instructor
             </span>
-            <div className="text-[15px] font-semibold text-[#0D3B1E]">
+            <div className="text-[15px] font-semibold text-[#101f1e]">
               Javier Humberto Pinto
             </div>
-            <div className="text-[11px] font-mono text-[#3B694C]">
+            <div className="text-[11px] font-mono text-[#535e5d]">
               Evaluador Técnico ADSO
             </div>
           </div>
 
-          <div className="bg-[#F2F8F4] rounded-[20px] p-4 space-y-1">
-            <span className="text-[11px] text-[#3B694C] flex items-center gap-1.5">
+          <div className="bg-[#f3f1ec] rounded-[16px] p-4 space-y-1">
+            <span className="text-[11px] text-[#535e5d] flex items-center gap-1.5">
               <GitBranch className="w-3.5 h-3.5 text-[#D97706]" /> Repositorio Git Vinculado
             </span>
-            <div className="text-[13px] font-semibold text-[#0D3B1E] truncate font-mono">
+            <div className="text-[13px] font-semibold text-[#101f1e] truncate font-mono">
               LuzElianaSanchezTovar666
             </div>
-            <div className="text-[11px] font-mono text-[#15803D] truncate">
+            <div className="text-[11px] font-mono text-[#104336] truncate">
               Sistema_oit_de_monitoreo_ambiental
             </div>
           </div>
 
-          <div className="bg-[#F2F8F4] rounded-[20px] p-4 space-y-1">
-            <span className="text-[11px] text-[#3B694C] flex items-center gap-1.5">
-              <Cpu className="w-3.5 h-3.5 text-[#15803D]" /> Variables & Usuarios
+          <div className="bg-[#f3f1ec] rounded-[16px] p-4 space-y-1">
+            <span className="text-[11px] text-[#535e5d] flex items-center gap-1.5">
+              <Cpu className="w-3.5 h-3.5 text-[#104336]" /> Variables & Usuarios
             </span>
-            <div className="text-[14px] font-semibold text-[#0D3B1E]">
+            <div className="text-[14px] font-semibold text-[#101f1e]">
               Temperatura y Humedad
             </div>
-            <div className="text-[11px] text-[#3B694C]">
+            <div className="text-[11px] text-[#535e5d]">
               Administrador y Operador Ambiental
             </div>
           </div>
         </div>
 
         {/* Filtro de Secciones del SRS */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#C8E6C9]/60">
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#afc4bf]/60">
           {[
             { id: 'all', label: 'Todo el Documento (Puntos 1 al 7)' },
             { id: 'alcance', label: '1-2. Objetivos y Alcance' },
@@ -385,10 +385,10 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
             <button
               key={tab.id}
               onClick={() => setActiveSection(tab.id as any)}
-              className={`px-4 py-1.5 rounded-[980px] text-xs transition-colors ${
+              className={`px-4 py-1.5 rounded-[8px] text-xs transition-colors ${
                 activeSection === tab.id
-                  ? 'bg-[#1B5E20] text-[#ffffff] font-semibold'
-                  : 'bg-[#F2F8F4] text-[#3B694C] hover:text-[#0D3B1E]'
+                  ? 'bg-[#104336] text-[#ffffff] font-semibold'
+                  : 'bg-[#f3f1ec] text-[#535e5d] hover:text-[#101f1e]'
               }`}
             >
               {tab.label}
@@ -401,38 +401,38 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
       {(activeSection === 'all' || activeSection === 'alcance') && (
         <div className="space-y-[24px]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-[16px]">
-            <div className="lg:col-span-5 bg-[#FFFFFF] rounded-[28px] p-6 space-y-4">
+            <div className="lg:col-span-5 bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
               <span className="apple-badge-orange">1.1 PLANTEAMIENTO Y 1.2 OBJETIVO GENERAL</span>
-              <h3 className="apple-card-heading text-[#0D3B1E]">
+              <h3 className="apple-card-heading text-[#101f1e]">
                 Problema y Propuesta de Solución
               </h3>
-              <p className="text-xs leading-relaxed text-[#3B694C]">
+              <p className="text-xs leading-relaxed text-[#535e5d]">
                 En aulas, laboratorios, oficinas, bodegas y ambientes de almacenamiento, las condiciones ambientales varían constantemente. La verificación manual dificulta mantener un seguimiento continuo y detectar oportunamente cambios que afecten el confort, los equipos o los materiales.
               </p>
-              <div className="bg-[#F2F8F4] p-4 rounded-[20px] space-y-1.5 border border-[#15803D]/30">
-                <span className="text-[11px] font-mono text-[#15803D] font-semibold">
+              <div className="bg-[#f3f1ec] p-4 rounded-[16px] space-y-1.5 border border-[#104336]/30">
+                <span className="text-[11px] font-mono text-[#104336] font-semibold">
                   OBJETIVO GENERAL
                 </span>
-                <p className="text-xs text-[#0D3B1E] leading-relaxed">
+                <p className="text-xs text-[#101f1e] leading-relaxed">
                   Desarrollar un sistema IoT de monitoreo ambiental que permita registrar, transmitir, almacenar y visualizar mediciones de temperatura y humedad mediante sensores conectados a una plataforma web, incorporando mecanismos de alertas y análisis básico de anomalías mediante Inteligencia Artificial.
                 </p>
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-[#FFFFFF] rounded-[28px] p-6 space-y-4">
-              <span className="text-xs font-mono text-[#15803D] font-semibold">
+            <div className="lg:col-span-7 bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
+              <span className="text-xs font-mono text-[#104336] font-semibold">
                 1.3 OBJETIVOS ESPECÍFICOS (9 METAS VERIFICABLES)
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {objetivosEspecificos.map((obj, idx) => (
                   <div
                     key={idx}
-                    className="bg-[#F2F8F4] p-3 rounded-[16px] flex items-start gap-2.5 text-xs"
+                    className="bg-[#f3f1ec] p-3 rounded-[16px] flex items-start gap-2.5 text-xs"
                   >
-                    <span className="font-mono text-[#15803D] font-semibold shrink-0">
+                    <span className="font-mono text-[#104336] font-semibold shrink-0">
                       0{idx + 1}.
                     </span>
-                    <span className="text-[#0D3B1E] leading-snug">{obj}</span>
+                    <span className="text-[#101f1e] leading-snug">{obj}</span>
                   </div>
                 ))}
               </div>
@@ -440,17 +440,17 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
           </div>
 
           {/* 2.1 las 7 Funcionalidades Incluidas con imágenes AVIF/WebP */}
-          <div className="bg-[#FFFFFF] rounded-[28px] p-6 space-y-5">
+          <div className="bg-[#FFFFFF] rounded-[16px] p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <span className="text-xs font-mono text-[#15803D] font-semibold">
+                <span className="text-xs font-mono text-[#104336] font-semibold">
                   2.1 FUNCIONALIDADES INCLUIDAS EN EL MVP
                 </span>
-                <h3 className="apple-card-heading text-[#0D3B1E]">
+                <h3 className="apple-card-heading text-[#101f1e]">
                   7 Módulos Operativos con Activos AVIF / WebP
                 </h3>
               </div>
-              <span className="text-xs text-[#3B694C]">
+              <span className="text-xs text-[#535e5d]">
                 Haz clic en cualquier tarjeta para abrir el módulo en vivo
               </span>
             </div>
@@ -460,7 +460,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                 <div
                   key={f.num}
                   onClick={() => onNavigateTab && onNavigateTab(f.tab)}
-                  className="bg-[#F2F8F4] rounded-[22px] overflow-hidden flex flex-col justify-between cursor-pointer hover:border hover:border-[#1B5E20] transition-all"
+                  className="bg-[#f3f1ec] rounded-[22px] overflow-hidden flex flex-col justify-between cursor-pointer hover:border hover:border-[#104336] transition-all"
                 >
                   <div className="h-32 w-full relative overflow-hidden">
                     <OptimizedImage
@@ -469,16 +469,16 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                       priority={false}
                       className="w-full h-full object-cover"
                     />
-                    <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-[980px] bg-[#F2F8F4]/85 text-[#15803D] font-mono text-[11px] font-semibold">
+                    <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-[8px] bg-[#f3f1ec]/85 text-[#104336] font-mono text-[11px] font-semibold">
                       #{f.num}
                     </span>
                   </div>
                   <div className="p-4 space-y-1.5 flex-1 flex flex-col justify-between">
                     <div>
-                      <h4 className="text-sm font-semibold text-[#0D3B1E]">{f.title}</h4>
-                      <p className="text-xs text-[#3B694C] mt-1 leading-relaxed">{f.desc}</p>
+                      <h4 className="text-sm font-semibold text-[#101f1e]">{f.title}</h4>
+                      <p className="text-xs text-[#535e5d] mt-1 leading-relaxed">{f.desc}</p>
                     </div>
-                    <div className="pt-2 text-[11px] text-[#1B5E20] font-semibold">
+                    <div className="pt-2 text-[11px] text-[#104336] font-semibold">
                       Abrir módulo interactivo →
                     </div>
                   </div>
@@ -487,7 +487,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
             </div>
 
             {/* 2.2 Funcionalidades Excluidas */}
-            <div className="bg-[#F2F8F4] rounded-[22px] p-5 space-y-3">
+            <div className="bg-[#f3f1ec] rounded-[22px] p-5 space-y-3">
               <span className="text-xs font-mono text-[#D97706] font-semibold">
                 2.2 FUNCIONALIDADES EXCLUIDAS (FUERA DEL ALCANCE DE 4 SEMANAS)
               </span>
@@ -495,7 +495,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                 {funcionalidadesExcluidas.map((ex, i) => (
                   <div
                     key={i}
-                    className="p-2.5 rounded-[12px] bg-[#FFFFFF] text-[11px] text-[#3B694C] flex items-center gap-2"
+                    className="p-2.5 rounded-[12px] bg-[#FFFFFF] text-[11px] text-[#535e5d] flex items-center gap-2"
                   >
                     <XCircle className="w-3.5 h-3.5 text-[#DC2626] shrink-0" />
                     <span>{ex}</span>
@@ -510,25 +510,25 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
       {/* SECCIÓN 3 Y 4: REQUERIMIENTOS FUNCIONALES, NO FUNCIONALES Y CASOS DE USO */}
       {(activeSection === 'all' || activeSection === 'rf') && (
         <div className="space-y-[24px]">
-          <div className="bg-[#FFFFFF] rounded-[28px] p-6 space-y-5">
+          <div className="bg-[#FFFFFF] rounded-[16px] p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <span className="text-xs font-mono text-[#15803D] font-semibold">
+                <span className="text-xs font-mono text-[#104336] font-semibold">
                   3. REQUERIMIENTOS FUNCIONALES (RF01 – RF18)
                 </span>
-                <h3 className="apple-card-heading text-[#0D3B1E]">
+                <h3 className="apple-card-heading text-[#101f1e]">
                   Matriz de Requerimientos Funcionales con Búsqueda Debounced
                 </h3>
               </div>
 
               <div className="relative w-full sm:w-80">
-                <Search className="w-4 h-4 text-[#3B694C] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[#535e5d] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Filtrar RF01..RF18 o módulo..."
-                  className="apple-pill-input w-full pl-10 pr-4 py-2 text-xs text-[#0D3B1E] placeholder-[#4A7C59]"
+                  className="apple-pill-input w-full pl-10 pr-4 py-2 text-xs text-[#101f1e] placeholder-[#4A7C59]"
                 />
               </div>
             </div>
@@ -537,17 +537,17 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
               {filteredRFs.map((rf) => (
                 <div
                   key={rf.codigo}
-                  className="bg-[#F2F8F4] p-4 rounded-[18px] space-y-1.5 border border-[#C8E6C9]/40"
+                  className="bg-[#f3f1ec] p-4 rounded-[18px] space-y-1.5 border border-[#afc4bf]/40"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-semibold text-[#15803D]">
+                    <span className="font-mono text-xs font-semibold text-[#104336]">
                       {rf.codigo}
                     </span>
-                    <span className="px-2 py-0.5 rounded-[5px] bg-[#FFFFFF] text-[10px] font-mono text-[#3B694C]">
+                    <span className="px-2 py-0.5 rounded-[5px] bg-[#FFFFFF] text-[10px] font-mono text-[#535e5d]">
                       {rf.modulo}
                     </span>
                   </div>
-                  <p className="text-xs text-[#0D3B1E] leading-relaxed">{rf.desc}</p>
+                  <p className="text-xs text-[#101f1e] leading-relaxed">{rf.desc}</p>
                 </div>
               ))}
             </div>
@@ -555,40 +555,40 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
 
           {/* Casos de Uso CU-01 a CU-07 y Requerimientos No Funcionales RNF01 a RNF10 */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-[16px]">
-            <div className="lg:col-span-5 bg-[#FFFFFF] rounded-[28px] p-6 space-y-4">
-              <span className="text-xs font-mono text-[#1B5E20] font-semibold">
+            <div className="lg:col-span-5 bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
+              <span className="text-xs font-mono text-[#104336] font-semibold">
                 CATÁLOGO DE CASOS DE USO (CU-01 A CU-07)
               </span>
               <div className="space-y-2.5">
                 {casosDeUso.map((cu) => (
-                  <div key={cu.id} className="bg-[#F2F8F4] p-3.5 rounded-[16px] space-y-1">
+                  <div key={cu.id} className="bg-[#f3f1ec] p-3.5 rounded-[16px] space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-semibold text-[#15803D]">
+                      <span className="font-mono text-xs font-semibold text-[#104336]">
                         {cu.id}
                       </span>
-                      <span className="font-mono text-[10px] text-[#3B694C]">{cu.rfs}</span>
+                      <span className="font-mono text-[10px] text-[#535e5d]">{cu.rfs}</span>
                     </div>
-                    <div className="text-xs font-semibold text-[#0D3B1E]">{cu.nombre}</div>
-                    <div className="text-[11px] text-[#3B694C]">Actor: {cu.actor}</div>
+                    <div className="text-xs font-semibold text-[#101f1e]">{cu.nombre}</div>
+                    <div className="text-[11px] text-[#535e5d]">Actor: {cu.actor}</div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-[#FFFFFF] rounded-[28px] p-6 space-y-4">
-              <span className="text-xs font-mono text-[#15803D] font-semibold">
+            <div className="lg:col-span-7 bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
+              <span className="text-xs font-mono text-[#104336] font-semibold">
                 4. REQUERIMIENTOS NO FUNCIONALES (RNF01 – RNF10)
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {requerimientosNoFuncionales.map((rnf) => (
-                  <div key={rnf.codigo} className="bg-[#F2F8F4] p-3.5 rounded-[16px] space-y-1">
+                  <div key={rnf.codigo} className="bg-[#f3f1ec] p-3.5 rounded-[16px] space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-semibold text-[#0D3B1E]">
+                      <span className="font-mono text-xs font-semibold text-[#101f1e]">
                         {rnf.codigo}
                       </span>
                       <span className="apple-badge-orange font-mono">{rnf.cat}</span>
                     </div>
-                    <p className="text-xs text-[#3B694C] leading-snug">{rnf.desc}</p>
+                    <p className="text-xs text-[#535e5d] leading-snug">{rnf.desc}</p>
                   </div>
                 ))}
               </div>
@@ -599,12 +599,12 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
 
       {/* SECCIÓN 5: ARQUITECTURA DE 4 CAPAS Y MODELO DE BASE DE DATOS */}
       {(activeSection === 'all' || activeSection === 'arquitectura') && (
-        <div className="bg-[#FFFFFF] rounded-[28px] p-6 space-y-6">
+        <div className="bg-[#FFFFFF] rounded-[16px] p-6 space-y-6">
           <div>
-            <span className="text-xs font-mono text-[#15803D] font-semibold">
+            <span className="text-xs font-mono text-[#104336] font-semibold">
               5. ARQUITECTURA DEL SISTEMA Y ESQUEMA RELACIONAL
             </span>
-            <h3 className="apple-card-heading text-[#0D3B1E]">
+            <h3 className="apple-card-heading text-[#101f1e]">
               4 Capas Tecnológicas y 5 Tablas Indexadas
             </h3>
           </div>
@@ -633,13 +633,13 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                 detalle: 'Dashboard en tiempo real, alertas y análisis de anomalías.',
               },
             ].map((c, i) => (
-              <div key={i} className="bg-[#F2F8F4] p-4 rounded-[20px] space-y-1.5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#15803D]">
+              <div key={i} className="bg-[#f3f1ec] p-4 rounded-[16px] space-y-1.5">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#104336]">
                   <Layers className="w-4 h-4" />
                   <span>{c.capa}</span>
                 </div>
-                <div className="text-xs font-mono text-[#0D3B1E] font-semibold">{c.tec}</div>
-                <p className="text-[11px] text-[#3B694C]">{c.detalle}</p>
+                <div className="text-xs font-mono text-[#101f1e] font-semibold">{c.tec}</div>
+                <p className="text-[11px] text-[#535e5d]">{c.detalle}</p>
               </div>
             ))}
           </div>
@@ -647,17 +647,17 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
           {/* 5 Tablas de la Base de Datos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {tablasBD.map((t) => (
-              <div key={t.tabla} className="bg-[#F2F8F4] p-4 rounded-[20px] space-y-2 border border-[#C8E6C9]/50">
+              <div key={t.tabla} className="bg-[#f3f1ec] p-4 rounded-[16px] space-y-2 border border-[#afc4bf]/50">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-semibold text-[#0D3B1E] flex items-center gap-1.5">
-                    <Database className="w-3.5 h-3.5 text-[#1B5E20]" />
+                  <span className="font-mono text-xs font-semibold text-[#101f1e] flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-[#104336]" />
                     {t.tabla}
                   </span>
                 </div>
-                <div className="text-[10px] font-mono text-[#15803D] truncate" title={t.indice}>
+                <div className="text-[10px] font-mono text-[#104336] truncate" title={t.indice}>
                   {t.indice}
                 </div>
-                <ul className="space-y-1 text-[11px] font-mono text-[#3B694C] pt-1 border-t border-[#C8E6C9]/40">
+                <ul className="space-y-1 text-[11px] font-mono text-[#535e5d] pt-1 border-t border-[#afc4bf]/40">
                   {t.campos.map((campo, idx) => (
                     <li key={idx}>• {campo}</li>
                   ))}
@@ -671,25 +671,25 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
       {/* SECCIÓN 6 Y 7: PLAN DE TRABAJO DE 4 SEMANAS, ENTREGABLES Y EVALUACIÓN */}
       {(activeSection === 'all' || activeSection === 'cronograma') && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-[16px]">
-          <div className="lg:col-span-8 bg-[#FFFFFF] rounded-[28px] p-6 space-y-4">
+          <div className="lg:col-span-8 bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-[#15803D]" />
-              <h3 className="apple-card-heading text-[#0D3B1E]">
+              <Calendar className="w-5 h-5 text-[#104336]" />
+              <h3 className="apple-card-heading text-[#101f1e]">
                 6. Plan de Trabajo Scrum (4 Semanas)
               </h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {planSemanas.map((sem) => (
-                <div key={sem.semana} className="bg-[#F2F8F4] p-4 rounded-[20px] space-y-2">
+                <div key={sem.semana} className="bg-[#f3f1ec] p-4 rounded-[16px] space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="apple-badge-orange font-mono">{sem.semana}</span>
-                    <span className="text-[11px] font-mono text-[#15803D]">100% Completado</span>
+                    <span className="text-[11px] font-mono text-[#104336]">100% Completado</span>
                   </div>
-                  <h4 className="text-sm font-semibold text-[#0D3B1E]">{sem.titulo}</h4>
-                  <ul className="space-y-1 text-xs text-[#3B694C]">
+                  <h4 className="text-sm font-semibold text-[#101f1e]">{sem.titulo}</h4>
+                  <ul className="space-y-1 text-xs text-[#535e5d]">
                     {sem.tareas.map((t, idx) => (
                       <li key={idx} className="flex items-start gap-1.5">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#104336] shrink-0 mt-0.5" />
                         <span>{t}</span>
                       </li>
                     ))}
@@ -699,10 +699,10 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
             </div>
           </div>
 
-          <div className="lg:col-span-4 bg-[#FFFFFF] rounded-[28px] p-6 space-y-4">
+          <div className="lg:col-span-4 bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
             <div className="flex items-center gap-2">
-              <Award className="w-5 h-5 text-[#15803D]" />
-              <h3 className="apple-card-heading text-[#0D3B1E]">
+              <Award className="w-5 h-5 text-[#104336]" />
+              <h3 className="apple-card-heading text-[#101f1e]">
                 7. Criterios de Evaluación
               </h3>
             </div>
@@ -717,10 +717,10 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
               ].map((item, i) => (
                 <div
                   key={i}
-                  className="bg-[#F2F8F4] p-3 rounded-[16px] flex items-center justify-between text-xs"
+                  className="bg-[#f3f1ec] p-3 rounded-[16px] flex items-center justify-between text-xs"
                 >
-                  <span className="text-[#0D3B1E]">{item.crit}</span>
-                  <span className="font-mono font-semibold text-[#15803D]">{item.peso}</span>
+                  <span className="text-[#101f1e]">{item.crit}</span>
+                  <span className="font-mono font-semibold text-[#104336]">{item.peso}</span>
                 </div>
               ))}
             </div>
@@ -730,13 +730,13 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
 
       {/* CHECKLIST DE LAS 30 OPTIMIZACIONES DE INGENIERÍA WEB */}
       {(activeSection === 'all' || activeSection === 'optimizaciones') && (
-        <div className="bg-[#FFFFFF] rounded-[28px] p-6 space-y-4">
+        <div className="bg-[#FFFFFF] rounded-[16px] p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <span className="text-xs font-mono text-[#15803D] font-semibold flex items-center gap-1.5">
+              <span className="text-xs font-mono text-[#104336] font-semibold flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4" /> ARQUITECTURA DE ALTO RENDIMIENTO
               </span>
-              <h3 className="apple-card-heading text-[#0D3B1E]">
+              <h3 className="apple-card-heading text-[#101f1e]">
                 30 Optimizaciones Full-Stack Implementadas y Verificadas
               </h3>
             </div>
@@ -754,9 +754,9 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
             {optimizaciones30.map((opt, i) => (
               <div
                 key={i}
-                className="bg-[#F2F8F4] px-3.5 py-2.5 rounded-[14px] flex items-center gap-2.5 text-xs text-[#0D3B1E]"
+                className="bg-[#f3f1ec] px-3.5 py-2.5 rounded-[14px] flex items-center gap-2.5 text-xs text-[#101f1e]"
               >
-                <CheckCircle2 className="w-4 h-4 text-[#15803D] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#104336] shrink-0" />
                 <span>{opt}</span>
               </div>
             ))}

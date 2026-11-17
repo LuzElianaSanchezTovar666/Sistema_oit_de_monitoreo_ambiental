@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Activity,
   Database,
@@ -80,26 +80,26 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#F2F8F4]/85 backdrop-blur-md animate-fadeIn">
-      <div className="bg-[#FFFFFF] border border-[#C8E6C9] rounded-[28px] w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden text-[#0D3B1E]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#f3f1ec]/85 backdrop-blur-md animate-fadeIn">
+      <div className="bg-[#FFFFFF] border border-[#afc4bf] rounded-[16px] w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden text-[#101f1e]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#C8E6C9] shrink-0">
+        <div className="flex items-center justify-between p-6 border-b border-[#afc4bf] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#F2F8F4] text-[#15803D] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-[#f3f1ec] text-[#104336] flex items-center justify-center">
               <Gauge className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-[17px] font-semibold text-[#0D3B1E]">
+              <h3 className="text-[17px] font-semibold text-[#101f1e]">
                 Centro de Ingeniería de Rendimiento, OpenTelemetry, Redis & RUM
               </h3>
-              <p className="text-xs text-[#3B694C]">
+              <p className="text-xs text-[#535e5d]">
                 Monitoreo de velocidad real (Core Web Vitals), caché Redis, cola de trabajos, pool de conexiones y pruebas en redes lentas / celulares
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#3B694C] hover:text-[#0D3B1E] text-base font-semibold"
+            className="text-[#535e5d] hover:text-[#101f1e] text-base font-semibold"
           >
             ✕
           </button>
@@ -109,58 +109,58 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
         <div className="p-6 space-y-6 overflow-y-auto text-xs">
           {/* 1. Core Web Vitals (RUM - Real User Monitoring) */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="bg-[#F2F8F4] p-4 rounded-[24px] space-y-1">
-              <span className="text-[10px] text-[#3B694C] uppercase font-mono">LCP (Hero AVIF)</span>
-              <div className="text-[24px] font-semibold text-[#15803D] font-display tabular-nums">
+            <div className="bg-[#f3f1ec] p-4 rounded-[24px] space-y-1">
+              <span className="text-[10px] text-[#535e5d] uppercase font-mono">LCP (Hero AVIF)</span>
+              <div className="text-[24px] font-semibold text-[#104336] font-display tabular-nums">
                 {rum.lcpMs}ms
               </div>
-              <span className="text-[10px] text-[#15803D]">Óptimo (&lt;2.5s)</span>
+              <span className="text-[10px] text-[#104336]">Óptimo (&lt;2.5s)</span>
             </div>
-            <div className="bg-[#F2F8F4] p-4 rounded-[24px] space-y-1">
-              <span className="text-[10px] text-[#3B694C] uppercase font-mono">FCP (SSR Shell)</span>
-              <div className="text-[24px] font-semibold text-[#15803D] font-display tabular-nums">
+            <div className="bg-[#f3f1ec] p-4 rounded-[24px] space-y-1">
+              <span className="text-[10px] text-[#535e5d] uppercase font-mono">FCP (SSR Shell)</span>
+              <div className="text-[24px] font-semibold text-[#104336] font-display tabular-nums">
                 {rum.fcpMs}ms
               </div>
-              <span className="text-[10px] text-[#15803D]">Pre-renderizado</span>
+              <span className="text-[10px] text-[#104336]">Pre-renderizado</span>
             </div>
-            <div className="bg-[#F2F8F4] p-4 rounded-[24px] space-y-1">
-              <span className="text-[10px] text-[#3B694C] uppercase font-mono">INP (React Memo)</span>
-              <div className="text-[24px] font-semibold text-[#0D3B1E] font-display tabular-nums">
+            <div className="bg-[#f3f1ec] p-4 rounded-[24px] space-y-1">
+              <span className="text-[10px] text-[#535e5d] uppercase font-mono">INP (React Memo)</span>
+              <div className="text-[24px] font-semibold text-[#101f1e] font-display tabular-nums">
                 {rum.inpMs}ms
               </div>
-              <span className="text-[10px] text-[#3B694C]">Sin re-renders</span>
+              <span className="text-[10px] text-[#535e5d]">Sin re-renders</span>
             </div>
-            <div className="bg-[#F2F8F4] p-4 rounded-[24px] space-y-1">
-              <span className="text-[10px] text-[#3B694C] uppercase font-mono">CLS (Estabilidad)</span>
-              <div className="text-[24px] font-semibold text-[#15803D] font-display tabular-nums">
+            <div className="bg-[#f3f1ec] p-4 rounded-[24px] space-y-1">
+              <span className="text-[10px] text-[#535e5d] uppercase font-mono">CLS (Estabilidad)</span>
+              <div className="text-[24px] font-semibold text-[#104336] font-display tabular-nums">
                 {rum.clsScore}
               </div>
-              <span className="text-[10px] text-[#3B694C]">Fuentes swap 400/600</span>
+              <span className="text-[10px] text-[#535e5d]">Fuentes swap 400/600</span>
             </div>
-            <div className="bg-[#F2F8F4] p-4 rounded-[24px] space-y-1">
-              <span className="text-[10px] text-[#3B694C] uppercase font-mono">Redis Hit Ratio</span>
-              <div className="text-[24px] font-semibold text-[#1B5E20] font-display tabular-nums">
+            <div className="bg-[#f3f1ec] p-4 rounded-[24px] space-y-1">
+              <span className="text-[10px] text-[#535e5d] uppercase font-mono">Redis Hit Ratio</span>
+              <div className="text-[24px] font-semibold text-[#104336] font-display tabular-nums">
                 {redisStats.hitRatioPct}%
               </div>
-              <span className="text-[10px] text-[#3B694C]">
+              <span className="text-[10px] text-[#535e5d]">
                 {redisStats.hits} hits · {dedup.savedDuplicateCalls} dedup
               </span>
             </div>
-            <div className="bg-[#F2F8F4] p-4 rounded-[24px] space-y-1">
-              <span className="text-[10px] text-[#3B694C] uppercase font-mono">DB Pool Proximity</span>
-              <div className="text-[24px] font-semibold text-[#15803D] font-display tabular-nums">
+            <div className="bg-[#f3f1ec] p-4 rounded-[24px] space-y-1">
+              <span className="text-[10px] text-[#535e5d] uppercase font-mono">DB Pool Proximity</span>
+              <div className="text-[24px] font-semibold text-[#104336] font-display tabular-nums">
                 {cluster.dbProximityLatencyMs}ms
               </div>
-              <span className="text-[10px] text-[#3B694C]">Brotli/Gzip + CDN</span>
+              <span className="text-[10px] text-[#535e5d]">Brotli/Gzip + CDN</span>
             </div>
           </div>
 
           {/* 2. Simulador de Celulares y Redes Lentas (3G / 2G Edge) */}
-          <div className="bg-[#F2F8F4] p-5 rounded-[28px] space-y-4">
+          <div className="bg-[#f3f1ec] p-5 rounded-[16px] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-[#1B5E20]" />
-                <h4 className="text-[14px] font-semibold text-[#0D3B1E]">
+                <Smartphone className="w-4 h-4 text-[#104336]" />
+                <h4 className="text-[14px] font-semibold text-[#101f1e]">
                   Laboratorio de Pruebas en Celulares y Redes Lentas (Throttling)
                 </h4>
               </div>
@@ -171,7 +171,7 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <span className="text-[11px] text-[#3B694C] block">Condición de Red (Simulación de Latencia):</span>
+                <span className="text-[11px] text-[#535e5d] block">Condición de Red (Simulación de Latencia):</span>
                 <div className="flex flex-wrap gap-1.5">
                   {(
                     [
@@ -184,10 +184,10 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
                     <button
                       key={item.id}
                       onClick={() => handleApplySimulation(item.id, viewProfile)}
-                      className={`px-3.5 py-1.5 rounded-[980px] text-[11px] font-semibold transition-colors ${
+                      className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-semibold transition-colors ${
                         netProfile === item.id
-                          ? 'bg-[#1B5E20] text-[#ffffff]'
-                          : 'bg-[#FFFFFF] text-[#3B694C] hover:text-[#0D3B1E]'
+                          ? 'bg-[#104336] text-[#ffffff]'
+                          : 'bg-[#FFFFFF] text-[#535e5d] hover:text-[#101f1e]'
                       }`}
                     >
                       <Wifi className="w-3 h-3 inline mr-1" />
@@ -198,7 +198,7 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-[11px] text-[#3B694C] block">Viewport de Dispositivo:</span>
+                <span className="text-[11px] text-[#535e5d] block">Viewport de Dispositivo:</span>
                 <div className="flex flex-wrap gap-1.5">
                   {(
                     [
@@ -210,10 +210,10 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
                     <button
                       key={vp.id}
                       onClick={() => handleApplySimulation(netProfile, vp.id)}
-                      className={`px-3.5 py-1.5 rounded-[980px] text-[11px] font-semibold transition-colors ${
+                      className={`px-3.5 py-1.5 rounded-[8px] text-[11px] font-semibold transition-colors ${
                         viewProfile === vp.id
-                          ? 'bg-[#15803D] text-[#F2F8F4]'
-                          : 'bg-[#FFFFFF] text-[#3B694C] hover:text-[#0D3B1E]'
+                          ? 'bg-[#104336] text-[#f3f1ec]'
+                          : 'bg-[#FFFFFF] text-[#535e5d] hover:text-[#101f1e]'
                       }`}
                     >
                       {vp.label}
@@ -227,35 +227,35 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
           {/* 3. Balanceador de Carga Multi-Instancia, Pool de Conexiones e Índices SQL */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Cluster & Connection Pool */}
-            <div className="bg-[#F2F8F4] p-5 rounded-[28px] space-y-3">
+            <div className="bg-[#f3f1ec] p-5 rounded-[16px] space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] font-semibold text-[#0D3B1E] flex items-center gap-2">
-                  <Server className="w-4 h-4 text-[#15803D]" />
+                <span className="text-[14px] font-semibold text-[#101f1e] flex items-center gap-2">
+                  <Server className="w-4 h-4 text-[#104336]" />
                   Clúster Multi-Instancia & Pool de Conexiones
                 </span>
-                <span className="text-[11px] font-mono text-[#15803D]">{cluster.dbRegion}</span>
+                <span className="text-[11px] font-mono text-[#104336]">{cluster.dbRegion}</span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 font-mono text-[11px]">
                 {cluster.instances.map((inst) => (
                   <div key={inst.id} className="p-3 rounded-[18px] bg-[#FFFFFF] space-y-1">
-                    <div className="text-[#15803D] font-semibold truncate">{inst.id}</div>
-                    <div className="text-[#3B694C]">Req: {inst.requestsServed}</div>
-                    <div className="text-[#0D3B1E]">Conns: {inst.activeConns}/20</div>
+                    <div className="text-[#104336] font-semibold truncate">{inst.id}</div>
+                    <div className="text-[#535e5d]">Req: {inst.requestsServed}</div>
+                    <div className="text-[#101f1e]">Conns: {inst.activeConns}/20</div>
                   </div>
                 ))}
               </div>
 
-              <div className="text-[11px] text-[#3B694C] font-mono pt-1 flex items-center justify-between border-t border-[#C8E6C9]/60">
+              <div className="text-[11px] text-[#535e5d] font-mono pt-1 flex items-center justify-between border-t border-[#afc4bf]/60">
                 <span>Pool Activas: {cluster.poolConfig.activeConnections} · Idle: {cluster.poolConfig.idleConnections}</span>
-                <span className="text-[#15803D]">0 Consultas N+1 (DataLoader O(1))</span>
+                <span className="text-[#104336]">0 Consultas N+1 (DataLoader O(1))</span>
               </div>
             </div>
 
             {/* Background Job Queue */}
-            <div className="bg-[#F2F8F4] p-5 rounded-[28px] space-y-3">
+            <div className="bg-[#f3f1ec] p-5 rounded-[16px] space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[14px] font-semibold text-[#0D3B1E] flex items-center gap-2">
+                <span className="text-[14px] font-semibold text-[#101f1e] flex items-center gap-2">
                   <Layers className="w-4 h-4 text-[#D97706]" />
                   Cola de Trabajos Asíncronos (Job Queue)
                 </span>
@@ -270,7 +270,7 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
 
               <div className="space-y-2 max-h-36 overflow-y-auto font-mono text-[11px]">
                 {jobs.length === 0 ? (
-                  <div className="text-[#3B694C] py-2">
+                  <div className="text-[#535e5d] py-2">
                     No hay tareas pesadas en cola. Las exportaciones CSV/JSON y diagnósticos se procesan aquí.
                   </div>
                 ) : (
@@ -280,15 +280,15 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
                       className="p-2.5 rounded-[16px] bg-[#FFFFFF] flex items-center justify-between gap-3"
                     >
                       <div className="truncate">
-                        <span className="text-[#0D3B1E] font-semibold">{job.name}</span>
+                        <span className="text-[#101f1e] font-semibold">{job.name}</span>
                         {job.resultSummary && (
-                          <span className="block text-[10px] text-[#3B694C] truncate">{job.resultSummary}</span>
+                          <span className="block text-[10px] text-[#535e5d] truncate">{job.resultSummary}</span>
                         )}
                       </div>
                       <span
                         className={`px-2 py-0.5 rounded-[5px] text-[10px] font-semibold shrink-0 ${
                           job.status === 'COMPLETED'
-                            ? 'bg-[#15803D]/15 text-[#15803D]'
+                            ? 'bg-[#104336]/15 text-[#104336]'
                             : 'apple-badge-orange'
                         }`}
                       >
@@ -302,20 +302,20 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
           </div>
 
           {/* 4. OpenTelemetry Spans & Slow Request Tracer */}
-          <div className="bg-[#F2F8F4] p-5 rounded-[28px] space-y-3">
+          <div className="bg-[#f3f1ec] p-5 rounded-[16px] space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-[14px] font-semibold text-[#0D3B1E] flex items-center gap-2">
-                <Activity className="w-4 h-4 text-[#1B5E20]" />
+              <span className="text-[14px] font-semibold text-[#101f1e] flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#104336]" />
                 Rastreador de Peticiones OpenTelemetry (W3C Trace Context)
               </span>
-              <span className="text-[11px] font-mono text-[#3B694C]">
+              <span className="text-[11px] font-mono text-[#535e5d]">
                 Umbral petición lenta: &gt;150ms
               </span>
             </div>
 
             <div className="max-h-40 overflow-y-auto font-mono text-[11px] space-y-1.5">
               {spans.length === 0 ? (
-                <div className="text-[#3B694C] py-2">
+                <div className="text-[#535e5d] py-2">
                   Ejecute un diagnóstico IA o consulta para inspeccionar los spans de OpenTelemetry.
                 </div>
               ) : (
@@ -329,17 +329,17 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
                         className={`px-1.5 py-0.5 rounded-[5px] text-[10px] font-bold ${
                           sp.status === 'SLOW'
                             ? 'bg-[#DC2626] text-[#ffffff]'
-                            : 'bg-[#15803D]/15 text-[#15803D]'
+                            : 'bg-[#104336]/15 text-[#104336]'
                         }`}
                       >
                         {sp.status}
                       </span>
-                      <span className="text-[#0D3B1E] font-semibold">{sp.name}</span>
-                      <span className="text-[#3B694C] text-[10px]">trace:{sp.traceId.slice(0, 10)}...</span>
+                      <span className="text-[#101f1e] font-semibold">{sp.name}</span>
+                      <span className="text-[#535e5d] text-[10px]">trace:{sp.traceId.slice(0, 10)}...</span>
                     </div>
-                    <div className="flex items-center gap-3 text-[#3B694C]">
+                    <div className="flex items-center gap-3 text-[#535e5d]">
                       <span>{sp.instanceId}</span>
-                      <span className={sp.durationMs > 150 ? 'text-[#DC2626] font-bold' : 'text-[#15803D]'}>
+                      <span className={sp.durationMs > 150 ? 'text-[#DC2626] font-bold' : 'text-[#104336]'}>
                         {sp.durationMs} ms
                       </span>
                     </div>
@@ -351,9 +351,9 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
         </div>
 
         {/* Footer */}
-        <div className="p-5 bg-[#F2F8F4] border-t border-[#C8E6C9] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2 text-[11px] text-[#3B694C]">
-            <CheckCircle2 className="w-4 h-4 text-[#15803D]" />
+        <div className="p-5 bg-[#f3f1ec] border-t border-[#afc4bf] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2 text-[11px] text-[#535e5d]">
+            <CheckCircle2 className="w-4 h-4 text-[#104336]" />
             <span>
               AVIF/WebP · Debounce 280ms · Paginación · Brotli/Gzip · Streaming IA Token-a-Token · Virtualización · Code Splitting activos
             </span>
