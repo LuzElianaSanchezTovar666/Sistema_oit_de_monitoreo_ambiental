@@ -604,9 +604,11 @@ export default function App() {
                         sensors={sensors}
                         locations={locations}
                         users={[currentUser]}
+                        currentUserRole={currentUser.rol}
                         onAddDevice={handleAddDevice}
                         onUpdateSensorLimits={handleUpdateSensorLimits}
                         onToggleDeviceState={handleToggleDeviceOffline}
+                        onNotify={showToast}
                       />
                     )}
 

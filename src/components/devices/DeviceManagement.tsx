@@ -1,788 +1,857 @@
-﻿import React, { useState, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus,
   Cpu,
   Wifi,
   WifiOff,
-  Sliders,
   Key,
   Copy,
   Check,
   Search,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
+  Loader2,
+  AlertCircle,
+  Eye,
+  PowerOff,
+  RefreshCw,
+  Clock,
+  ShieldAlert,
 } from 'lucide-react';
-import { Dispositivo, Sensor, Ubicacion, Usuario, DeviceType, SensorType } from '../../types/iot';
+import { Dispositivo, Sensor, Ubicacion, Usuario, UserRole } from '../../types/iot';
 import { useDebounce } from '../../hooks/useDebounce';
-import { buildEntityIndexes, paginateArray } from '../../services/performanceEngine';
+import {
+  createDispositivo,
+  deactivateDispositivo,
+  DispositivoDTO,
+  DispositivoEstado,
+  DispositivoTipo,
+  fetchDispositivoDetail,
+  fetchDispositivos,
+  INVALID_MAC_MESSAGE,
+  isValidMacFormat,
+  MqttCredentialsOnce,
+  updateDispositivo,
+} from '../../services/deviceService';
 
 interface DeviceManagementProps {
-  devices: Dispositivo[];
-  sensors: Sensor[];
+  devices?: Dispositivo[];
+  sensors?: Sensor[];
   locations: Ubicacion[];
-  users: Usuario[];
-  onAddDevice: (device: Dispositivo, sensor: Sensor) => void;
-  onUpdateSensorLimits: (sensorId: string, limits: Sensor['limites']) => void;
-  onToggleDeviceState: (deviceId: string) => void;
+  users?: Usuario[];
+  currentUserRole?: UserRole;
+  onAddDevice?: (device: Dispositivo, sensor: Sensor) => void;
+  onUpdateSensorLimits?: (sensorId: string, limits: Sensor['limites']) => void;
+  onToggleDeviceState?: (deviceId: string) => void;
+  onNotify?: (msg: string, type?: 'success' | 'alert') => void;
 }
 
-export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
-  devices,
-  sensors,
-  locations,
-  users,
-  onAddDevice,
-  onUpdateSensorLimits,
-  onToggleDeviceState,
-}) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
-  // Debounce de 280ms para búsqueda y autocompletado
-  const debouncedSearchTerm = useDebounce(searchTerm, 280);
+const ESTADO_BADGE: Record<DispositivoEstado, { label: string; cls: string }> = {
+  PENDIENTE: {
+    label: 'PENDIENTE',
+    cls: 'bg-signal-yellow/20 text-signal-yellow border border-signal-yellow/50',
+  },
+  ONLINE: {
+    label: 'ONLINE',
+    cls: 'bg-neon-pulse/20 text-neon-pulse border border-neon-pulse/50',
+  },
+  OFFLINE: {
+    label: 'OFFLINE',
+    cls: 'bg-[#DC2626]/20 text-[#FCA5A5] border border-[#DC2626]/50',
+  },
+  ADVERTENCIA: {
+    label: 'ADVERTENCIA',
+    cls: 'bg-signal-yellow/20 text-signal-yellow border border-signal-yellow/50',
+  },
+  ERROR: {
+    label: 'ERROR',
+    cls: 'bg-[#DC2626]/20 text-[#FCA5A5] border border-[#DC2626]/50',
+  },
+  INACTIVO: {
+    label: 'INACTIVO',
+    cls: 'bg-graphite-fill/40 text-slate-text border border-graphite-fill',
+  },
+};
 
-  const [selectedFilter, setSelectedFilter] = useState<'all' | 'ONLINE' | 'OFFLINE'>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 6;
+export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
+  ({ locations, currentUserRole = 'cliente', onNotify }) => {
+    const isAdmin = currentUserRole === 'admin';
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [credentialsModalDevice, setCredentialsModalDevice] = useState<Dispositivo | null>(null);
-  const [editingSensor, setEditingSensor] = useState<Sensor | null>(null);
-  const [copiedKey, setCopiedKey] = useState(false);
+    const [items, setItems] = useState<DispositivoDTO[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
+    const [brokerDisponible, setBrokerDisponible] = useState<boolean | null>(null);
+    const [brokerMensaje, setBrokerMensaje] = useState('');
 
-  // Form states for new device
-  const [newDeviceName, setNewDeviceName] = useState('');
-  const [newMacAddress, setNewMacAddress] = useState('');
-  const [newDeviceType, setNewDeviceType] = useState<DeviceType>('ESP32-WROOM');
-  const [newLocationId, setNewLocationId] = useState(locations[0]?.id_ubicacion || '');
-  const [newUserId, setNewUserId] = useState(users[0]?.id_usuario || '');
-  const [newSensorType, setNewSensorType] = useState<SensorType>('DHT22');
-  const [newTempMin, setNewTempMin] = useState(18.0);
-  const [newTempMax, setNewTempMax] = useState(25.0);
-  const [newHumMin, setNewHumMin] = useState(40.0);
-  const [newHumMax, setNewHumMax] = useState(65.0);
-  const [macError, setMacError] = useState('');
+    // Filtros
+    const [searchTerm, setSearchTerm] = useState('');
+    const debouncedSearch = useDebounce(searchTerm, 280);
+    const [estadoFilter, setEstadoFilter] = useState<string>('ALL');
+    const [tipoFilter, setTipoFilter] = useState<string>('ALL');
 
-  // Índices en memoria O(1) para eliminar por completo las consultas N+1
-  const indexes = useMemo(
-    () => buildEntityIndexes(locations, devices, sensors, users, []),
-    [locations, devices, sensors, users]
-  );
+    // Modal Nuevo Dispositivo
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [submittingCreate, setSubmittingCreate] = useState(false);
+    const [createError, setCreateError] = useState('');
+    const [newNombre, setNewNombre] = useState('');
+    const [newMac, setNewMac] = useState('');
+    const [newTipo, setNewTipo] = useState<DispositivoTipo>('ESP32');
+    const [newFirmware, setNewFirmware] = useState('v2.4.0');
+    const [newUbicacion, setNewUbicacion] = useState(locations[0]?.nombre || 'Laboratorio Central');
 
-  // Sugerencias de autocompletado con debounce
-  const autocompleteSuggestions = useMemo(() => {
-    const q = debouncedSearchTerm.trim().toLowerCase();
-    if (!q) return [];
-    return devices
-      .filter(
-        (d) =>
-          d.nombre.toLowerCase().includes(q) ||
-          d.mac_address.toLowerCase().includes(q) ||
-          d.tipo.toLowerCase().includes(q)
-      )
-      .slice(0, 5);
-  }, [devices, debouncedSearchTerm]);
+    // Modal Credenciales MQTT (una sola vez tras crear)
+    const [createdCreds, setCreatedCreds] = useState<MqttCredentialsOnce | null>(null);
+    const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const validateMac = useCallback((mac: string) => {
-    const regex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
-    return regex.test(mac);
-  }, []);
+    // Modal Detalle / Edición
+    const [detailDevice, setDetailDevice] = useState<DispositivoDTO | null>(null);
+    const [loadingDetail, setLoadingDetail] = useState(false);
+    const [editNombre, setEditNombre] = useState('');
+    const [editMac, setEditMac] = useState('');
+    const [editTipo, setEditTipo] = useState<DispositivoTipo>('ESP32');
+    const [editFirmware, setEditFirmware] = useState('');
+    const [editUbicacion, setEditUbicacion] = useState('');
+    const [editObs, setEditObs] = useState('');
+    const [editError, setEditError] = useState('');
+    const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+    const [savingEdit, setSavingEdit] = useState(false);
 
-  const handleCreateDevice = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateMac(newMacAddress)) {
-      setMacError('Formato inválido. Use formato hexadecimal estándar (ej. 24:6F:28:B1:C0:04)');
-      return;
-    }
+    // Modal Desactivación Lógica (RN-03)
+    const [deactivateTarget, setDeactivateTarget] = useState<DispositivoDTO | null>(null);
+    const [deactivating, setDeactivating] = useState(false);
 
-    const deviceId = `dev-${Date.now().toString().slice(-6)}`;
-    const sensorId = `sens-${Date.now().toString().slice(-6)}`;
-    const sanitizedMac = newMacAddress.toUpperCase();
-    const topicSlug = newDeviceName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const loadInventory = useCallback(async () => {
+      setLoading(true);
+      setLoadError('');
+      try {
+        const res = await fetchDispositivos({
+          search: debouncedSearch,
+          estado: estadoFilter,
+          tipo: tipoFilter,
+        });
+        setItems(res.items);
+        setBrokerDisponible(res.mqtt_broker_disponible);
+        setBrokerMensaje(res.mqtt_broker_mensaje);
+      } catch (err: any) {
+        setLoadError(err?.message || 'No se pudo cargar el inventario desde MySQL.');
+      } finally {
+        setLoading(false);
+      }
+    }, [debouncedSearch, estadoFilter, tipoFilter]);
 
-    const createdDevice: Dispositivo = {
-      id_dispositivo: deviceId,
-      mac_address: sanitizedMac,
-      nombre: newDeviceName || `Nodo ${sanitizedMac.slice(-5)}`,
-      tipo: newDeviceType,
-      ubicacion_id: newLocationId,
-      usuario_id: newUserId,
-      estado: 'ONLINE',
-      ip_address: `192.168.10.${Math.floor(Math.random() * 150) + 20}`,
-      rssi_dbm: -(Math.floor(Math.random() * 25) + 50),
-      firmware_version: 'v2.5.0-esp32',
-      fecha_registro: new Date().toISOString(),
-      ultimo_ping: new Date().toISOString(),
-      mqtt_client_id: `client_${topicSlug}_${deviceId}`,
-      mqtt_topic: `iot/telemetry/${topicSlug}`,
+    useEffect(() => {
+      loadInventory();
+    }, [loadInventory]);
+
+    const handleCopy = (key: string, value: string) => {
+      navigator.clipboard?.writeText(value);
+      setCopiedField(key);
+      setTimeout(() => setCopiedField(null), 1800);
     };
 
-    const createdSensor: Sensor = {
-      id_sensor: sensorId,
-      dispositivo_id: deviceId,
-      tipo_sensor: newSensorType,
-      variables: ['temperatura', 'humedad'],
-      unidad_temperatura: '°C',
-      unidad_humedad: '%RH',
-      estado: 'ACTIVO',
-      fecha_instalacion: new Date().toISOString(),
-      ultima_calibracion: new Date().toISOString(),
-      limites: {
-        temp_min: Number(newTempMin),
-        temp_max: Number(newTempMax),
-        hum_min: Number(newHumMin),
-        hum_max: Number(newHumMax),
-        temp_critica_max: Number(newTempMax) + 4.0,
-        hum_critica_max: Number(newHumMax) + 10.0,
-      },
+    const handleCreateSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setCreateError('');
+
+      if (!newNombre.trim() || newNombre.trim().length < 2) {
+        setCreateError('El nombre del nodo es obligatorio (mínimo 2 caracteres).');
+        return;
+      }
+      if (!isValidMacFormat(newMac)) {
+        setCreateError(INVALID_MAC_MESSAGE);
+        return;
+      }
+      if (!newFirmware.trim()) {
+        setCreateError('La versión de firmware es obligatoria.');
+        return;
+      }
+      if (!newUbicacion.trim()) {
+        setCreateError('La ubicación asignada es obligatoria.');
+        return;
+      }
+
+      setSubmittingCreate(true);
+      try {
+        const res = await createDispositivo({
+          nombre: newNombre.trim(),
+          mac_address: newMac.trim().toUpperCase(),
+          tipo: newTipo,
+          firmware_version: newFirmware.trim(),
+          ubicacion: newUbicacion.trim(),
+        });
+        setShowAddModal(false);
+        setNewNombre('');
+        setNewMac('');
+        setCreatedCreds(res.mqtt_credentials_once);
+        setBrokerDisponible(res.mqtt_broker_disponible);
+        setBrokerMensaje(res.mqtt_broker_mensaje);
+        onNotify?.(res.message, 'success');
+        await loadInventory();
+      } catch (err: any) {
+        setCreateError(err?.message || 'Error al registrar el dispositivo.');
+      } finally {
+        setSubmittingCreate(false);
+      }
     };
 
-    onAddDevice(createdDevice, createdSensor);
-    setShowAddModal(false);
-    setNewDeviceName('');
-    setNewMacAddress('');
-    setMacError('');
-  };
+    const openDetailModal = async (dev: DispositivoDTO) => {
+      setEditError('');
+      setConfirmSaveOpen(false);
+      setLoadingDetail(true);
+      setDetailDevice(dev);
+      try {
+        const res = await fetchDispositivoDetail(dev.id_dispositivo);
+        const fresh = res.dispositivo;
+        setDetailDevice(fresh);
+        setEditNombre(fresh.nombre);
+        setEditMac(fresh.mac_address);
+        setEditTipo(fresh.tipo);
+        setEditFirmware(fresh.firmware_version);
+        setEditUbicacion(fresh.ubicacion);
+        setEditObs(fresh.observacion_tecnica || '');
+      } catch (err: any) {
+        setEditError(err?.message || 'Error al cargar el detalle.');
+      } finally {
+        setLoadingDetail(false);
+      }
+    };
 
-  const filteredDevices = useMemo(() => {
-    const q = debouncedSearchTerm.toLowerCase();
-    return devices.filter((d) => {
-      const matchesSearch =
-        !q ||
-        d.nombre.toLowerCase().includes(q) ||
-        d.mac_address.toLowerCase().includes(q) ||
-        d.tipo.toLowerCase().includes(q);
-      const matchesFilter = selectedFilter === 'all' || d.estado === selectedFilter;
-      return matchesSearch && matchesFilter;
-    });
-  }, [devices, debouncedSearchTerm, selectedFilter]);
+    const handleSaveEdit = async () => {
+      if (!detailDevice) return;
+      setEditError('');
+      if (!editNombre.trim() || !editFirmware.trim() || !editUbicacion.trim()) {
+        setEditError('Todos los campos requeridos deben estar completos.');
+        setConfirmSaveOpen(false);
+        return;
+      }
+      if (!isValidMacFormat(editMac)) {
+        setEditError(INVALID_MAC_MESSAGE);
+        setConfirmSaveOpen(false);
+        return;
+      }
 
-  // Paginación de resultados
-  const paginated = useMemo(
-    () => paginateArray(filteredDevices, currentPage, pageSize),
-    [filteredDevices, currentPage]
-  );
+      setSavingEdit(true);
+      try {
+        const res = await updateDispositivo(detailDevice.id_dispositivo, {
+          nombre: editNombre.trim(),
+          mac_address: editMac.trim().toUpperCase(),
+          tipo: editTipo,
+          firmware_version: editFirmware.trim(),
+          ubicacion: editUbicacion.trim(),
+          observacion_tecnica: editObs.trim() || undefined,
+        });
+        setDetailDevice(res.dispositivo);
+        setConfirmSaveOpen(false);
+        onNotify?.(res.message, 'success');
+        await loadInventory();
+      } catch (err: any) {
+        setEditError(err?.message || 'No se pudo actualizar el dispositivo.');
+        setConfirmSaveOpen(false);
+      } finally {
+        setSavingEdit(false);
+      }
+    };
 
-  return (
-    <div className="space-y-[24px]">
-      {/* Header y Acciones */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
-            <Cpu className="w-6 h-6 text-canopy" />
-            <span>Gestión de Nodos IoT y Sensores</span>
-          </h2>
-          <p className="text-[14px] text-slate mt-1">
-            Búsqueda con debounce (280ms) · Autocompletado indexado O(1) sin consultas N+1 · Paginación activa
-          </p>
+    const handleConfirmDeactivate = async () => {
+      if (!deactivateTarget) return;
+      setDeactivating(true);
+      try {
+        const res = await deactivateDispositivo(deactivateTarget.id_dispositivo);
+        setDeactivateTarget(null);
+        if (detailDevice?.id_dispositivo === res.dispositivo.id_dispositivo) {
+          setDetailDevice(res.dispositivo);
+        }
+        onNotify?.(res.message, 'success');
+        await loadInventory();
+      } catch (err: any) {
+        onNotify?.(err?.message || 'Error al desactivar el dispositivo.', 'alert');
+      } finally {
+        setDeactivating(false);
+      }
+    };
+
+    return (
+      <div className="space-y-6 animate-fadeIn">
+        {/* Encabezado */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="sauce-eyebrow text-neon-pulse">RF-02 · INVENTARIO MYSQL</p>
+            <h1 className="text-2xl font-medium text-pure-white mt-1">
+              Registro y Administración de Dispositivos IoT
+            </h1>
+            <p className="text-sm text-slate-text mt-0.5">
+              Gestión persistente de nodos ESP32, ESP8266 y Gateway con credenciales MQTT seguras.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={loadInventory}
+              className="px-4 py-2.5 rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse text-xs font-medium inline-flex items-center gap-2 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              Actualizar
+            </button>
+
+            {isAdmin && (
+              <button
+                onClick={() => {
+                  setCreateError('');
+                  setShowAddModal(true);
+                }}
+                className="sauce-btn-primary px-5 py-2.5 text-sm inline-flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                Nuevo dispositivo
+              </button>
+            )}
+          </div>
         </div>
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="apple-blue-pill flex items-center gap-1.5 px-5 py-2.5 text-[12px] font-semibold shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Registrar Nuevo Dispositivo</span>
-        </button>
-      </div>
+        {/* Estado real del Broker MQTT (sin simulación) */}
+        {brokerMensaje && (
+          <div
+            className={`p-4 rounded-[20px] border flex items-start gap-3 text-xs ${
+              brokerDisponible
+                ? 'bg-deep-abyss border-neon-pulse/40 text-pure-white'
+                : 'bg-deep-abyss border-signal-yellow/50 text-signal-yellow'
+            }`}
+          >
+            {brokerDisponible ? (
+              <Wifi className="w-4 h-4 text-neon-pulse shrink-0 mt-0.5" />
+            ) : (
+              <WifiOff className="w-4 h-4 text-signal-yellow shrink-0 mt-0.5" />
+            )}
+            <div>
+              <span className="font-medium">Estado real del Broker MQTT: </span>
+              <span>{brokerMensaje}</span>
+            </div>
+          </div>
+        )}
 
-      {/* Barra de Filtros, Búsqueda con Debounce y Autocompletado */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-sheet-white p-4 rounded-[16px]">
-        <div className="relative w-full sm:w-96">
-          <Search className="w-3.5 h-3.5 absolute left-4 top-3 text-slate" />
-          <input
-            type="text"
-            placeholder="Buscar por nombre, tipo o MAC (Debounce 280ms)..."
-            value={searchTerm}
-            onFocus={() => setShowAutocomplete(true)}
-            onBlur={() => setTimeout(() => setShowAutocomplete(false), 180)}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-              setShowAutocomplete(true);
-            }}
-            className="apple-pill-input w-full pl-10 pr-4 py-2 text-[12px] placeholder-[#4A7C59]"
-          />
+        {/* Barra de Búsqueda y Filtros */}
+        <div className="bg-deep-abyss border border-graphite-fill/50 rounded-[20px] p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="md:col-span-2 relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-text" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre, código, MAC o ubicación..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="apple-pill-input w-full pl-10 pr-4 py-2 text-sm"
+            />
+          </div>
 
-          {/* Dropdown de Autocompletado con Debounce */}
-          {showAutocomplete && autocompleteSuggestions.length > 0 && (
-            <div className="absolute left-0 right-0 mt-2 rounded-[16px] bg-cream-paper border border-sage-mist p-2 z-30 space-y-1">
-              <div className="px-3 py-1 text-[10px] font-mono text-slate uppercase">
-                Autocompletado Instantáneo (Índice O(1))
-              </div>
-              {autocompleteSuggestions.map((sug) => (
-                <button
-                  key={sug.id_dispositivo}
-                  type="button"
-                  onMouseDown={() => {
-                    setSearchTerm(sug.nombre);
-                    setShowAutocomplete(false);
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] hover:bg-sheet-white text-left text-xs"
-                >
-                  <span className="font-semibold text-bark">{sug.nombre}</span>
-                  <span className="font-mono text-[11px] text-canopy">{sug.mac_address}</span>
-                </button>
-              ))}
+          <select
+            value={estadoFilter}
+            onChange={(e) => setEstadoFilter(e.target.value)}
+            className="apple-pill-select py-2 text-sm"
+            aria-label="Filtrar por estado"
+          >
+            <option value="ALL">Todos los estados</option>
+            <option value="PENDIENTE">PENDIENTE</option>
+            <option value="ONLINE">ONLINE</option>
+            <option value="OFFLINE">OFFLINE</option>
+            <option value="INACTIVO">INACTIVO</option>
+          </select>
+
+          <select
+            value={tipoFilter}
+            onChange={(e) => setTipoFilter(e.target.value)}
+            className="apple-pill-select py-2 text-sm"
+            aria-label="Filtrar por tipo"
+          >
+            <option value="ALL">Todos los tipos</option>
+            <option value="ESP32">ESP32</option>
+            <option value="ESP8266">ESP8266</option>
+            <option value="Gateway">Gateway</option>
+          </select>
+        </div>
+
+        {/* Error de carga */}
+        {loadError && (
+          <div className="p-4 rounded-[20px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-sm flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{loadError}</span>
+          </div>
+        )}
+
+        {/* Inventario Responsive */}
+        <div className="bg-deep-abyss border border-graphite-fill/50 rounded-[20px] overflow-hidden">
+          {loading ? (
+            <div className="p-10 flex items-center justify-center gap-3 text-slate-text text-sm">
+              <Loader2 className="w-5 h-5 animate-spin text-neon-pulse" />
+              <span>Consultando dispositivos en MySQL...</span>
+            </div>
+          ) : items.length === 0 ? (
+            <div className="p-10 text-center space-y-2">
+              <Cpu className="w-8 h-8 text-slate-text mx-auto" />
+              <p className="text-sm text-pure-white font-medium">
+                No hay dispositivos registrados con los filtros actuales.
+              </p>
+              {isAdmin && (
+                <p className="text-xs text-slate-text">
+                  Usa el botón &ldquo;Nuevo dispositivo&rdquo; para registrar el primer nodo en MySQL.
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-graphite-fill/60 text-[11px] uppercase tracking-wider text-slate-text">
+                    <th className="py-3.5 px-4">Dispositivo</th>
+                    <th className="py-3.5 px-4">Código</th>
+                    <th className="py-3.5 px-4">MAC</th>
+                    <th className="py-3.5 px-4">Tipo</th>
+                    <th className="py-3.5 px-4">Ubicación</th>
+                    <th className="py-3.5 px-4">Estado</th>
+                    <th className="py-3.5 px-4 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-graphite-fill/40">
+                  {items.map((dev) => {
+                    const badge = ESTADO_BADGE[dev.estado] || ESTADO_BADGE.PENDIENTE;
+                    return (
+                      <tr key={dev.id_dispositivo} className="hover:bg-obsidian-shell/60 transition-colors">
+                        <td className="py-3.5 px-4">
+                          <div className="font-medium text-pure-white">{dev.nombre}</div>
+                          <div className="text-[11px] text-slate-text font-mono">
+                            FW {dev.firmware_version || '—'} · {dev.historial_mediciones_count} lecturas
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-xs text-neon-pulse">
+                          {dev.codigo || dev.id_dispositivo}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-xs text-pure-white">
+                          {dev.mac_address}
+                        </td>
+                        <td className="py-3.5 px-4 text-xs text-pure-white">{dev.tipo}</td>
+                        <td className="py-3.5 px-4 text-xs text-slate-text">{dev.ubicacion}</td>
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2.5 py-1 rounded-[56px] text-[11px] font-mono font-medium ${badge.cls}`}>
+                            {badge.label}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="inline-flex items-center gap-2">
+                            <button
+                              onClick={() => openDetailModal(dev)}
+                              className="px-3 py-1.5 rounded-[56px] bg-obsidian-shell border border-graphite-fill text-pure-white hover:border-neon-pulse text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              {isAdmin ? 'Detalle / Editar' : 'Ver detalle'}
+                            </button>
+                            {isAdmin && dev.estado !== 'INACTIVO' && (
+                              <button
+                                onClick={() => setDeactivateTarget(dev)}
+                                className="px-3 py-1.5 rounded-[56px] bg-[#DC2626]/15 border border-[#DC2626]/40 text-[#FCA5A5] hover:bg-[#DC2626]/25 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                              >
+                                <PowerOff className="w-3.5 h-3.5" />
+                                Desactivar
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-1 p-1 bg-cream-paper rounded-[8px] text-[12px] self-stretch sm:self-auto justify-center">
-          <button
-            onClick={() => {
-              setSelectedFilter('all');
-              setCurrentPage(1);
-            }}
-            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
-              selectedFilter === 'all'
-                ? 'bg-cream-paper text-bark font-semibold'
-                : 'text-slate hover:text-bark'
-            }`}
-          >
-            Todos ({devices.length})
-          </button>
-          <button
-            onClick={() => {
-              setSelectedFilter('ONLINE');
-              setCurrentPage(1);
-            }}
-            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
-              selectedFilter === 'ONLINE'
-                ? 'bg-cream-paper text-canopy font-semibold'
-                : 'text-slate hover:text-bark'
-            }`}
-          >
-            Online ({devices.filter((d) => d.estado === 'ONLINE').length})
-          </button>
-          <button
-            onClick={() => {
-              setSelectedFilter('OFFLINE');
-              setCurrentPage(1);
-            }}
-            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
-              selectedFilter === 'OFFLINE'
-                ? 'bg-cream-paper text-bark font-semibold'
-                : 'text-slate hover:text-bark'
-            }`}
-          >
-            Offline ({devices.filter((d) => d.estado === 'OFFLINE').length})
-          </button>
-        </div>
-      </div>
-
-      {/* Grid de Dispositivos (Sin consultas N+1 gracias a indexes O(1)) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px]">
-        {paginated.items.map((dev) => {
-          const loc = indexes.locationById.get(dev.ubicacion_id);
-          const user = indexes.userById.get(dev.usuario_id);
-          const sensor = indexes.sensorByDeviceId.get(dev.id_dispositivo);
-          const isOnline = dev.estado === 'ONLINE';
-
-          return (
-            <div
-              key={dev.id_dispositivo}
-              className="bg-sheet-white rounded-[16px] p-5 space-y-4 flex flex-col justify-between"
-            >
-              <div className="space-y-3">
-                {/* Encabezado de Tarjeta */}
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-[17px] font-semibold tracking-[-0.374px] text-bark">
-                      {dev.nombre}
-                    </h3>
-                    <div className="flex items-center gap-1.5 text-[12px] text-slate mt-0.5">
-                      <span>{loc?.nombre || 'Sin Ubicación'}</span>
-                      <span>·</span>
-                      <span className="font-mono text-[11px]">{dev.tipo}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => onToggleDeviceState(dev.id_dispositivo)}
-                    title="Cambiar estado de conexión (Optimistic UI)"
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-[5px] text-[10px] font-mono font-semibold transition-colors ${
-                      isOnline
-                        ? 'bg-canopy/15 text-canopy'
-                        : 'bg-cream-paper text-slate'
-                    }`}
-                  >
-                    {isOnline ? <Wifi className="w-3 h-3 text-canopy" /> : <WifiOff className="w-3 h-3 text-slate" />}
-                    <span>{dev.estado}</span>
-                  </button>
-                </div>
-
-                {/* Especificaciones Técnicas en Tile #f3f1ec (28px radius, 16px padding) */}
-                <div className="space-y-1.5 text-xs font-mono bg-cream-paper p-[16px] rounded-[16px]">
-                  <div className="flex items-center justify-between text-bark">
-                    <span className="text-slate font-sans">MAC:</span>
-                    <span className="font-semibold">{dev.mac_address}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-bark">
-                    <span className="text-slate font-sans">IP / RSSI:</span>
-                    <span>{dev.ip_address} · {dev.rssi_dbm} dBm</span>
-                  </div>
-                  <div className="flex items-center justify-between text-bark">
-                    <span className="text-slate font-sans">Sensor Activo:</span>
-                    <span className="font-semibold text-canopy">
-                      {sensor ? `${sensor.tipo_sensor}` : 'Sin sensor'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-bark">
-                    <span className="text-slate font-sans">Responsable:</span>
-                    <span className="font-sans truncate max-w-[130px]">{user?.nombre}</span>
-                  </div>
-                </div>
-
-                {/* Umbrales Actuales */}
-                {sensor && (
-                  <div className="space-y-1.5 text-xs">
-                    <div className="text-[11px] font-semibold text-slate uppercase tracking-wider">
-                      Límites Operacionales
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-                      <div className="p-2.5 rounded-[14px] bg-cream-paper text-bark">
-                        Temp: <span className="font-semibold text-canopy">{sensor.limites.temp_min}° a {sensor.limites.temp_max}°C</span>
-                      </div>
-                      <div className="p-2.5 rounded-[14px] bg-cream-paper text-bark">
-                        Hum: <span className="font-semibold">{sensor.limites.hum_min}% a {sensor.limites.hum_max}%</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Botones de Acción */}
-              <div className="pt-3 flex items-center justify-between border-t border-sage-mist/60 text-xs">
-                <button
-                  onClick={() => setCredentialsModalDevice(dev)}
-                  className="flex items-center gap-1.5 text-bark hover:text-canopy font-medium transition-colors"
-                >
-                  <Key className="w-3.5 h-3.5 text-slate" />
-                  <span>Credenciales MQTT</span>
-                </button>
-
-                {sensor && (
-                  <button
-                    onClick={() => setEditingSensor(sensor)}
-                    className="apple-inline-link flex items-center gap-1 font-semibold"
-                  >
-                    <Sliders className="w-3.5 h-3.5" />
-                    <span>Ajustar Umbrales</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Controles de Paginación de Resultados */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-sheet-white px-5 py-3.5 rounded-[16px] text-xs">
-        <span className="text-slate font-mono">
-          Página {paginated.page} de {paginated.totalPages} · Mostrando {paginated.items.length} de {paginated.totalItems} dispositivos
-        </span>
-        <div className="flex items-center gap-2">
-          <button
-            disabled={!paginated.hasPrev}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className="apple-white-outline-pill py-1.5 text-xs disabled:opacity-40 flex items-center gap-1"
-          >
-            <ChevronLeft className="w-3.5 h-3.5" />
-            <span>Anterior</span>
-          </button>
-          <button
-            disabled={!paginated.hasNext}
-            onClick={() => setCurrentPage((p) => p + 1)}
-            className="apple-blue-pill px-4 py-1.5 text-xs disabled:opacity-40 flex items-center gap-1"
-          >
-            <span>Siguiente</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Modal: Registrar Nuevo Dispositivo */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-          <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-sage-mist pb-3">
-              <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-canopy" />
-                <span>Alta de Nodo IoT y Configuración</span>
-              </h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="text-slate hover:text-bark text-sm font-semibold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateDevice} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-slate font-semibold mb-1.5">
-                  Nombre del Nodo / Identificador
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="ej. Sonda Térmica Almacén Central"
-                  value={newDeviceName}
-                  onChange={(e) => setNewDeviceName(e.target.value)}
-                  className="apple-pill-input w-full py-2.5 text-xs placeholder-[#4A7C59]"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Modal: Nuevo Dispositivo */}
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
+            <div className="bg-deep-abyss border border-graphite-fill rounded-[20px] w-full max-w-lg p-6 space-y-5 text-pure-white">
+              <div className="flex items-center justify-between">
                 <div>
-                  <label className="block text-slate font-semibold mb-1.5">
-                    Dirección MAC (Validación estricta)
-                  </label>
+                  <p className="sauce-eyebrow text-neon-pulse">REGISTRO RF-02</p>
+                  <h2 className="text-lg font-medium mt-0.5">Nuevo dispositivo IoT</h2>
+                </div>
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="text-slate-text hover:text-pure-white cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateSubmit} noValidate className="space-y-4 text-sm">
+                <div>
+                  <label className="block text-xs text-slate-text mb-1">Nombre del nodo *</label>
                   <input
                     type="text"
                     required
-                    placeholder="XX:XX:XX:XX:XX:XX"
-                    value={newMacAddress}
-                    onChange={(e) => {
-                      setNewMacAddress(e.target.value);
-                      if (macError) setMacError('');
-                    }}
-                    className={`apple-pill-input w-full font-mono py-2.5 text-xs ${
-                      macError ? 'border-[#DC2626]' : ''
-                    }`}
+                    value={newNombre}
+                    onChange={(e) => setNewNombre(e.target.value)}
+                    placeholder="Ej. Nodo Bioterio Norte"
+                    className="apple-pill-input w-full py-2.5"
                   />
-                  {macError && <p className="text-[11px] text-[#DC2626] mt-1">{macError}</p>}
                 </div>
 
-                <div>
-                  <label className="block text-slate font-semibold mb-1.5">
-                    Tipo de Microcontrolador
-                  </label>
-                  <select
-                    value={newDeviceType}
-                    onChange={(e) => setNewDeviceType(e.target.value as DeviceType)}
-                    className="apple-pill-select w-full py-2.5 text-xs"
-                  >
-                    <option value="ESP32-WROOM">ESP32-WROOM (Dual Core WiFi/BLE)</option>
-                    <option value="ESP8266-NodeMCU">ESP8266-NodeMCU (WiFi Standalone)</option>
-                    <option value="Raspberry Pi Gateway 4B">Raspberry Pi Gateway 4B</option>
-                    <option value="Industrial Gateway MQTTS">Industrial Gateway MQTTS</option>
-                  </select>
-                </div>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-text mb-1">
+                      Dirección MAC (AA:BB:CC:DD:EE:FF) *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newMac}
+                      onChange={(e) => {
+                        setNewMac(e.target.value);
+                        if (createError) setCreateError('');
+                      }}
+                      placeholder="24:6F:28:B1:C0:04"
+                      className="apple-pill-input w-full py-2.5 font-mono uppercase"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate font-semibold mb-1.5">
-                    Ubicación Asignada
-                  </label>
-                  <select
-                    value={newLocationId}
-                    onChange={(e) => setNewLocationId(e.target.value)}
-                    className="apple-pill-select w-full py-2.5 text-xs"
-                  >
-                    {locations.map((loc) => (
-                      <option key={loc.id_ubicacion} value={loc.id_ubicacion}>
-                        {loc.nombre} ({loc.codigo_area})
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <label className="block text-xs text-slate-text mb-1">Tipo de dispositivo *</label>
+                    <select
+                      value={newTipo}
+                      onChange={(e) => setNewTipo(e.target.value as DispositivoTipo)}
+                      className="apple-pill-select w-full py-2.5"
+                    >
+                      <option value="ESP32">ESP32</option>
+                      <option value="ESP8266">ESP8266</option>
+                      <option value="Gateway">Gateway</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-slate font-semibold mb-1.5">
-                    Usuario / Operador Responsable
-                  </label>
-                  <select
-                    value={newUserId}
-                    onChange={(e) => setNewUserId(e.target.value)}
-                    className="apple-pill-select w-full py-2.5 text-xs"
-                  >
-                    {users.map((u) => (
-                      <option key={u.id_usuario} value={u.id_usuario}>
-                        {u.nombre} ({u.empresa})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-text mb-1">Versión de firmware *</label>
+                    <input
+                      type="text"
+                      required
+                      value={newFirmware}
+                      onChange={(e) => setNewFirmware(e.target.value)}
+                      placeholder="v2.4.0"
+                      className="apple-pill-input w-full py-2.5 font-mono"
+                    />
+                  </div>
 
-              {/* Asignación de Sensor y Umbrales */}
-              <div className="p-4 bg-cream-paper rounded-[16px] space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-bark">
-                    Sonda / Sensor Conectado
+                  <div>
+                    <label className="block text-xs text-slate-text mb-1">Ubicación asignada *</label>
+                    <input
+                      type="text"
+                      required
+                      list="simoa-locations-list"
+                      value={newUbicacion}
+                      onChange={(e) => setNewUbicacion(e.target.value)}
+                      placeholder="Bioterio Central"
+                      className="apple-pill-input w-full py-2.5"
+                    />
+                    <datalist id="simoa-locations-list">
+                      {locations.map((l) => (
+                        <option key={l.id_ubicacion} value={l.nombre} />
+                      ))}
+                    </datalist>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-[10px] bg-obsidian-shell border border-graphite-fill text-xs text-slate-text flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-signal-yellow shrink-0" />
+                  <span>
+                    El nodo se registrará en estado <strong className="text-signal-yellow">PENDIENTE</strong> hasta confirmar conexión real con el broker MQTT.
                   </span>
-                  <select
-                    value={newSensorType}
-                    onChange={(e) => setNewSensorType(e.target.value as SensorType)}
-                    className="apple-pill-select py-1.5 text-xs font-mono"
-                  >
-                    <option value="DHT22">DHT22 (Precisión Media)</option>
-                    <option value="BME280">BME280 (Bosch Precisión Alta)</option>
-                    <option value="SHT31">SHT31 (Sensirion Grado Médico)</option>
-                    <option value="DHT11">DHT11 (Básico)</option>
-                  </select>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
-                  <div>
-                    <label className="block text-[10px] text-slate mb-1">Mín Temp (°C)</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={newTempMin}
-                      onChange={(e) => setNewTempMin(parseFloat(e.target.value))}
-                      className="apple-pill-input w-full py-1.5 text-xs text-center"
-                    />
+                {createError && (
+                  <div
+                    role="alert"
+                    className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-xs flex items-center gap-2"
+                  >
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{createError}</span>
                   </div>
-                  <div>
-                    <label className="block text-[10px] text-slate mb-1">Máx Temp (°C)</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={newTempMax}
-                      onChange={(e) => setNewTempMax(parseFloat(e.target.value))}
-                      className="apple-pill-input w-full py-1.5 text-xs text-center"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-slate mb-1">Mín Hum (%RH)</label>
-                    <input
-                      type="number"
-                      step="1"
-                      value={newHumMin}
-                      onChange={(e) => setNewHumMin(parseFloat(e.target.value))}
-                      className="apple-pill-input w-full py-1.5 text-xs text-center"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-slate mb-1">Máx Hum (%RH)</label>
-                    <input
-                      type="number"
-                      step="1"
-                      value={newHumMax}
-                      onChange={(e) => setNewHumMax(parseFloat(e.target.value))}
-                      className="apple-pill-input w-full py-1.5 text-xs text-center"
-                    />
-                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 rounded-[56px] border border-graphite-fill text-slate-text hover:text-pure-white text-xs cursor-pointer"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingCreate}
+                    className="sauce-btn-primary px-5 py-2 text-xs inline-flex items-center gap-2 cursor-pointer"
+                  >
+                    {submittingCreate && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    Guardar dispositivo
+                  </button>
                 </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Credenciales MQTT generadas una única vez */}
+        {createdCreds && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
+            <div className="bg-deep-abyss border border-neon-pulse/60 rounded-[20px] w-full max-w-lg p-6 space-y-4 text-pure-white">
+              <div className="flex items-center gap-2.5">
+                <Key className="w-5 h-5 text-neon-pulse" />
+                <h3 className="text-lg font-medium">Credenciales MQTT generadas</h3>
+              </div>
+              <p className="text-xs text-signal-yellow">
+                Copia y guarda la contraseña MQTT ahora: por seguridad, el servidor solo almacena su hash bcrypt y no volverá a mostrarla.
+              </p>
+
+              <div className="space-y-2.5 text-xs font-mono">
+                {[
+                  { k: 'codigo', label: 'Código', val: createdCreds.codigo },
+                  { k: 'client', label: 'Client ID', val: createdCreds.mqtt_client_id },
+                  { k: 'topic', label: 'Tópico', val: createdCreds.mqtt_topic },
+                  { k: 'user', label: 'Usuario MQTT', val: createdCreds.mqtt_username },
+                  { k: 'pass', label: 'Contraseña MQTT', val: createdCreds.mqtt_password },
+                ].map((row) => (
+                  <div
+                    key={row.k}
+                    className="flex items-center justify-between gap-2 p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill"
+                  >
+                    <div className="truncate">
+                      <span className="text-slate-text block text-[10px] uppercase">{row.label}</span>
+                      <span className="text-pure-white">{row.val}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(row.k, row.val)}
+                      className="p-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-neon-pulse cursor-pointer shrink-0"
+                    >
+                      {copiedField === row.k ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                ))}
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-sage-mist">
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setCreatedCreds(null)}
+                  className="sauce-btn-primary px-5 py-2 text-xs cursor-pointer"
+                >
+                  Entendido, cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Detalle y Edición */}
+        {detailDevice && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
+            <div className="bg-deep-abyss border border-graphite-fill rounded-[20px] w-full max-w-xl p-6 space-y-5 text-pure-white max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="sauce-eyebrow text-neon-pulse">
+                    {detailDevice.codigo || detailDevice.id_dispositivo}
+                  </p>
+                  <h2 className="text-lg font-medium mt-0.5">Detalle del dispositivo IoT</h2>
+                </div>
+                <button
+                  onClick={() => setDetailDevice(null)}
+                  className="text-slate-text hover:text-pure-white cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {loadingDetail ? (
+                <div className="py-8 flex items-center justify-center gap-2 text-slate-text text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin text-neon-pulse" />
+                  <span>Cargando detalle desde MySQL...</span>
+                </div>
+              ) : (
+                <div className="space-y-4 text-sm">
+                  <div className="grid grid-cols-2 gap-3 p-3.5 rounded-[12px] bg-obsidian-shell border border-graphite-fill text-xs">
+                    <div>
+                      <span className="text-slate-text block">Estado</span>
+                      <span className="font-mono font-medium text-pure-white">{detailDevice.estado}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-text block">Historial de mediciones (RN-03)</span>
+                      <span className="font-mono font-medium text-neon-pulse">
+                        {detailDevice.historial_mediciones_count} registros
+                      </span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-slate-text block">Tópico MQTT</span>
+                      <span className="font-mono text-pure-white break-all">
+                        {detailDevice.mqtt_topic || '—'}
+                      </span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-slate-text block">Client ID MQTT</span>
+                      <span className="font-mono text-pure-white break-all">
+                        {detailDevice.mqtt_client_id || '—'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-slate-text mb-1">Nombre</label>
+                      <input
+                        type="text"
+                        disabled={!isAdmin}
+                        value={editNombre}
+                        onChange={(e) => setEditNombre(e.target.value)}
+                        className="apple-pill-input w-full py-2 disabled:opacity-60"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-text mb-1">MAC</label>
+                      <input
+                        type="text"
+                        disabled={!isAdmin}
+                        value={editMac}
+                        onChange={(e) => setEditMac(e.target.value)}
+                        className="apple-pill-input w-full py-2 font-mono uppercase disabled:opacity-60"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-text mb-1">Tipo</label>
+                      <select
+                        disabled={!isAdmin}
+                        value={editTipo}
+                        onChange={(e) => setEditTipo(e.target.value as DispositivoTipo)}
+                        className="apple-pill-select w-full py-2 disabled:opacity-60"
+                      >
+                        <option value="ESP32">ESP32</option>
+                        <option value="ESP8266">ESP8266</option>
+                        <option value="Gateway">Gateway</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-text mb-1">Firmware</label>
+                      <input
+                        type="text"
+                        disabled={!isAdmin}
+                        value={editFirmware}
+                        onChange={(e) => setEditFirmware(e.target.value)}
+                        className="apple-pill-input w-full py-2 font-mono disabled:opacity-60"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs text-slate-text mb-1">Ubicación</label>
+                      <input
+                        type="text"
+                        disabled={!isAdmin}
+                        value={editUbicacion}
+                        onChange={(e) => setEditUbicacion(e.target.value)}
+                        className="apple-pill-input w-full py-2 disabled:opacity-60"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs text-slate-text mb-1">Observación técnica</label>
+                      <input
+                        type="text"
+                        disabled={!isAdmin}
+                        value={editObs}
+                        onChange={(e) => setEditObs(e.target.value)}
+                        className="apple-pill-input w-full py-2 disabled:opacity-60"
+                      />
+                    </div>
+                  </div>
+
+                  {editError && (
+                    <div className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-xs flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{editError}</span>
+                    </div>
+                  )}
+
+                  {isAdmin && confirmSaveOpen && (
+                    <div className="p-3.5 rounded-[12px] bg-signal-yellow/15 border border-signal-yellow/50 text-xs space-y-3">
+                      <p className="text-signal-yellow font-medium">
+                        ¿Confirmas guardar los cambios en MySQL para este dispositivo?
+                      </p>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setConfirmSaveOpen(false)}
+                          className="px-3 py-1.5 rounded-[56px] border border-graphite-fill text-pure-white cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          disabled={savingEdit}
+                          onClick={handleSaveEdit}
+                          className="sauce-btn-primary px-4 py-1.5 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                        >
+                          {savingEdit && <Loader2 className="w-3 h-3 animate-spin" />}
+                          Confirmar guardado
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setDetailDevice(null)}
+                      className="px-4 py-2 rounded-[56px] border border-graphite-fill text-slate-text hover:text-pure-white text-xs cursor-pointer"
+                    >
+                      Cerrar
+                    </button>
+                    {isAdmin && !confirmSaveOpen && (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmSaveOpen(true)}
+                        className="sauce-btn-primary px-5 py-2 text-xs cursor-pointer"
+                      >
+                        Guardar cambios
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Confirmación de Desactivación Lógica (RN-03) */}
+        {deactivateTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
+            <div className="bg-deep-abyss border border-[#DC2626]/50 rounded-[20px] w-full max-w-md p-6 space-y-4 text-pure-white">
+              <div className="flex items-center gap-2.5 text-[#FCA5A5]">
+                <ShieldAlert className="w-5 h-5" />
+                <h3 className="text-lg font-medium">Desactivar dispositivo (RN-03)</h3>
+              </div>
+              <p className="text-xs text-slate-text leading-relaxed">
+                El dispositivo <strong className="text-pure-white">{deactivateTarget.nombre}</strong> ({deactivateTarget.mac_address}) pasará a estado <strong className="text-pure-white">INACTIVO</strong>. No se eliminará físicamente y conservará sus{' '}
+                <strong className="text-neon-pulse">{deactivateTarget.historial_mediciones_count}</strong> mediciones y relaciones históricas.
+              </p>
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="apple-white-outline-pill py-2 text-xs"
+                  onClick={() => setDeactivateTarget(null)}
+                  className="px-4 py-2 rounded-[56px] border border-graphite-fill text-slate-text hover:text-pure-white text-xs cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
-                  type="submit"
-                  className="apple-blue-pill px-5 py-2 font-semibold text-xs"
+                  type="button"
+                  disabled={deactivating}
+                  onClick={handleConfirmDeactivate}
+                  className="px-5 py-2 rounded-[56px] bg-[#DC2626] text-pure-white text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  Registrar y Generar Credenciales
+                  {deactivating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Confirmar desactivación
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal: Credenciales y Conexión MQTT */}
-      {credentialsModalDevice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-          <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-sage-mist pb-3">
-              <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
-                <Key className="w-5 h-5 text-[#D97706]" />
-                <span>Credenciales MQTT Broker Mosquitto</span>
-              </h3>
-              <button
-                onClick={() => setCredentialsModalDevice(null)}
-                className="text-slate hover:text-bark text-sm font-semibold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs font-mono">
-              <div className="p-4 rounded-[16px] bg-cream-paper text-bark space-y-2">
-                <div className="flex items-center justify-between text-slate text-[11px] pb-1.5 border-b border-sage-mist">
-                  <span>MQTT Broker Host:</span>
-                  <span className="text-canopy font-semibold">broker.iot-ambiental.com</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate">Puerto MQTTS (TLS 1.3):</span>
-                  <span className="text-canopy">8883</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate">Client ID:</span>
-                  <span className="text-bark">{credentialsModalDevice.mqtt_client_id}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate">Tópico Telemetría:</span>
-                  <span className="text-[#D97706]">{credentialsModalDevice.mqtt_topic}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate">QoS Requerido:</span>
-                  <span>1 (Al menos una entrega)</span>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[11px] text-slate font-sans">
-                  <span>Ejemplo de publicación Arduino ESP32:</span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`// Payload JSON a publicar en ${credentialsModalDevice.mqtt_topic}\n{"mac":"${credentialsModalDevice.mac_address}","temp":22.4,"hum":54.2,"ts":${Date.now()}}`);
-                      setCopiedKey(true);
-                      setTimeout(() => setCopiedKey(false), 2000);
-                    }}
-                    className="apple-inline-link flex items-center gap-1 font-semibold"
-                  >
-                    {copiedKey ? <Check className="w-3 h-3 text-canopy" /> : <Copy className="w-3 h-3" />}
-                    <span>{copiedKey ? 'Copiado' : 'Copiar Payload'}</span>
-                  </button>
-                </div>
-                <pre className="p-3.5 rounded-[16px] bg-cream-paper text-bark text-[11px] overflow-x-auto">
-{`mqttClient.publish("${credentialsModalDevice.mqtt_topic}", 
-  "{\\"mac\\":\\"${credentialsModalDevice.mac_address}\\",\\"temp\\":22.4,\\"hum\\":54.2}");`}
-                </pre>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => setCredentialsModalDevice(null)}
-                className="apple-blue-pill px-5 py-2 font-semibold text-xs"
-              >
-                Cerrar
-              </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Modal: Ajustar Umbrales de Sensor */}
-      {editingSensor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-          <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-md p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-sage-mist pb-3">
-              <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-canopy" />
-                <span>Ajustar Umbrales Operacionales</span>
-              </h3>
-              <button
-                onClick={() => setEditingSensor(null)}
-                className="text-slate hover:text-bark text-sm font-semibold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs font-mono">
-              <div className="space-y-2">
-                <label className="block text-bark font-semibold font-sans">
-                  Rango de Temperatura Operacional (°C)
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-[10px] text-slate block mb-1">Mínimo Nominal</span>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={editingSensor.limites.temp_min}
-                      onChange={(e) =>
-                        setEditingSensor({
-                          ...editingSensor,
-                          limites: { ...editingSensor.limites, temp_min: parseFloat(e.target.value) },
-                        })
-                      }
-                      className="apple-pill-input w-full py-2 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate block mb-1">Máximo Nominal</span>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={editingSensor.limites.temp_max}
-                      onChange={(e) =>
-                        setEditingSensor({
-                          ...editingSensor,
-                          limites: { ...editingSensor.limites, temp_max: parseFloat(e.target.value) },
-                        })
-                      }
-                      className="apple-pill-input w-full py-2 text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-bark font-semibold font-sans">
-                  Rango de Humedad Relativa (%RH)
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <span className="text-[10px] text-slate block mb-1">Mínimo Nominal</span>
-                    <input
-                      type="number"
-                      step="1"
-                      value={editingSensor.limites.hum_min}
-                      onChange={(e) =>
-                        setEditingSensor({
-                          ...editingSensor,
-                          limites: { ...editingSensor.limites, hum_min: parseFloat(e.target.value) },
-                        })
-                      }
-                      className="apple-pill-input w-full py-2 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate block mb-1">Máximo Nominal</span>
-                    <input
-                      type="number"
-                      step="1"
-                      value={editingSensor.limites.hum_max}
-                      onChange={(e) =>
-                        setEditingSensor({
-                          ...editingSensor,
-                          limites: { ...editingSensor.limites, hum_max: parseFloat(e.target.value) },
-                        })
-                      }
-                      className="apple-pill-input w-full py-2 text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2.5 pt-2 border-t border-sage-mist">
-              <button
-                onClick={() => setEditingSensor(null)}
-                className="apple-white-outline-pill py-2 text-xs"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => {
-                  onUpdateSensorLimits(editingSensor.id_sensor, editingSensor.limites);
-                  setEditingSensor(null);
-                }}
-                className="apple-blue-pill flex items-center gap-1.5 px-5 py-2 font-semibold text-xs"
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Guardar Nuevos Umbrales</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-});
-
-DeviceManagement.displayName = 'DeviceManagement';
+        )}
+      </div>
+    );
+  }
+);
