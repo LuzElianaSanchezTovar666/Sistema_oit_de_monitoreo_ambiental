@@ -407,7 +407,7 @@ A continuación se presenta un diagrama UML individual por cada una de las 13 hi
 
 ---
 
-#### Fichas Técnicas Detalladas de Requerimientos Funcionales
+#### Fichas Técnicas Detalladas de Requerimientos Funcionales (RF-01 al RF-20)
 
 ##### Ficha RF-01: Autenticación y Control de Acceso por Roles
 | Campo | Especificación |
@@ -418,13 +418,81 @@ A continuación se presenta un diagrama UML individual por cada una de las 13 hi
 | **¿Crítico?:** | Sí |
 | **Prioridad:** | Alta |
 | **Requerimientos asociados:** | RF-02, RF-05, RF-12, RF-13 |
-| **Descripción:** | El sistema debe validar la identidad del usuario mediante correo electrónico y contraseña encriptada, generando un Token JWT firmado que delimita sus privilegios según el rol asignado (Administrador u Operador). |
+| **Descripción:** | El sistema debe validar la identidad del usuario mediante correo electrónico y contraseña encriptada, generando un Token JWT firmado que delimita sus privilegios según el rol asignado (Administrador, Operador, Técnico o Supervisor). |
 | **Entradas:** | Correo electrónico, Contraseña en texto plano. |
 | **Salidas:** | Token JWT de acceso, datos del perfil (nombre, rol), mensaje de confirmación o error de autenticación. |
 | **Flujo Principal:** | 1. El usuario accede a la pantalla de Login e ingresa credenciales.<br>2. El sistema consulta la base de datos y compara el hash bcrypt.<br>3. Al autenticar con éxito, se genera el JWT con vigencia de 8 horas.<br>4. El frontend almacena el token y redirige al Dashboard correspondiente. |
 | **Manejo Anormal:** | - Credenciales erróneas: Mostrar *"Correo o contraseña incorrectos"*; denegar acceso.<br>- Usuario inactivo: Mostrar *"Cuenta deshabilitada. Contacte al administrador"*. |
 | **Reglas de Negocio:** | RN-01: Contraseñas con longitud mínima de 8 caracteres.<br>RN-02: Acceso protegido por token Bearer en todas las rutas privadas. |
 | **Criterios de Aceptación:** | 1. Usuario registrado accede en menos de 1 segundo.<br>2. Credenciales inválidas no exponen detalles internos.<br>3. Redirección automática según rol. |
+
+##### Ficha RF-02: Registro y Administración de Dispositivos IoT
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-02** |
+| **Nombre:** | Registro y Administración de Dispositivos IoT |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | Sí |
+| **Prioridad:** | Alta |
+| **Requerimientos asociados:** | RF-01, RF-03, RF-04, RF-19, RF-20 |
+| **Descripción:** | El sistema debe permitir al Administrador registrar, consultar, actualizar y desactivar nodos microcontroladores (ESP32, ESP8266 o Gateways), validando su dirección MAC única y generando sus credenciales MQTT. |
+| **Entradas:** | Nombre del nodo, dirección MAC (`AA:BB:CC:DD:EE:FF`), tipo de dispositivo, versión de firmware, ubicación asignada. |
+| **Salidas:** | Registro persistido del dispositivo, `mqtt_client_id`, tópico asignado (`simoa/dispositivos/{codigo}/telemetria`) y confirmación en la UI. |
+| **Flujo Principal:** | 1. El Administrador accede al módulo de Dispositivos y selecciona *Nuevo Dispositivo*.<br>2. Ingresa los datos técnicos y selecciona la ubicación.<br>3. El sistema valida el formato y unicidad de la dirección MAC.<br>4. Se crea el registro en estado `ONLINE`/`PENDIENTE` y se habilita para vincular sensores. |
+| **Manejo Anormal:** | - MAC duplicada o con formato inválido: Rechazar el registro y mostrar *"La dirección MAC ya existe o no tiene formato válido"*.<br>- Campos obligatorios vacíos: Resaltar campos requeridos. |
+| **Reglas de Negocio:** | RN-03: No se permite eliminar físicamente un dispositivo con historial de mediciones; debe desactivarse lógicamente. |
+| **Criterios de Aceptación:** | 1. El nuevo nodo aparece inmediatamente en el inventario.<br>2. No se permiten dos nodos con la misma dirección MAC. |
+
+##### Ficha RF-03: Asignación de Nombres, Códigos y Ubicaciones Físicas
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-03** |
+| **Nombre:** | Asignación de Nombres, Códigos y Ubicaciones Físicas |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | No |
+| **Prioridad:** | Media |
+| **Requerimientos asociados:** | RF-02, RF-08, RF-09, RF-10 |
+| **Descripción:** | El sistema debe permitir asociar o reasignar cada dispositivo IoT a una ubicación física catalogada (laboratorio, bioterio, cámara fría o bodega) con código de área y nombre descriptivo. |
+| **Entradas:** | ID del dispositivo, `ubicacion_id`, nombre descriptivo y código de área (`AREA-01`). |
+| **Salidas:** | Dispositivo vinculado a la ubicación seleccionada y actualización de filtros en el Dashboard. |
+| **Flujo Principal:** | 1. El Administrador abre la ficha o edición del dispositivo.<br>2. Selecciona una ubicación física existente del catálogo.<br>3. Confirma la asignación.<br>4. El sistema actualiza la llave foránea `ubicacion_id` y refleja el cambio en el panel de monitoreo. |
+| **Manejo Anormal:** | - Ubicación inexistente o inactiva: Bloquear guardado y notificar error de integridad referencial. |
+| **Reglas de Negocio:** | RN-04: Todo dispositivo activo debe estar asociado obligatoriamente a una única ubicación física vigente. |
+| **Criterios de Aceptación:** | 1. El Dashboard agrupa las lecturas bajo el nombre de la nueva ubicación.<br>2. El histórico conserva la trazabilidad de ubicación. |
+
+##### Ficha RF-04: Registro y Vinculación de Sensores DHT22
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-04** |
+| **Nombre:** | Registro y Vinculación de Sensores Ambientales |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | Sí |
+| **Prioridad:** | Alta |
+| **Requerimientos asociados:** | RF-02, RF-05, RF-06, RF-12 |
+| **Descripción:** | El sistema debe permitir registrar sondas ambientales (DHT22, BME280, SHT31) y vincularlas a un nodo IoT específico, almacenando su fecha de instalación, última calibración y estado operativo. |
+| **Entradas:** | `dispositivo_id`, tipo de sensor (`DHT22`/`BME280`/`SHT31`), variables medidas, fecha de instalación y última calibración. |
+| **Salidas:** | Sensor creado y vinculado al nodo padre, habilitado para recibir telemetría. |
+| **Flujo Principal:** | 1. El Administrador selecciona un nodo IoT registrado.<br>2. Selecciona *Asociar Sensor* e indica modelo y fecha de calibración.<br>3. El sistema registra el sensor en estado `ACTIVO` y le asigna límites ambientales por defecto.<br>4. El nodo queda listo para ingestar lecturas de esa sonda. |
+| **Manejo Anormal:** | - Dispositivo padre inexistente o inactivo: Impedir vinculación y mostrar alerta de validación. |
+| **Reglas de Negocio:** | RN-05: Un sensor en estado `FALLA` o `CALIBRACION` no debe disparar alertas de producción hasta reactivarse. |
+| **Criterios de Aceptación:** | 1. El sensor aparece listado dentro de la ficha del nodo ESP32.<br>2. Se registran sus unidades (`°C` y `%RH`). |
+
+##### Ficha RF-05: Configuración de Magnitudes y Variables Monitoreadas
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-05** |
+| **Nombre:** | Configuración de Magnitudes y Variables Monitoreadas |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | No |
+| **Prioridad:** | Media |
+| **Requerimientos asociados:** | RF-04, RF-08, RF-09, RF-12 |
+| **Descripción:** | El sistema debe permitir definir qué variables físicas (temperatura en `°C`, humedad relativa en `%RH` o ambas) captura cada sensor vinculado y sus unidades de visualización. |
+| **Entradas:** | ID del sensor, arreglo de variables (`temperatura`, `humedad`), unidad de temperatura y unidad de humedad. |
+| **Salidas:** | Configuración de variables actualizada y reflejada en tarjetas y gráficas del Dashboard. |
+| **Flujo Principal:** | 1. El Administrador edita la configuración del sensor.<br>2. Marca las magnitudes activas para monitoreo.<br>3. Guarda los cambios.<br>4. La UI y el motor de validación ajustan el procesamiento según las variables habilitadas. |
+| **Manejo Anormal:** | - Ninguna variable seleccionada: Mostrar *"Debe seleccionar al menos una variable ambiental"*. |
+| **Reglas de Negocio:** | RN-06: Las unidades estándar del sistema son grados Celsius (`°C`) y porcentaje de humedad relativa (`%RH`). |
+| **Criterios de Aceptación:** | 1. Solo las variables configuradas se exigen en la validación del payload.<br>2. Los gráficos respetan las unidades configuradas. |
 
 ##### Ficha RF-06: Ingestión de Mediciones vía MQTT
 | Campo | Especificación |
@@ -439,11 +507,96 @@ A continuación se presenta un diagrama UML individual por cada una de las 13 hi
 | **Entradas:** | Mensaje MQTT en formato JSON conteniendo: `{ "codigo": "ESP32-01", "temperatura": 24.5, "humedad": 65.2, "timestamp": 1794575000 }`. |
 | **Salidas:** | Mensaje recibido en el backend, validado y enrutado hacia el hilo de persistencia y al motor de reglas. |
 | **Flujo Principal:** | 1. El ESP32 toma lecturas del DHT22 y publica el JSON en el broker.<br>2. El cliente MQTT del backend captura el mensaje publicado.<br>3. Se comprueba que el código del dispositivo exista en la base de datos.<br>4. Se despachan los valores a almacenamiento (RF-07) y evaluación de alertas (RF-13). |
-| **Manejo Anormal:** | - Payload JSON malformado: Registrar en log de errores y descartar paquete.<br>- Dispositivo no reconocido: Registrar evento de nodo no autorizado. |
-| **Reglas de Negocio:** | RN-03: Solo procesar paquetes de dispositivos activos.<br>RN-04: Intervalo nominal de recepción: 5 segundos. |
+| **Manejo Anormal:** | - Payload JSON malformado: Registrar en cola DLQ / log de errores y descartar paquete.<br>- Dispositivo no reconocido: Registrar evento de nodo no autorizado. |
+| **Reglas de Negocio:** | RN-07: Solo procesar paquetes de dispositivos activos.<br>RN-08: Intervalo nominal de recepción: 2.5 a 5 segundos. |
 | **Criterios de Aceptación:** | 1. El broker recibe y despacha paquetes sin pérdidas a 1 msg/seg por nodo.<br>2. El backend procesa el payload en menos de 100 ms. |
 
-##### Ficha RF-12: Configuración de Umbrales Ambientales
+##### Ficha RF-07: Almacenamiento Persistente de Mediciones en Base de Datos
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-07** |
+| **Nombre:** | Almacenamiento Persistente de Mediciones en Base de Datos |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | Sí |
+| **Prioridad:** | Alta |
+| **Requerimientos asociados:** | RF-06, RF-10, RF-11, RF-16, RF-18 |
+| **Descripción:** | El sistema debe persistir cada medición válida recibida en la base de datos temporal/relacional con marca de tiempo UTC, identificador de sensor, temperatura, humedad y resultado de evaluación. |
+| **Entradas:** | Medición validada (`sensor_id`, `temperatura`, `humedad`, `fecha_hora`, `es_fuera_de_umbral`, `score_anomalia_ia`). |
+| **Salidas:** | Registro insertado de forma atómica con clave primaria única y confirmado para consultas históricas. |
+| **Flujo Principal:** | 1. El consumidor de telemetría recibe el payload validado desde RF-06.<br>2. Enriquece el registro con timestamp UTC y banderas de umbral/IA.<br>3. Ejecuta la inserción indexada por `(sensor_id, fecha_hora)`.<br>4. Libera el evento hacia los suscriptores en vivo. |
+| **Manejo Anormal:** | - Fallo temporal de conexión a BD: Encolar en memoria/buffer local y reintentar inserción con *backoff* exponencial sin perder lecturas. |
+| **Reglas de Negocio:** | RN-09: Toda medición almacenada es inmutable para preservar la integridad de auditoría. |
+| **Criterios de Aceptación:** | 1. El 100% de las lecturas válidas quedan consultables en histórico.<br>2. La inserción unitaria tarda menos de 50 ms. |
+
+##### Ficha RF-08: Visualización en Tiempo Real de la Temperatura Actual (°C)
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-08** |
+| **Nombre:** | Visualización en Tiempo Real de la Temperatura Actual (°C) |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | Sí |
+| **Prioridad:** | Alta |
+| **Requerimientos asociados:** | RF-05, RF-06, RF-09, RF-12, RF-13 |
+| **Descripción:** | El Dashboard principal debe mostrar de forma inmediata la temperatura actual en grados Celsius (`°C`) del recinto seleccionado, su rango óptimo, puntaje Z-Score y estado (`NOMINAL` o `FUERA DE RANGO`). |
+| **Entradas:** | Última medición del sensor activo para la ubicación seleccionada y sus límites térmicos. |
+| **Salidas:** | Tarjeta KPI actualizada dinámicamente con valor numérico, barra de progreso y etiqueta de estado. |
+| **Flujo Principal:** | 1. El usuario selecciona una ubicación en el Dashboard.<br>2. La interfaz recibe la última lectura vía stream en vivo.<br>3. Compara la temperatura con `temp_min` y `temp_max`.<br>4. Renderiza el valor en `°C` y colorea el indicador en verde nominal o rojo si excede el rango. |
+| **Manejo Anormal:** | - Sin lecturas recientes o sensor desconectado: Mostrar `-- °C` y estado de espera sin romper el renderizado. |
+| **Reglas de Negocio:** | RN-10: Los valores deben mostrarse con precisión de al menos un decimal (`0.0 °C`). |
+| **Criterios de Aceptación:** | 1. La tarjeta se actualiza automáticamente con cada nuevo tick de telemetría.<br>2. Refleja `FUERA DE RANGO` inmediatamente al superar el umbral. |
+
+##### Ficha RF-09: Visualización en Tiempo Real de la Humedad Relativa (%HR)
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-09** |
+| **Nombre:** | Visualización en Tiempo Real de la Humedad Relativa (%HR) |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | Sí |
+| **Prioridad:** | Alta |
+| **Requerimientos asociados:** | RF-05, RF-06, RF-08, RF-12, RF-13 |
+| **Descripción:** | El Dashboard principal debe mostrar la humedad relativa actual (`%RH`) del recinto seleccionado, indicando su banda permitida, Z-Score higrométrico y estado dinámico (`NOMINAL` o `FUERA DE RANGO`). |
+| **Entradas:** | Última medición de humedad del sensor activo y límites `hum_min` / `hum_max`. |
+| **Salidas:** | Tarjeta KPI de humedad actualizada con porcentaje, barra proporcional y estado en tiempo real. |
+| **Flujo Principal:** | 1. El usuario visualiza el tablero principal.<br>2. El sistema toma la lectura de humedad más reciente.<br>3. Evalúa si `humedad < hum_min` o `humedad > hum_max`.<br>4. Actualiza el indicador visual a `NOMINAL` o `FUERA DE RANGO`. |
+| **Manejo Anormal:** | - Lectura fuera de rango físico (`< 0%` o `> 100%`): Descartar como trama corrupta y notificar anomalía de sensor. |
+| **Reglas de Negocio:** | RN-11: La humedad debe presentarse en `%RH` con banda óptima visible para el operador. |
+| **Criterios de Aceptación:** | 1. Cambio automático entre `NOMINAL` y `FUERA DE RANGO` al variar la humedad.<br>2. Actualización sincronizada con la tarjeta de temperatura. |
+
+##### Ficha RF-10: Consulta y Filtrado Histórico de Mediciones
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-10** |
+| **Nombre:** | Consulta y Filtrado Histórico de Mediciones |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | Sí |
+| **Prioridad:** | Alta |
+| **Requerimientos asociados:** | RF-07, RF-11, RF-16, RF-17 |
+| **Descripción:** | El sistema debe permitir consultar mediciones históricas filtrando por ubicación, dispositivo/sensor y rango de fechas (inicio y fin), mostrando estadísticas consolidadas y tabla paginada. |
+| **Entradas:** | `fecha_inicio`, `fecha_fin`, `ubicacion_id` o `sensor_id`. |
+| **Salidas:** | Listado tabular de mediciones filtradas y resumen estadístico (mínimo, máximo, promedio, desviación estándar y cumplimiento). |
+| **Flujo Principal:** | 1. El usuario ingresa al módulo de Analítica Histórica.<br>2. Selecciona el rango de fechas y el nodo o ubicación.<br>3. El sistema consulta los registros indexados y calcula las métricas agregadas.<br>4. Presenta la tabla ordenada cronológicamente. |
+| **Manejo Anormal:** | - `fecha_inicio > fecha_fin`: Mostrar advertencia *"La fecha inicial no puede ser mayor a la final"*.<br>- Sin resultados en el rango: Mostrar estado vacío informativo. |
+| **Reglas de Negocio:** | RN-12: Las consultas deben ejecutarse paginadas o virtualizadas para no degradar el navegador. |
+| **Criterios de Aceptación:** | 1. Filtrado preciso dentro del rango seleccionado.<br>2. Cálculo correcto de promedios, mínimos y máximos. |
+
+##### Ficha RF-11: Generación de Gráficos de Tendencia Dinámicos
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-11** |
+| **Nombre:** | Generación de Gráficos de Tendencia Dinámicos |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | No |
+| **Prioridad:** | Alta |
+| **Requerimientos asociados:** | RF-08, RF-09, RF-10, RF-18 |
+| **Descripción:** | El sistema debe renderizar gráficos de líneas interactivos en SVG que muestren la evolución temporal de temperatura y humedad, superponiendo líneas de umbral y marcadores de anomalías. |
+| **Entradas:** | Serie temporal de mediciones, límites operacionales y puntos marcados como anómalos. |
+| **Salidas:** | Gráfica interactiva con tooltips informativos por punto, leyenda y líneas de referencia de umbral. |
+| **Flujo Principal:** | 1. El módulo recibe el arreglo ordenado de mediciones.<br>2. Calcula escalas dinámicas para los ejes de tiempo y magnitud.<br>3. Dibuja las curvas de temperatura y humedad junto con las bandas límite.<br>4. Resalta puntos anómalos o fuera de rango para inspección visual. |
+| **Manejo Anormal:** | - Menos de 2 puntos disponibles: Mostrar mensaje de recolección inicial en curso sin error gráfico. |
+| **Reglas de Negocio:** | RN-13: El gráfico debe adaptarse responsivamente al ancho de escritorio y dispositivos móviles. |
+| **Criterios de Aceptación:** | 1. Al pasar el cursor se muestra fecha, hora, temperatura, humedad y estado.<br>2. Se actualiza suavemente sin parpadeos. |
+
+##### Ficha RF-12: Configuración de Umbrales Mínimos y Máximos de Alerta
 | Campo | Especificación |
 | :--- | :--- |
 | **Identificador:** | **RF-12** |
@@ -452,12 +605,12 @@ A continuación se presenta un diagrama UML individual por cada una de las 13 hi
 | **¿Crítico?:** | Sí |
 | **Prioridad:** | Alta |
 | **Requerimientos asociados:** | RF-05, RF-13, RF-14 |
-| **Descripción:** | El sistema debe permitir al Administrador definir rangos permitidos (temperatura mínima/máxima y humedad mínima/máxima) para cada sensor o ambiente monitoreado. |
-| **Entradas:** | ID del sensor, `valor_minimo`, `valor_maximo`, estado activo/inactivo. |
+| **Descripción:** | El sistema debe permitir al Administrador definir rangos permitidos (temperatura mínima/máxima/crítica y humedad mínima/máxima/crítica) para cada sensor o ambiente monitoreado. |
+| **Entradas:** | ID del sensor, `temp_min`, `temp_max`, `hum_min`, `hum_max`, límites críticos. |
 | **Salidas:** | Registro de configuración actualizado, mensaje de confirmación en la UI. |
-| **Flujo Principal:** | 1. El administrador ingresa al módulo de Configuración Ambiental.<br>2. Selecciona el sensor o dispositivo.<br>3. Ajusta los valores umbrales (ej. Min: 18°C, Max: 27°C; Humedad: 40% a 70%).<br>4. El sistema valida que el mínimo sea menor que el máximo.<br>5. Se actualiza la base de datos y se recarga el motor de reglas en memoria. |
+| **Flujo Principal:** | 1. El administrador ingresa al módulo de Dispositivos y Sensores.<br>2. Selecciona el sensor o dispositivo.<br>3. Ajusta los valores umbrales (ej. Min: 18°C, Max: 27°C; Humedad: 40% a 70%).<br>4. El sistema valida que el mínimo sea menor que el máximo.<br>5. Se actualiza la configuración y se recarga el motor de reglas en memoria. |
 | **Manejo Anormal:** | - `valor_minimo >= valor_maximo`: Mostrar mensaje *"El límite mínimo debe ser estrictamente menor que el límite máximo"*. |
-| **Reglas de Negocio:** | RN-05: Los umbrales no pueden contener valores nulos ni negativos fuera de escala. |
+| **Reglas de Negocio:** | RN-14: Los umbrales no pueden contener valores nulos ni invertidos. |
 | **Criterios de Aceptación:** | 1. Cambios de umbral entran en efecto inmediato para las siguientes mediciones. |
 
 ##### Ficha RF-13: Detección y Generación Automática de Alertas
@@ -471,11 +624,79 @@ A continuación se presenta un diagrama UML individual por cada una de las 13 hi
 | **Requerimientos asociados:** | RF-06, RF-08, RF-09, RF-12, RF-14 |
 | **Descripción:** | Cada vez que entra una medición, el sistema compara el valor medido contra la configuración activa. Si supera los límites máximos o cae de los mínimos, se genera una alerta inmediata. |
 | **Entradas:** | Medición entrante (temperatura o humedad), umbrales activos del sensor. |
-| **Salidas:** | Inserción en la tabla `alertas`, emisión de notificación visual en el Dashboard (banner/toasts rojo). |
-| **Flujo Principal:** | 1. Entra una medición (ej. 32.5 °C).<br>2. Se evalúa contra el límite máximo configurado (28.0 °C).<br>3. Al detectarse superación, se crea el registro con tipo *"CRÍTICA"*, estado *"ACTIVA"* y mensaje descriptivo.<br>4. El Dashboard resalta el dispositivo en color rojo con un indicador de campana. |
-| **Manejo Anormal:** | - Error de base de datos al guardar alerta: Registrar en log del sistema y emitir por socket de emergencia. |
-| **Reglas de Negocio:** | RN-06: Prevenir alertas duplicadas si el estado ya está activo en la misma franja de 1 minuto. |
-| **Criterios de Aceptación:** | 1. La alerta se crea y se refleja en el frontend en menos de 2 segundos desde el arribo del paquete MQTT. |
+| **Salidas:** | Inserción en la tabla `alertas`, emisión de notificación visual en el Dashboard (banner/toasts) y aviso sonoro opcional. |
+| **Flujo Principal:** | 1. Entra una medición (ej. 32.5 °C).<br>2. Se evalúa contra el límite máximo configurado (28.0 °C).<br>3. Al detectarse superación, se crea el registro con nivel *"CRÍTICA"* o *"ADVERTENCIA"*, estado *"PENDIENTE"* y mensaje descriptivo.<br>4. El Dashboard resalta la ubicación y el indicador de alertas activas. |
+| **Manejo Anormal:** | - Error de persistencia al guardar alerta: Mantener la alerta en memoria viva y emitir notificación visual de emergencia. |
+| **Reglas de Negocio:** | RN-15: Aplicar *debouncing* de 5 minutos por sensor para evitar alertas duplicadas ante oscilaciones continuas. |
+| **Criterios de Aceptación:** | 1. La alerta se crea y se refleja en el frontend en menos de 2 segundos desde el arribo del paquete.<br>2. No se generan alertas repetidas del mismo sensor dentro de la ventana de 5 minutos. |
+
+##### Ficha RF-14: Bitácora y Registro Histórico de Eventos de Alerta
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-14** |
+| **Nombre:** | Bitácora y Gestión de Eventos de Alerta |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | No |
+| **Prioridad:** | Media |
+| **Requerimientos asociados:** | RF-13, RF-16, RF-20 |
+| **Descripción:** | El sistema debe conservar una bitácora completa de todas las alertas generadas, permitiendo filtrar por estado (`PENDIENTE`, `ATENDIDA`, `RESUELTA`), registrar acciones correctivas y documentar la causa raíz. |
+| **Entradas:** | ID de alerta, nuevo estado, nota técnica de resolución y usuario responsable. |
+| **Salidas:** | Historial actualizado de alertas con fecha de atención, responsable y observaciones. |
+| **Flujo Principal:** | 1. El operador o supervisor abre el Gestor de Alertas.<br>2. Filtra por severidad o estado.<br>3. Selecciona una alerta pendiente y registra la acción tomada.<br>4. El sistema actualiza su estado a `ATENDIDA`/`RESUELTA` con marca temporal. |
+| **Manejo Anormal:** | - Intento de cerrar alerta crítica sin observación: Solicitar descripción breve de la acción correctiva. |
+| **Reglas de Negocio:** | RN-16: Toda atención de alerta debe quedar atribuida al usuario autenticado que la gestionó. |
+| **Criterios de Aceptación:** | 1. El contador de alertas activas disminuye al resolver una incidencia.<br>2. El registro histórico permanece auditable. |
+
+##### Ficha RF-15: Detección de Caídas de Red y Dispositivos Desconectados
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-15** |
+| **Nombre:** | Detección de Caídas de Red y Dispositivos Desconectados |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | Sí |
+| **Prioridad:** | Media |
+| **Requerimientos asociados:** | RF-02, RF-06, RF-19, RF-20 |
+| **Descripción:** | El sistema debe monitorear la frecuencia de llegada de paquetes y latidos (`ultimo_ping`) de cada nodo IoT para detectar automáticamente desconexiones de red o caídas de energía. |
+| **Entradas:** | Timestamp de `ultimo_ping` del dispositivo, ventana máxima de silencio tolerada. |
+| **Salidas:** | Cambio automático de estado del nodo a `OFFLINE` o `ADVERTENCIA` y notificación en el panel técnico. |
+| **Flujo Principal:** | 1. El monitor de salud verifica periódicamente el último contacto de cada nodo.<br>2. Si el tiempo sin telemetría supera el umbral de espera, marca el dispositivo como `OFFLINE`.<br>3. Emite aviso visual en el Dashboard y en la lista de dispositivos.<br>4. Al recibir un nuevo paquete válido, restaura el estado a `ONLINE`. |
+| **Manejo Anormal:** | - Microcortes menores al umbral de tolerancia: Mantener en `ADVERTENCIA` antes de declarar caída total. |
+| **Reglas de Negocio:** | RN-17: Un nodo marcado como `OFFLINE` no debe generar lecturas sintéticas como si estuviera transmitiendo. |
+| **Criterios de Aceptación:** | 1. La desconexión simulada o real de un nodo se refleja en el estado `OFFLINE` en la interfaz.<br>2. Al reconectar, vuelve a `ONLINE` automáticamente. |
+
+##### Ficha RF-16: Generación y Descarga de Reportes Ambientales
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-16** |
+| **Nombre:** | Generación y Descarga de Reportes Ambientales |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | No |
+| **Prioridad:** | Media |
+| **Requerimientos asociados:** | RF-07, RF-10, RF-14, RF-17 |
+| **Descripción:** | El sistema debe consolidar un reporte ambiental por rango de fechas y recinto que incluya estadísticas descriptivas, tasa de conformidad SLA y resumen de incidencias para descarga. |
+| **Entradas:** | Rango de fechas, ubicación o sensor seleccionado, formato de salida. |
+| **Salidas:** | Reporte estructurado listo para descarga y verificación de cumplimiento. |
+| **Flujo Principal:** | 1. El Supervisor o Administrador selecciona el período en Analítica.<br>2. El sistema agrupa las mediciones, calcula promedio, mínimo, máximo, desviación y porcentaje de conformidad.<br>3. Genera el documento/archivo descargable.<br>4. El navegador inicia la descarga automática. |
+| **Manejo Anormal:** | - Rango sin datos suficientes: Informar al usuario antes de generar un archivo vacío. |
+| **Reglas de Negocio:** | RN-18: El reporte debe incluir fecha de generación y filtros aplicados. |
+| **Criterios de Aceptación:** | 1. Los indicadores del reporte coinciden exactamente con los mostrados en pantalla. |
+
+##### Ficha RF-17: Exportación de Datos en Formato Tabular CSV
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-17** |
+| **Nombre:** | Exportación de Datos en Formato Tabular CSV |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | No |
+| **Prioridad:** | Media |
+| **Requerimientos asociados:** | RF-10, RF-16 |
+| **Descripción:** | El sistema debe permitir exportar las mediciones filtradas a un archivo CSV estándar compatible con Excel y herramientas de auditoría, incluyendo encabezados claros y codificación UTF-8. |
+| **Entradas:** | Conjunto de mediciones filtradas en Analítica Histórica. |
+| **Salidas:** | Archivo `.csv` descargado con columnas: fecha/hora, dispositivo, sensor, temperatura, humedad, score IA y estado de umbral. |
+| **Flujo Principal:** | 1. El usuario aplica los filtros deseados en Analítica.<br>2. Presiona el botón *Exportar CSV*.<br>3. El sistema serializa las filas en formato CSV con separador estándar.<br>4. Dispara la descarga local del archivo `simoa_reporte_*.csv`. |
+| **Manejo Anormal:** | - Tabla vacía: Deshabilitar botón de exportación o mostrar aviso de ausencia de registros. |
+| **Reglas de Negocio:** | RN-19: Escapar comas y caracteres especiales para evitar desplazamiento de columnas en hojas de cálculo. |
+| **Criterios de Aceptación:** | 1. El archivo CSV abre correctamente en Excel/LibreOffice con todas las columnas alineadas. |
 
 ##### Ficha RF-18: Detección de Anomalías por Machine Learning (IA)
 | Campo | Especificación |
@@ -486,17 +707,51 @@ A continuación se presenta un diagrama UML individual por cada una de las 13 hi
 | **¿Crítico?:** | No (funciona en complemento a las alertas por umbrales) |
 | **Prioridad:** | Alta |
 | **Requerimientos asociados:** | RF-07, RF-10, RF-11, RF-14 |
-| **Descripción:** | Un proceso periódico en segundo plano entrena y aplica un modelo *Isolation Forest* sobre las series de tiempo de temperatura y humedad para descubrir comportamientos estadísticamente atípicos (pérdida súbita de correlación, microoscilaciones extrañas). |
-| **Entradas:** | Dataset de las últimas $N$ mediciones (temperatura, humedad, delta temporal). |
-| **Salidas:** | Marcación de registros con etiqueta `es_anomalia = true`, score de anomalía, visualización diferenciada en gráficos (puntos de color ámbar). |
-| **Flujo Principal:** | 1. El servicio de IA consulta las mediciones de la última ventana temporal.<br>2. Normaliza los datos e infiere predicciones con el modelo entrenado.<br>3. Las muestras etiquetadas con $-1$ (anomalías) se almacenan con su índice de severidad.<br>4. El Dashboard ofrece una vista especializada para auditar las anomalías detectadas. |
-| **Manejo Anormal:** | - Dataset insuficiente (< 50 registros): Suspender predicción hasta acumular histórico representativo sin arrojar error al usuario. |
-| **Reglas de Negocio:** | RN-07: El modelo no bloquea las alertas por umbral fijo; ambas capas operan en paralelo. |
-| **Criterios de Aceptación:** | 1. Identificación precisa de caídas o picos instantáneos que simulen fallas de sensor o ventilación.<br>2. Tiempo de inferencia inferior a 500 ms por lote. |
+| **Descripción:** | Un proceso continuo evalúa las series de tiempo de temperatura y humedad mediante *Isolation Forest* y control estadístico Z-Score para descubrir comportamientos estadísticamente atípicos (pérdida súbita de correlación, deriva térmica o microoscilaciones extrañas). |
+| **Entradas:** | Ventana de las últimas $N$ mediciones (temperatura, humedad, delta temporal). |
+| **Salidas:** | Marcación de registros con `valor_anomalo = true`, `score_anomalia_ia`, diagnóstico de causa raíz y visualización diferenciada en gráficos. |
+| **Flujo Principal:** | 1. El servicio de IA consulta las mediciones de la última ventana temporal.<br>2. Normaliza los datos e infiere el puntaje de anomalía.<br>3. Las muestras atípicas se marcan con su índice de severidad y Z-Score.<br>4. El panel de Diagnóstico IA presenta la explicación y recomendaciones operativas. |
+| **Manejo Anormal:** | - Dataset insuficiente (< 50 registros) o API externa no disponible: Aplicar evaluación estadística local Z-Score sin arrojar error al usuario. |
+| **Reglas de Negocio:** | RN-20: El modelo no bloquea las alertas por umbral fijo; ambas capas operan en paralelo. |
+| **Criterios de Aceptación:** | 1. Identificación precisa de caídas o picos instantáneos que simulen fallas de sensor o ventilación.<br>2. Tiempo de inferencia inferior a 200 ms por lectura. |
+
+##### Ficha RF-19: Monitoreo y Marcación Visual del Estado de Conexión
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-19** |
+| **Nombre:** | Monitoreo y Marcación Visual del Estado de Conexión |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | Sí |
+| **Prioridad:** | Alta |
+| **Requerimientos asociados:** | RF-02, RF-15, RF-20 |
+| **Descripción:** | El sistema debe mostrar en tiempo real el estado de conectividad de cada nodo (`ONLINE`, `OFFLINE`, `ADVERTENCIA`, `ERROR`), junto con su intensidad de señal WiFi (`RSSI dBm`) y última marca de ping. |
+| **Entradas:** | Estado actual del dispositivo, `rssi_dbm` y `ultimo_ping`. |
+| **Salidas:** | Insignias visuales de color diferenciado, barra o indicador de señal WiFi y contador global de nodos conectados. |
+| **Flujo Principal:** | 1. El operador o técnico abre el Dashboard o la vista de Dispositivos.<br>2. El sistema renderiza el estado de cada nodo ESP32.<br>3. Muestra el nivel de señal WiFi en dBm y la hora del último latido.<br>4. Actualiza la insignia al instante cuando cambia el estado del nodo. |
+| **Manejo Anormal:** | - Señal débil (`RSSI < -80 dBm`): Resaltar advertencia preventiva de cobertura inalámbrica. |
+| **Reglas de Negocio:** | RN-21: Los estados deben diferenciarse por texto e ícono, no únicamente por color, para cumplir accesibilidad. |
+| **Criterios de Aceptación:** | 1. El técnico identifica en menos de 3 segundos qué nodos están en línea o desconectados. |
+
+##### Ficha RF-20: Ficha Técnica Detallada e Historial por Dispositivo
+| Campo | Especificación |
+| :--- | :--- |
+| **Identificador:** | **RF-20** |
+| **Nombre:** | Ficha Técnica Detallada e Historial por Dispositivo |
+| **Tipo:** | Necesario |
+| **¿Crítico?:** | No |
+| **Prioridad:** | Media |
+| **Requerimientos asociados:** | RF-02, RF-03, RF-04, RF-14, RF-15, RF-19 |
+| **Descripción:** | El sistema debe ofrecer una vista o ficha técnica individual por cada dispositivo IoT con sus datos de hardware (MAC, IP, firmware, tópico MQTT), sensores asociados e historial de mantenimientos. |
+| **Entradas:** | `id_dispositivo` seleccionado por el usuario. |
+| **Salidas:** | Vista consolidada con metadatos del nodo, estado de sus sondas y bitácora de intervenciones técnicas. |
+| **Flujo Principal:** | 1. El usuario selecciona un dispositivo del inventario.<br>2. El sistema carga sus atributos técnicos, sensores vinculados y mantenimientos registrados.<br>3. Permite editar configuración o registrar una nueva intervención técnica según el rol. |
+| **Manejo Anormal:** | - Dispositivo sin mantenimientos previos: Mostrar sección limpia con opción para registrar el primer mantenimiento. |
+| **Reglas de Negocio:** | RN-22: Solo Administrador y Técnico pueden modificar parámetros técnicos o registrar mantenimientos. |
+| **Criterios de Aceptación:** | 1. Toda la información técnica y trazabilidad del nodo se consulta en un solo lugar sin recargar la página. |
 
 ---
 
-### 3.4 Catálogo y Fichas de Requerimientos No Funcionales
+### 3.4 Catálogo y Fichas Detalladas de Requerimientos No Funcionales (RNF-01 al RNF-12)
 
 ```
 RNF-01: Usabilidad y Diseño Responsive (Mobile/Desktop)
@@ -517,36 +772,133 @@ RNF-12: Precisión Temporal y Sincronización (NTP / Timestamps UTC)
 | Atributo | Detalle |
 | :--- | :--- |
 | **Identificador:** | **RNF-01** |
+| **Categoría:** | Usabilidad |
 | **Nombre:** | Interfaz Intuitiva y Diseño Adaptable |
 | **Descripción:** | La aplicación web debe ofrecer una experiencia de usuario fluida, limpia y adaptada a dispositivos móviles, tabletas y computadores personales. |
 | **Métrica:** | El 90% de los operadores no técnicos deben poder consultar la temperatura de un salón en menos de 10 segundos desde su acceso. Puntuación Lighthouse de accesibilidad ≥ 85. |
-| **Reglas de Negocio:** | Diseño con Tailwind CSS y componentes visuales autoexplicativos. |
+| **Reglas de Negocio:** | Diseño responsive con Tailwind CSS, contraste adecuado y controles autoexplicativos. |
+| **Criterio de Verificación:** | Pruebas de visualización en resoluciones desktop (`1280px`) y móvil (`390px`) sin desbordamiento horizontal. |
 
 ##### Ficha RNF-02: Tiempo de Respuesta de la API REST
 | Atributo | Detalle |
 | :--- | :--- |
 | **Identificador:** | **RNF-02** |
+| **Categoría:** | Rendimiento |
 | **Nombre:** | Rendimiento en Consultas Habituales |
 | **Descripción:** | Los endpoints de consulta de mediciones, alertas y dispositivos deben responder con latencias mínimas para no congelar la interfaz. |
 | **Métrica:** | Tiempo de respuesta $\le 200\text{ ms}$ en el 95% de las solicitudes HTTP para consultas ordinarias de mediciones recientes. |
-| **Reglas de Negocio:** | Indexación de llaves foráneas y campos temporales en MySQL. |
+| **Reglas de Negocio:** | Indexación de llaves foráneas y campos temporales `(sensor_id, fecha_hora)` en la base de datos. |
+| **Criterio de Verificación:** | Medición de percentiles P95 en endpoints `/api/v1/devices` y `/api/v1/alerts` bajo carga normal. |
+
+##### Ficha RNF-03: Eficiencia en Comunicación MQTT
+| Atributo | Detalle |
+| :--- | :--- |
+| **Identificador:** | **RNF-03** |
+| **Categoría:** | Eficiencia / Red |
+| **Nombre:** | Comunicación Ligera MQTT (QoS 0/1) |
+| **Descripción:** | La transmisión telemétrica desde los microcontroladores ESP32 debe utilizar payloads JSON compactos sobre MQTT con niveles de calidad de servicio QoS 0 o QoS 1 para minimizar el consumo de ancho de banda. |
+| **Métrica:** | Tamaño promedio de payload $\le 256\text{ bytes}$ por mensaje y tasa de entrega $\ge 99.5\%$ en QoS 1. |
+| **Reglas de Negocio:** | Prohibido transmitir binarios o campos redundantes dentro de la trama periódica del ESP32. |
+| **Criterio de Verificación:** | Inspección de paquetes publicados en el tópico `simoa/dispositivos/+/telemetria`. |
 
 ##### Ficha RNF-04: Seguridad de Credenciales y Cifrado
 | Atributo | Detalle |
 | :--- | :--- |
 | **Identificador:** | **RNF-04** |
+| **Categoría:** | Seguridad |
 | **Nombre:** | Almacenamiento Seguro de Contraseñas |
-| **Descripción:** | Ninguna contraseña debe almacenarse en texto claro bajo ninguna circunstancia. |
-| **Métrica:** | Empleo estricto de algoritmo de hashing robusto (`bcrypt` con salt factor $\ge 12$). |
-| **Reglas de Negocio:** | Imposibilidad de reversión directa; validación exclusiva por cotejo de hashes. |
+| **Descripción:** | Ninguna contraseña debe almacenarse ni transmitirse en texto claro en la base de datos o registros del servidor bajo ninguna circunstancia. |
+| **Métrica:** | Empleo estricto de algoritmo de hashing robusto (`bcrypt` o `Argon2` con factor de costo $\ge 12$). |
+| **Reglas de Negocio:** | Imposibilidad de reversión directa; validación exclusiva por cotejo de hashes y comunicación sobre HTTPS/TLS en producción. |
+| **Criterio de Verificación:** | Auditoría de tabla `usuarios` y logs del servidor comprobando ausencia total de contraseñas en claro. |
 
-##### Ficha RNF-06: Rendimiento del Módulo de Inteligencia Artificial
+##### Ficha RNF-05: Control de Acceso por Tokens JWT
+| Atributo | Detalle |
+| :--- | :--- |
+| **Identificador:** | **RNF-05** |
+| **Categoría:** | Seguridad |
+| **Nombre:** | Autorización Basada en Roles mediante JWT |
+| **Descripción:** | Todas las rutas privadas de la API deben validar un token JWT firmado y verificar que el rol del usuario autenticado tenga permisos para ejecutar la operación solicitada. |
+| **Métrica:** | 100% de los endpoints administrativos protegidos; tiempo de expiración del token configurable ($\le 8\text{ horas}$). |
+| **Reglas de Negocio:** | Rechazar cualquier petición sin cabecera `Authorization: Bearer <token>` válida con código HTTP `401` o `403`. |
+| **Criterio de Verificación:** | Pruebas de petición sin token y con rol no autorizado verificando denegación de acceso. |
+
+##### Ficha RNF-06: Rendimiento y Concurrencia del Sistema e IA
 | Atributo | Detalle |
 | :--- | :--- |
 | **Identificador:** | **RNF-06** |
-| **Nombre:** | Eficiencia Computacional en Detección de Anomalías |
-| **Descripción:** | El procesamiento de algoritmos de Machine Learning no debe comprometer la disponibilidad del servidor de aplicaciones. |
-| **Métrica:** | El reentrenamiento o ejecución por lotes de *Isolation Forest* no debe superar el 30% del uso de CPU por más de 3 segundos consecutivos. |
+| **Categoría:** | Rendimiento / Escalabilidad |
+| **Nombre:** | Concurrencia y Eficiencia Computacional en IA |
+| **Descripción:** | El sistema debe soportar múltiples operadores conectados simultáneamente y ejecutar la detección de anomalías de Machine Learning sin comprometer la disponibilidad de la API. |
+| **Métrica:** | Soporte de $\ge 50$ clientes concurrentes; inferencia de *Isolation Forest* $< 200\text{ ms}$ y consumo de CPU en reentrenamiento $\le 30\%$ por un máximo de 3 segundos. |
+| **Reglas de Negocio:** | Ejecución desacoplada en segundo plano / hilos asíncronos para no bloquear el bucle principal de ingesta. |
+| **Criterio de Verificación:** | Pruebas de carga simulada con 50 sesiones concurrentes y medición de tiempo de inferencia del motor IA. |
+
+##### Ficha RNF-07: Integridad y Consistencia Transaccional
+| Atributo | Detalle |
+| :--- | :--- |
+| **Identificador:** | **RNF-07** |
+| **Categoría:** | Confiabilidad / Datos |
+| **Nombre:** | Consistencia Transaccional ACID en Base de Datos |
+| **Descripción:** | Las operaciones de registro de dispositivos, vinculación de sensores, actualización de umbrales y cierre de alertas deben garantizar propiedades ACID mediante llaves foráneas y transacciones. |
+| **Métrica:** | 0 registros huérfanos permitidos y 100% de integridad referencial en tablas maestras y transaccionales. |
+| **Reglas de Negocio:** | Toda operación compuesta debe ejecutarse dentro de una transacción con `rollback` automático ante fallos. |
+| **Criterio de Verificación:** | Pruebas de inserción inválida verificando rechazo por restricciones `FOREIGN KEY` y `UNIQUE`. |
+
+##### Ficha RNF-08: Modularidad y Clean Code
+| Atributo | Detalle |
+| :--- | :--- |
+| **Identificador:** | **RNF-08** |
+| **Categoría:** | Mantenibilidad |
+| **Nombre:** | Arquitectura Modular y Estándares de Código |
+| **Descripción:** | El código fuente del backend (Python/PEP 8) y frontend (TypeScript/React) debe organizarse por capas desacopladas (modelos, servicios, controladores/rutas y componentes UI). |
+| **Métrica:** | 0 errores de tipado estático (`tsc --noEmit`) y cumplimiento de estilo modular sin duplicación crítica de lógica de negocio. |
+| **Reglas de Negocio:** | Separación estricta entre lógica de presentación, motor de telemetría/IA y capa de persistencia. |
+| **Criterio de Verificación:** | Ejecución limpia de verificación de tipos y revisión estructural de carpetas `services/`, `types/` y `components/`. |
+
+##### Ficha RNF-09: Seguridad en Broker MQTT
+| Atributo | Detalle |
+| :--- | :--- |
+| **Identificador:** | **RNF-09** |
+| **Categoría:** | Seguridad IoT |
+| **Nombre:** | Autenticación, ACLs y Cifrado TLS en Broker MQTT |
+| **Descripción:** | El broker Eclipse Mosquitto debe exigir autenticación por usuario/contraseña, listas de control de acceso (ACL) por tópico y cifrado TLS 1.3 en el puerto 8883 para evitar suplantación de nodos. |
+| **Métrica:** | 0 conexiones anónimas permitidas; 100% de tópicos restringidos por `client_id` y canal cifrado MQTTS. |
+| **Reglas de Negocio:** | Un dispositivo ESP32 solo puede publicar en su propio tópico autorizado y nunca suscribirse a tópicos de otros nodos. |
+| **Criterio de Verificación:** | Intento de publicación anónima o hacia tópico ajeno verificando rechazo inmediato por el broker. |
+
+##### Ficha RNF-10: Mantenibilidad y Documentación OpenAPI
+| Atributo | Detalle |
+| :--- | :--- |
+| **Identificador:** | **RNF-10** |
+| **Categoría:** | Mantenibilidad |
+| **Nombre:** | Documentación Interactiva de Servicios (OpenAPI / Swagger) |
+| **Descripción:** | Los endpoints REST del backend deben exponer esquemas tipados de entrada y salida compatibles con la especificación OpenAPI 3.0 para facilitar pruebas e integración continua. |
+| **Métrica:** | 100% de los endpoints públicos y privados documentados con modelos de petición, respuesta y códigos HTTP. |
+| **Reglas de Negocio:** | Cualquier nuevo endpoint debe incluir su esquema de validación y ejemplo de respuesta antes de pasar a QA. |
+| **Criterio de Verificación:** | Acceso a la especificación Swagger/OpenAPI verificando todos los recursos activos de la API. |
+
+##### Ficha RNF-11: Tolerancia a Fallos y Copias de Respaldo
+| Atributo | Detalle |
+| :--- | :--- |
+| **Identificador:** | **RNF-11** |
+| **Categoría:** | Disponibilidad / Resiliencia |
+| **Nombre:** | Tolerancia a Fallos, Cola DLQ y Respaldos Periódicos |
+| **Descripción:** | El sistema debe aislar mensajes corruptos en una cola de mensajes fallidos (DLQ) sin detener la ingesta, reconectar nodos automáticamente y contar con scripts automatizados de respaldo de base de datos. |
+| **Métrica:** | Tiempo de recuperación ante caída de broker/BD $< 30\text{ segundos}$ y copias de respaldo programadas cada 24 horas. |
+| **Reglas de Negocio:** | Ninguna trama JSON inválida puede provocar el cierre del proceso principal de consumo MQTT. |
+| **Criterio de Verificación:** | Envío de payload malformado verificando su aislamiento en DLQ y continuidad del flujo de otros sensores. |
+
+##### Ficha RNF-12: Precisión Temporal y Sincronización
+| Atributo | Detalle |
+| :--- | :--- |
+| **Identificador:** | **RNF-12** |
+| **Categoría:** | Confiabilidad / Trazabilidad |
+| **Nombre:** | Sincronización Horaria NTP y Timestamps UTC |
+| **Descripción:** | Todas las mediciones, eventos de alerta y bitácoras de mantenimiento deben registrarse con marcas de tiempo estandarizadas en formato ISO-8601 UTC sincronizadas mediante NTP. |
+| **Métrica:** | Desfase máximo tolerado respecto a tiempo de referencia NTP $\le 1\text{ segundo}$. |
+| **Reglas de Negocio:** | El almacenamiento en backend siempre se realiza en UTC; la conversión a zona horaria local (`America/Bogota`) se efectúa únicamente en la capa de presentación. |
+| **Criterio de Verificación:** | Validación de timestamps almacenados en formato ISO-8601 UTC y orden cronológico estricto en series temporales. |
 
 ---
 
