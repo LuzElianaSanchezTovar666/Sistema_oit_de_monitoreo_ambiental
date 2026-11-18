@@ -182,8 +182,8 @@ def get_dashboard_mediciones_por_ubicacion(
     for m in mediciones:
         fh = m.get("fecha_hora")
         m["fecha_hora"] = fh.isoformat() if hasattr(fh, "isoformat") else str(fh)
-        m["temperatura"] = float(m["temperatura"])
-        m["humedad"] = float(m["humedad"])
+        m["temperatura"] = float(m["temperatura"]) if m.get("temperatura") is not None else None
+        m["humedad"] = float(m["humedad"]) if m.get("humedad") is not None else None
 
     for r in resumen_por_ubicacion:
         r["total_mediciones"] = int(r["total_mediciones"] or 0)

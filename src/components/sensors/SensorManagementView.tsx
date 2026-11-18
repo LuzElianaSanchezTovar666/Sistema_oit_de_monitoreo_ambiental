@@ -10,6 +10,8 @@ import {
   Loader2,
   X,
   ShieldAlert,
+  ToggleRight,
+  History,
 } from 'lucide-react';
 import { UserRole } from '../../types/iot';
 import { useDebounce } from '../../hooks/useDebounce';
@@ -18,14 +20,20 @@ import {
   areSensorDatesCoherent,
   changeSensorEstado,
   createSensor,
+  fetchSensorConfigHistory,
   fetchSensorConfiguracion,
   fetchSensores,
+  fetchSensorVariables,
   MODEL_CAPABILITIES,
+  SensorConfigHistoryItemDTO,
   SensorConfiguracionDTO,
   SensorDTO,
   SensorEstado,
   SensorModelo,
+  SensorVariablesConfigDTO,
   updateSensor,
+  updateSensorVariables,
+  validateSensorVariablesSelection,
   VariableNombre,
 } from '../../services/sensorService';
 
@@ -81,6 +89,18 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
   const [cfgModalSensor, setCfgModalSensor] = useState<SensorDTO | null>(null);
   const [cfgData, setCfgData] = useState<SensorConfiguracionDTO | null>(null);
   const [loadingCfg, setLoadingCfg] = useState(false);
+
+  // Modal RF-05: Configuración de Variables Monitoreadas
+  const [varsModalSensor, setVarsModalSensor] = useState<SensorDTO | null>(null);
+  const [varsConfig, setVarsConfig] = useState<SensorVariablesConfigDTO | null>(null);
+  const [varsHistory, setVarsHistory] = useState<SensorConfigHistoryItemDTO[]>([]);
+  const [loadingVars, setLoadingVars] = useState(false);
+  const [savingVars, setSavingVars] = useState(false);
+  const [varsError, setVarsError] = useState('');
+  const [varsSuccess, setVarsSuccess] = useState('');
+  const [tempEnabled, setTempEnabled] = useState(true);
+  const [humEnabled, setHumEnabled] = useState(true);
+  const [presEnabled, setPresEnabled] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -235,6 +255,69 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
     }
   };
 
+  const openVariablesModal = async (s: SensorDTO) => {
+    setVarsModalSensor(s);
+    setVarsError('');
+    setVarsSuccess('');
+    setLoadingVars(true);
+    try {
+      const [cfgRes, histRes] = await Promise.all([
+        fetchSensorVariables(s.id_sensor),
+        fetchSensorConfigHistory(s.id_sensor),
+      ]);
+      const cfg = cfgRes.configuracion;
+      setVarsConfig(cfg);
+      setTempEnabled(cfg.temperatura_habilitada);
+      setHumEnabled(cfg.humedad_habilitada);
+      setPresEnabled(cfg.presion_habilitada);
+      setVarsHistory(histRes.items);
+    } catch (err: any) {
+      setVarsError(err?.message || 'Error al consultar las variables del sensor.');
+    } finally {
+      setLoadingVars(false);
+    }
+  };
+
+  const handleSaveVariables = async () => {
+    if (!varsModalSensor || !varsConfig) return;
+    setVarsError('');
+    setVarsSuccess('');
+
+    const validationError = validateSensorVariablesSelection(
+      varsConfig.modelo,
+      tempEnabled,
+      humEnabled,
+      presEnabled
+    );
+    if (validationError) {
+      setVarsError(validationError);
+      return;
+    }
+
+    setSavingVars(true);
+    try {
+      const supportsPres = varsConfig.variables_disponibles.some((v) => v.variable === 'presion');
+      const res = await updateSensorVariables(varsModalSensor.id_sensor, {
+        temperatura_habilitada: tempEnabled,
+        humedad_habilitada: humEnabled,
+        presion_habilitada: supportsPres ? presEnabled : false,
+        unidad_temperatura: '°C',
+        unidad_humedad: '%RH',
+        unidad_presion: supportsPres ? 'hPa' : null,
+      });
+      setVarsConfig(res.configuracion);
+      setVarsSuccess(res.message);
+      const histRes = await fetchSensorConfigHistory(varsModalSensor.id_sensor);
+      setVarsHistory(histRes.items);
+      onNotify?.(res.message, 'success');
+      await loadData();
+    } catch (err: any) {
+      setVarsError(err?.message || 'No fue posible guardar la configuración de variables.');
+    } finally {
+      setSavingVars(false);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -382,6 +465,13 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="inline-flex items-center gap-2">
+                        <button
+                          onClick={() => openVariablesModal(s)}
+                          className="px-3 py-1.5 rounded-[56px] bg-neon-pulse/15 border border-neon-pulse/40 text-neon-pulse hover:bg-neon-pulse/25 text-xs inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <ToggleRight className="w-3 h-3" />
+                          Variables
+                        </button>
                         <button
                           onClick={() => openConfigModal(s)}
                           className="px-3 py-1.5 rounded-[56px] bg-obsidian-shell border border-graphite-fill text-pure-white hover:border-neon-pulse text-xs inline-flex items-center gap-1 cursor-pointer"
@@ -681,6 +771,208 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
               </div>
             ) : (
               <p className="text-xs text-slate-text">Sin configuración registrada.</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal RF-05: Configuración de Variables Monitoreadas */}
+      {varsModalSensor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
+          <div className="bg-deep-abyss border border-graphite-fill rounded-[20px] w-full max-w-xl p-6 space-y-4 text-pure-white max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="sauce-eyebrow text-neon-pulse">RF-05 · MAGNITUDES Y UNIDADES ESTÁNDAR</p>
+                <h3 className="text-lg font-medium">
+                  Variables monitoreadas ({varsModalSensor.identificador})
+                </h3>
+                <p className="text-xs text-slate-text mt-0.5">
+                  Modelo {varsModalSensor.modelo} · Dispositivo {varsModalSensor.dispositivo_nombre} · Estado {varsModalSensor.estado}
+                </p>
+              </div>
+              <button
+                onClick={() => setVarsModalSensor(null)}
+                className="text-slate-text hover:text-pure-white cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {loadingVars ? (
+              <div className="py-8 flex justify-center">
+                <Loader2 className="w-5 h-5 animate-spin text-neon-pulse" />
+              </div>
+            ) : varsConfig ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs bg-obsidian-shell border border-graphite-fill rounded-[12px] p-3">
+                  <div>
+                    <span className="text-slate-text">ID Configuración:</span>{' '}
+                    <span className="font-mono text-neon-pulse">{varsConfig.id_configuracion}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-text">Última actualización:</span>{' '}
+                    <span className="font-mono text-pure-white">
+                      {varsConfig.fecha_actualizacion ? new Date(varsConfig.fecha_actualizacion).toLocaleString() : '—'}
+                    </span>
+                  </div>
+                </div>
+
+                {varsModalSensor.estado === 'INACTIVO' && (
+                  <div className="p-3 rounded-[10px] bg-signal-yellow/15 border border-signal-yellow/40 text-xs text-signal-yellow">
+                    Sensor inactivo: no participa en nuevas operaciones de monitoreo ni admite cambios operativos hasta reactivarse.
+                  </div>
+                )}
+
+                {varsError && (
+                  <div className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/40 text-xs text-[#FCA5A5] flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{varsError}</span>
+                  </div>
+                )}
+
+                {varsSuccess && (
+                  <div className="p-3 rounded-[10px] bg-neon-pulse/15 border border-neon-pulse/40 text-xs text-neon-pulse">
+                    {varsSuccess}
+                  </div>
+                )}
+
+                <div className="space-y-2.5">
+                  <p className="text-xs font-medium text-pure-white">
+                    Variables soportadas por {varsConfig.modelo} (unidades estándar inmutables RN-06):
+                  </p>
+
+                  {varsConfig.variables_disponibles.some((v) => v.variable === 'temperatura') && (
+                    <label
+                      className={`flex items-center justify-between p-3 rounded-[12px] border cursor-pointer ${
+                        tempEnabled
+                          ? 'bg-neon-pulse/10 border-neon-pulse/50'
+                          : 'bg-obsidian-shell border-graphite-fill'
+                      } ${!isAdmin || varsModalSensor.estado === 'INACTIVO' ? 'opacity-75 cursor-not-allowed' : ''}`}
+                    >
+                      <div>
+                        <div className="text-sm font-medium text-pure-white">Temperatura</div>
+                        <div className="text-[11px] text-slate-text font-mono">
+                          Unidad estándar: {varsConfig.unidad_temperatura} (inmutable)
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={tempEnabled}
+                        disabled={!isAdmin || varsModalSensor.estado === 'INACTIVO'}
+                        onChange={(e) => {
+                          setTempEnabled(e.target.checked);
+                          setVarsError('');
+                        }}
+                        className="w-4 h-4 accent-[#34D399]"
+                      />
+                    </label>
+                  )}
+
+                  {varsConfig.variables_disponibles.some((v) => v.variable === 'humedad') && (
+                    <label
+                      className={`flex items-center justify-between p-3 rounded-[12px] border cursor-pointer ${
+                        humEnabled
+                          ? 'bg-neon-pulse/10 border-neon-pulse/50'
+                          : 'bg-obsidian-shell border-graphite-fill'
+                      } ${!isAdmin || varsModalSensor.estado === 'INACTIVO' ? 'opacity-75 cursor-not-allowed' : ''}`}
+                    >
+                      <div>
+                        <div className="text-sm font-medium text-pure-white">Humedad Relativa</div>
+                        <div className="text-[11px] text-slate-text font-mono">
+                          Unidad estándar: {varsConfig.unidad_humedad} (inmutable)
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={humEnabled}
+                        disabled={!isAdmin || varsModalSensor.estado === 'INACTIVO'}
+                        onChange={(e) => {
+                          setHumEnabled(e.target.checked);
+                          setVarsError('');
+                        }}
+                        className="w-4 h-4 accent-[#34D399]"
+                      />
+                    </label>
+                  )}
+
+                  {varsConfig.variables_disponibles.some((v) => v.variable === 'presion') && (
+                    <label
+                      className={`flex items-center justify-between p-3 rounded-[12px] border cursor-pointer ${
+                        presEnabled
+                          ? 'bg-neon-pulse/10 border-neon-pulse/50'
+                          : 'bg-obsidian-shell border-graphite-fill'
+                      } ${!isAdmin || varsModalSensor.estado === 'INACTIVO' ? 'opacity-75 cursor-not-allowed' : ''}`}
+                    >
+                      <div>
+                        <div className="text-sm font-medium text-pure-white">Presión Atmosférica</div>
+                        <div className="text-[11px] text-slate-text font-mono">
+                          Unidad estándar: {varsConfig.unidad_presion || 'hPa'} (inmutable)
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={presEnabled}
+                        disabled={!isAdmin || varsModalSensor.estado === 'INACTIVO'}
+                        onChange={(e) => {
+                          setPresEnabled(e.target.checked);
+                          setVarsError('');
+                        }}
+                        className="w-4 h-4 accent-[#34D399]"
+                      />
+                    </label>
+                  )}
+                </div>
+
+                {isAdmin && varsModalSensor.estado !== 'INACTIVO' && (
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setVarsModalSensor(null)}
+                      className="px-4 py-2 rounded-[56px] border border-graphite-fill text-xs text-slate-text cursor-pointer"
+                    >
+                      Cerrar
+                    </button>
+                    <button
+                      type="button"
+                      disabled={savingVars}
+                      onClick={handleSaveVariables}
+                      className="apple-blue-pill px-5 py-2 text-xs font-semibold inline-flex items-center gap-2 cursor-pointer"
+                    >
+                      {savingVars && <Loader2 className="w-3 h-3 animate-spin" />}
+                      Guardar variables
+                    </button>
+                  </div>
+                )}
+
+                {/* Trazabilidad histórica RF-05 */}
+                <div className="pt-3 border-t border-graphite-fill space-y-2">
+                  <h4 className="text-xs font-semibold text-pure-white flex items-center gap-1.5">
+                    <History className="w-3.5 h-3.5 text-neon-pulse" />
+                    Historial de configuraciones ({varsHistory.length})
+                  </h4>
+                  {varsHistory.length === 0 ? (
+                    <p className="text-xs text-slate-text">Sin cambios registrados aún.</p>
+                  ) : (
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                      {varsHistory.map((h) => (
+                        <div
+                          key={h.id_historial}
+                          className="p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill text-[11px] flex flex-wrap items-center justify-between gap-2"
+                        >
+                          <div className="font-mono text-pure-white">
+                            {h.variables_snapshot.map((v) => `${v.variable} (${v.unidad})`).join(' · ')}
+                          </div>
+                          <div className="text-slate-text">
+                            {h.usuario_responsable} · {new Date(h.fecha_cambio).toLocaleString()}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-text">No se pudo cargar la configuración del sensor.</p>
             )}
           </div>
         </div>
