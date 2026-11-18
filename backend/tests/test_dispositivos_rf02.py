@@ -120,20 +120,21 @@ def test_rf02_rechaza_mac_formato_invalido_y_mac_duplicada():
     with TestClient(app) as client:
         adm_token = _login_token(client, "admin.rf02@simoa-ejemplo.org", "AdminPass123!")
 
-        # Formato inválido
-        bad_fmt = client.post(
-            "/api/dispositivos",
-            json={
-                "nombre": "Nodo Malo",
-                "mac_address": "ZZ:11:22:33:44:55",
-                "tipo": "ESP8266",
-                "firmware_version": "v1.0.0",
-                "ubicacion": "Lab 1",
-            },
-            headers={"Authorization": f"Bearer {adm_token}"},
-        )
-        assert bad_fmt.status_code == 400
-        assert bad_fmt.json()["detail"] == "La dirección MAC ya existe o no tiene formato válido"
+        # Formato inválido (incluye longitud distinta a 17 caracteres)
+        for bad_mac_val in ("ZZ:11:22:33:44:55", "INVALID-MAC"):
+            bad_fmt = client.post(
+                "/api/dispositivos",
+                json={
+                    "nombre": "Nodo Malo",
+                    "mac_address": bad_mac_val,
+                    "tipo": "ESP8266",
+                    "firmware_version": "v1.0.0",
+                    "ubicacion": "Lab 1",
+                },
+                headers={"Authorization": f"Bearer {adm_token}"},
+            )
+            assert bad_fmt.status_code == 400
+            assert bad_fmt.json()["detail"] == "La dirección MAC ya existe o no tiene formato válido"
 
         # MAC duplicada (ya registrada en el test anterior)
         dup_mac = client.post(

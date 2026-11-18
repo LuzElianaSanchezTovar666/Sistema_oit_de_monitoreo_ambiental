@@ -22,7 +22,7 @@ INVALID_OR_DUPLICATE_MAC_MSG = "La dirección MAC ya existe o no tiene formato v
 
 class DispositivoCreateRequest(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=120)
-    mac_address: str = Field(..., min_length=17, max_length=17)
+    mac_address: str = Field(..., min_length=1, max_length=32)
     tipo: DeviceTypeLiteral
     firmware_version: str = Field(..., min_length=1, max_length=32)
     ubicacion: str = Field(..., min_length=2, max_length=120)
@@ -39,7 +39,7 @@ class DispositivoCreateRequest(BaseModel):
 
 class DispositivoUpdateRequest(BaseModel):
     nombre: str = Field(..., min_length=2, max_length=120)
-    mac_address: str = Field(..., min_length=17, max_length=17)
+    mac_address: str = Field(..., min_length=1, max_length=32)
     tipo: DeviceTypeLiteral
     firmware_version: str = Field(..., min_length=1, max_length=32)
     ubicacion: str = Field(..., min_length=2, max_length=120)
