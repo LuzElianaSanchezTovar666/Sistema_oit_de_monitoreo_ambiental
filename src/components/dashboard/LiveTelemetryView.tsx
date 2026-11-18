@@ -22,6 +22,11 @@ import {
   fetchDashboardMedicionesPorUbicacion,
   fetchDispositivosByUbicacion,
 } from '../../services/locationService';
+import {
+  DashboardTelemetryItemDTO,
+  DashboardTelemetrySensorDTO,
+  fetchDashboardTelemetry,
+} from '../../services/sensorService';
 
 interface LiveTelemetryViewProps {
   locations: Ubicacion[];
@@ -90,12 +95,19 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
 
   const isOnline = currentDevice?.estado === 'ONLINE';
 
-  // RF-03: Datos reales en MySQL filtrados y agrupados por ubicación
+  // RF-03 & RF-05: Datos reales en MySQL filtrados por ubicación y dispositivo + configuración de variables
+  const [selectedMysqlDeviceId, setSelectedMysqlDeviceId] = useState<string>('ALL');
   const [mysqlDevicesInLoc, setMysqlDevicesInLoc] = useState<
     Array<{ id_dispositivo: string; codigo: string; nombre: string; mac_address: string; tipo: string; estado: string }>
   >([]);
   const [mysqlMediciones, setMysqlMediciones] = useState<DashboardMedicionDTO[]>([]);
   const [mysqlResumen, setMysqlResumen] = useState<DashboardUbicacionResumenDTO[]>([]);
+  const [mysqlSensorConfigs, setMysqlSensorConfigs] = useState<DashboardTelemetrySensorDTO[]>([]);
+  const [mysqlTelemetry, setMysqlTelemetry] = useState<DashboardTelemetryItemDTO[]>([]);
+
+  useEffect(() => {
+    setSelectedMysqlDeviceId('ALL');
+  }, [currentLocation?.id_ubicacion]);
 
   useEffect(() => {
     let active = true;
@@ -105,19 +117,73 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
     Promise.all([
       fetchDispositivosByUbicacion(locId).catch(() => null),
       fetchDashboardMedicionesPorUbicacion(locId).catch(() => null),
-    ]).then(([devRes, medRes]) => {
+      fetchDashboardTelemetry({
+        ubicacion_id: locId,
+        dispositivo_id: selectedMysqlDeviceId !== 'ALL' ? selectedMysqlDeviceId : undefined,
+        limit: 60,
+      }).catch(() => null),
+    ]).then(([devRes, medRes, telRes]) => {
       if (!active) return;
       if (devRes) setMysqlDevicesInLoc(devRes.items);
       if (medRes) {
         setMysqlMediciones(medRes.mediciones);
         setMysqlResumen(medRes.resumen_por_ubicacion);
       }
+      if (telRes) {
+        setMysqlSensorConfigs(telRes.sensores);
+        setMysqlTelemetry(telRes.mediciones);
+      }
     });
 
     return () => {
       active = false;
     };
-  }, [currentLocation?.id_ubicacion]);
+  }, [currentLocation?.id_ubicacion, selectedMysqlDeviceId]);
+
+  const activeSensorConfig = useMemo(() => {
+    if (mysqlSensorConfigs.length === 0) return null;
+    return mysqlSensorConfigs.find((s) => s.estado === 'ACTIVO') || mysqlSensorConfigs[0];
+  }, [mysqlSensorConfigs]);
+
+  const tempEnabled = activeSensorConfig ? activeSensorConfig.temperatura_habilitada : true;
+  const humEnabled = activeSensorConfig ? activeSensorConfig.humedad_habilitada : true;
+  const presEnabled = activeSensorConfig ? activeSensorConfig.presion_habilitada : false;
+
+  const latestMysqlReading = mysqlTelemetry.length > 0 ? mysqlTelemetry[mysqlTelemetry.length - 1] : null;
+  const displayTemp: number | null = tempEnabled
+    ? (latestMysqlReading ? latestMysqlReading.temperatura : (reading ? reading.temperatura : null))
+    : null;
+  const displayHum: number | null = humEnabled
+    ? (latestMysqlReading ? latestMysqlReading.humedad : (reading ? reading.humedad : null))
+    : null;
+  const displayPres: number | null = presEnabled
+    ? (latestMysqlReading ? latestMysqlReading.presion : null)
+    : null;
+
+  const chartReadings = useMemo(() => {
+    if (mysqlTelemetry.length > 0) {
+      return mysqlTelemetry.map((m) => ({
+        id_medicion: String(m.id_medicion),
+        sensor_id: m.sensor_id || activeSensorConfig?.sensor_id || '',
+        dispositivo_id: m.dispositivo_id,
+        ubicacion_id: m.ubicacion_id || currentLocation?.id_ubicacion || '',
+        temperatura: tempEnabled ? m.temperatura : null,
+        humedad: humEnabled ? m.humedad : null,
+        z_score_temp: 0,
+        z_score_hum: 0,
+        score_anomalia_ia: 0,
+        valor_anomalo: m.alerta_generada,
+        es_fuera_de_umbral: m.alerta_generada,
+        fecha_hora: m.fecha_hora,
+        timestamp: new Date(m.fecha_hora).getTime(),
+      }));
+    }
+    return history.map((h) => ({
+      ...h,
+      temperatura: tempEnabled ? h.temperatura : null,
+      humedad: humEnabled ? h.humedad : null,
+    }));
+  }, [mysqlTelemetry, history, tempEnabled, humEnabled, activeSensorConfig?.sensor_id]);
 
   return (
     <div className="space-y-[24px]">
@@ -193,9 +259,40 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
         </div>
       )}
 
+      {/* Filtro por Dispositivo MySQL en ubicación actual (RF-05) */}
+      {mysqlDevicesInLoc.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-sheet-white px-5 py-3 rounded-[16px]">
+          <div className="text-xs text-slate">
+            <span className="font-semibold text-bark">Dispositivo en MySQL:</span>{' '}
+            {activeSensorConfig ? (
+              <span className="font-mono text-canopy">
+                Sensor {activeSensorConfig.identificador} ({activeSensorConfig.modelo}) · Variables:{' '}
+                {activeSensorConfig.variables_habilitadas.map((v) => `${v.variable} (${v.unidad})`).join(', ')}
+              </span>
+            ) : (
+              <span>Sin sensor vinculado en MySQL</span>
+            )}
+          </div>
+          <select
+            value={selectedMysqlDeviceId}
+            onChange={(e) => setSelectedMysqlDeviceId(e.target.value)}
+            aria-label="Filtrar por dispositivo en MySQL"
+            className="px-3 py-1.5 rounded-[8px] bg-cream-paper border border-sage-mist text-xs text-bark font-mono"
+          >
+            <option value="ALL">Todos los dispositivos ({mysqlDevicesInLoc.length})</option>
+            {mysqlDevicesInLoc.map((d) => (
+              <option key={d.id_dispositivo} value={d.id_dispositivo}>
+                {d.nombre} ({d.codigo})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Grid de Métricas Principales en Tiempo Real — Feature Metric Tiles (28px radius, 16px padding, no shadow) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
-        {/* Tarjeta 1: Temperatura */}
+        {/* Tarjeta 1: Temperatura (solo si está habilitada en RF-05) */}
+        {tempEnabled && (
         <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[12px] font-semibold text-slate flex items-center gap-1.5">
@@ -219,12 +316,15 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
                 reading?.es_fuera_de_umbral ? 'text-[#DC2626]' : 'text-canopy'
               }`}
             >
-              {reading ? `${reading.temperatura.toFixed(1)}` : '--'}
+              {displayTemp !== null ? `${displayTemp.toFixed(1)}` : '--'}
               <span className="text-[20px] font-normal text-slate ml-1">°C</span>
             </div>
             <div className="flex items-center justify-between text-[11px] text-slate mt-2 font-mono">
-              <span>Óptimo: {currentSensor?.limites.temp_min}° - {currentSensor?.limites.temp_max}°C</span>
-              <span>Z: {reading ? reading.z_score_temp : 0}σ</span>
+              <span>
+                Óptimo: {activeSensorConfig?.limites.temp_min ?? currentSensor?.limites.temp_min}° -{' '}
+                {activeSensorConfig?.limites.temp_max ?? currentSensor?.limites.temp_max}°C
+              </span>
+              <span>Z: {reading ? reading.z_score_temp : '--'}σ</span>
             </div>
           </div>
 
@@ -234,21 +334,20 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
                 reading?.es_fuera_de_umbral ? 'bg-[#DC2626]' : 'bg-canopy'
               }`}
               style={{
-                width: reading
-                  ? `${Math.min(100, Math.max(10, ((reading.temperatura - (currentSensor?.limites.temp_min || 0)) / ((currentSensor?.limites.temp_max || 10) - (currentSensor?.limites.temp_min || 0))) * 100))}%`
-                  : '50%',
+                width: displayTemp !== null
+                  ? `${Math.min(100, Math.max(10, ((displayTemp - (currentSensor?.limites.temp_min || 0)) / ((currentSensor?.limites.temp_max || 10) - (currentSensor?.limites.temp_min || 0))) * 100))}%`
+                  : '0%',
               }}
             />
           </div>
         </div>
+        )}
 
-        {/* Tarjeta 2: Humedad Relativa */}
-        {(() => {
-          const humOutOfRange =
-            reading != null &&
-            currentSensor != null &&
-            (reading.humedad < currentSensor.limites.hum_min ||
-              reading.humedad > currentSensor.limites.hum_max);
+        {/* Tarjeta 2: Humedad Relativa (solo si está habilitada en RF-05) */}
+        {humEnabled && (() => {
+          const humMin = activeSensorConfig?.limites.hum_min ?? currentSensor?.limites.hum_min ?? 0;
+          const humMax = activeSensorConfig?.limites.hum_max ?? currentSensor?.limites.hum_max ?? 100;
+          const humOutOfRange = displayHum !== null && (displayHum < humMin || displayHum > humMax);
           return (
             <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
               <div className="flex items-center justify-between">
@@ -269,12 +368,12 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
 
           <div>
             <div className="apple-metric-display text-bark tabular-nums">
-              {reading ? `${reading.humedad.toFixed(1)}` : '--'}
+              {displayHum !== null ? `${displayHum.toFixed(1)}` : '--'}
               <span className="text-[20px] font-normal text-slate ml-1">%RH</span>
             </div>
             <div className="flex items-center justify-between text-[11px] text-slate mt-2 font-mono">
-              <span>Banda: {currentSensor?.limites.hum_min}% - {currentSensor?.limites.hum_max}%</span>
-              <span>Z: {reading ? reading.z_score_hum : 0}σ</span>
+              <span>Banda: {humMin}% - {humMax}%</span>
+              <span>Z: {reading ? reading.z_score_hum : '--'}σ</span>
             </div>
           </div>
 
@@ -284,13 +383,34 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
                 humOutOfRange ? 'bg-[#DC2626]' : 'bg-canopy'
               }`}
               style={{
-                width: reading ? `${Math.min(100, Math.max(5, reading.humedad))}%` : '50%',
+                width: displayHum !== null ? `${Math.min(100, Math.max(5, displayHum))}%` : '0%',
               }}
             />
           </div>
         </div>
           );
         })()}
+
+        {/* Tarjeta Opcional BME280: Presión Atmosférica (solo si está habilitada en RF-05) */}
+        {presEnabled && (
+          <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-[12px] font-semibold text-slate">Presión Atmosférica</span>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-[5px] font-semibold bg-canopy/15 text-canopy">
+                BME280
+              </span>
+            </div>
+            <div>
+              <div className="apple-metric-display text-bark tabular-nums">
+                {displayPres !== null ? `${displayPres.toFixed(1)}` : '--'}
+                <span className="text-[20px] font-normal text-slate ml-1">hPa</span>
+              </div>
+              <div className="text-[11px] text-slate mt-2 font-mono">
+                Banda: {activeSensorConfig?.limites.presion_min ?? 980} - {activeSensorConfig?.limites.presion_max ?? 1030} hPa
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tarjeta 3: Modelo de Anomalías IA (Isolation Forest) */}
         <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
@@ -383,12 +503,24 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
       </div>
 
       {/* Gráfico de Telemetría Dinámico */}
-      {currentSensor && (
+      {(currentSensor || activeSensorConfig) && (
         <TelemetryChart
-          readings={history}
-          limites={currentSensor.limites}
-          sensorType={currentSensor.tipo_sensor}
-          locationName={currentLocation.nombre}
+          readings={chartReadings}
+          limites={{
+            temp_min: activeSensorConfig?.limites.temp_min ?? currentSensor?.limites.temp_min ?? 18,
+            temp_max: activeSensorConfig?.limites.temp_max ?? currentSensor?.limites.temp_max ?? 25,
+            temp_critica_max: currentSensor?.limites.temp_critica_max ?? ((activeSensorConfig?.limites.temp_max ?? 25) + 5),
+            hum_min: activeSensorConfig?.limites.hum_min ?? currentSensor?.limites.hum_min ?? 40,
+            hum_max: activeSensorConfig?.limites.hum_max ?? currentSensor?.limites.hum_max ?? 70,
+            hum_critica_max: currentSensor?.limites.hum_critica_max ?? ((activeSensorConfig?.limites.hum_max ?? 70) + 10),
+          }}
+          sensorType={activeSensorConfig?.modelo || currentSensor?.tipo_sensor || 'DHT22'}
+          locationName={currentLocation?.nombre || ''}
+          enabledVariables={{
+            temperatura: tempEnabled,
+            humedad: humEnabled,
+            presion: presEnabled,
+          }}
         />
       )}
 
