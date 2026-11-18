@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 import os
 import sys
 from pathlib import Path
@@ -56,13 +56,14 @@ def setup_mysql_test_users():
     with db_cursor() as cursor:
         placeholders = ",".join(["%s"] * len(emails))
         cursor.execute(f"DELETE FROM usuarios WHERE correo IN ({placeholders})", tuple(emails))
+        cursor.execute("DELETE FROM dispositivos WHERE mac_address IN ('AA:BB:CC:11:22:33', 'AA:BB:CC:11:22:99')")
 
 
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():
-    login_rate_limiter._attempts.clear()
+    login_rate_limiter.clear_all()
     yield
-    login_rate_limiter._attempts.clear()
+    login_rate_limiter.clear_all()
 
 
 def test_rn01_rechaza_password_menor_8_caracteres():

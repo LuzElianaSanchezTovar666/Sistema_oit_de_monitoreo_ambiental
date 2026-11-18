@@ -1,14 +1,13 @@
-from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 import secrets
-import time
-from typing import Any, Dict, List
+from typing import Any, Dict
 import uuid
 
 import bcrypt
 import jwt
 
 from .config import get_settings
+from .database import db_cursor
 
 
 def hash_password(plain_password: str) -> str:
@@ -65,27 +64,44 @@ def generate_csrf_token() -> str:
 
 
 class LoginRateLimiter:
-    """Limitador en memoria de intentos fallidos de login por IP/correo."""
+    """Limitador persistente en MySQL de intentos fallidos de login (apto para múltiples workers)."""
 
-    def __init__(self) -> None:
-        self._attempts: Dict[str, List[float]] = defaultdict(list)
-
-    def _prune(self, key: str, window: int) -> None:
-        cutoff = time.monotonic() - window
-        self._attempts[key] = [ts for ts in self._attempts[key] if ts > cutoff]
+    def _cutoff(self) -> datetime:
+        settings = get_settings()
+        return datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(
+            seconds=settings.rate_limit_window_seconds
+        )
 
     def is_blocked(self, key: str) -> bool:
         settings = get_settings()
-        self._prune(key, settings.rate_limit_window_seconds)
-        return len(self._attempts[key]) >= settings.rate_limit_max_attempts
+        cutoff = self._cutoff()
+        with db_cursor() as cursor:
+            cursor.execute(
+                "DELETE FROM login_attempts WHERE attempt_key = %s AND attempted_at < %s",
+                (key, cutoff),
+            )
+            cursor.execute(
+                "SELECT COUNT(*) AS cnt FROM login_attempts WHERE attempt_key = %s AND attempted_at >= %s",
+                (key, cutoff),
+            )
+            row = cursor.fetchone()
+            return bool(row and int(row["cnt"]) >= settings.rate_limit_max_attempts)
 
     def record_failure(self, key: str) -> None:
-        settings = get_settings()
-        self._prune(key, settings.rate_limit_window_seconds)
-        self._attempts[key].append(time.monotonic())
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        with db_cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO login_attempts (attempt_key, attempted_at) VALUES (%s, %s)",
+                (key, now),
+            )
 
     def reset(self, key: str) -> None:
-        self._attempts.pop(key, None)
+        with db_cursor() as cursor:
+            cursor.execute("DELETE FROM login_attempts WHERE attempt_key = %s", (key,))
+
+    def clear_all(self) -> None:
+        with db_cursor() as cursor:
+            cursor.execute("DELETE FROM login_attempts")
 
 
 login_rate_limiter = LoginRateLimiter()
