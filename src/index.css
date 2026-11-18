@@ -1,52 +1,48 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
-  /* Arcadia Design System — Colors */
-  --color-canopy: #104336;
-  --color-mint-pulse: #0fff87;
-  --color-orb-violet: #7c18d3;
-  --color-cream-paper: #f3f1ec;
-  --color-sheet-white: #ffffff;
-  --color-bark: #101f1e;
-  --color-ink: #000000;
-  --color-slate: #535e5d;
-  --color-charcoal: #333333;
-  --color-sage-mist: #afc4bf;
-  --color-pale-sage: #c2cec8;
-  --color-muted-slate: #798281;
-  --color-hero-wash: #e8e7f5;
-  --gradient-hero-wash: linear-gradient(212.12deg, #afc4bf 14.83%, #e8e7f5 52.99%, #f1eee9 79.47%);
-  --gradient-iso-wash: linear-gradient(180deg, #e8f0ec 0%, #f1eee9 100%);
+  /* Sauce Labs Design System — Colors */
+  --color-obsidian-shell: #132322;
+  --color-pure-white: #ffffff;
+  --color-mint-frost: #edf7f5;
+  --color-deep-abyss: #0e1a19;
+  --color-charcoal: #070f0f;
+  --color-fog-border: #d0d3d3;
+  --color-stone-border: #b2b6b4;
+  --color-slate-text: #828786;
+  --color-graphite-fill: #424f4f;
+  --color-pure-black: #000000;
+  --color-neon-pulse: #3ddc91;
+  --color-mint-whisper: #97ddbc;
+  --color-signal-yellow: #ffcd48;
 
   /* Typography — Font Families */
-  --font-dm-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-helvetica: 'Helvetica', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-aeonik: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-aeonikfono: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Typography — Scale */
-  --text-caption: 13px;
-  --leading-caption: 1.2;
-  --tracking-caption: 0.07px;
+  --text-body-sm: 14px;
+  --leading-body-sm: 1.45;
   --text-body: 16px;
   --leading-body: 1.5;
-  --text-subheading: 20px;
-  --leading-subheading: 1.29;
-  --text-heading-sm: 24px;
-  --leading-heading-sm: 1.2;
-  --tracking-heading-sm: 0.01px;
-  --text-heading: 36px;
-  --leading-heading: 1.15;
-  --tracking-heading: -0.02px;
-  --text-display: 56px;
+  --tracking-body: -0.08px;
+  --text-body-lg: 18px;
+  --leading-body-lg: 1.45;
+  --text-subheading: 24px;
+  --leading-subheading: 1.4;
+  --tracking-subheading: 0.96px;
+  --text-heading-sm: 32px;
+  --leading-heading-sm: 1.22;
+  --text-heading: 40px;
+  --leading-heading: 1.2;
+  --text-heading-lg: 48px;
+  --leading-heading-lg: 1.12;
+  --text-display: 64px;
   --leading-display: 1.1;
-  --tracking-display: -0.02px;
 
   /* Typography — Weights */
-  --font-weight-light: 300;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
-  --font-weight-bold: 700;
 
   /* Spacing */
   --spacing-unit: 8px;
@@ -56,84 +52,117 @@
   --spacing-32: 32px;
   --spacing-40: 40px;
   --spacing-48: 48px;
+  --spacing-56: 56px;
   --spacing-64: 64px;
-  --spacing-88: 88px;
+  --spacing-72: 72px;
+  --spacing-80: 80px;
   --spacing-96: 96px;
-  --spacing-120: 120px;
 
   /* Layout */
   --page-max-width: 1200px;
-  --section-gap: 96px;
+  --section-gap: 80px;
   --card-padding: 24px;
   --element-gap: 24px;
 
   /* Border Radius */
-  --radius-md: 4px;
-  --radius-lg: 8px;
+  --radius-lg: 10px;
   --radius-2xl: 16px;
+  --radius-2xl-2: 20px;
+  --radius-3xl: 32px;
+  --radius-full: 50px;
+  --radius-full-2: 56px;
+  --radius-full-3: 60px;
+  --radius-full-4: 80px;
 
   /* Named Radii */
-  --radius-cards: 16px;
-  --radius-pills: 9999px;
-  --radius-inputs: 4px;
-  --radius-buttons: 8px;
+  --radius-tabs: 56px;
+  --radius-cards: 20px;
+  --radius-buttons: 56px;
+  --radius-largecards: 60px;
+  --radius-smallelements: 10px;
+
+  /* Shadows */
+  --shadow-md: rgba(0, 0, 0, 0.04) 1px 0px 9px 2px;
 
   /* Surfaces */
-  --surface-cream-paper: #f3f1ec;
-  --surface-sheet-white: #ffffff;
-  --surface-sage-tint: #e8e7f5;
+  --surface-obsidian-canvas: #132322;
+  --surface-deep-card: #0e1a19;
+  --surface-mint-card: #edf7f5;
+  --surface-white-panel: #ffffff;
 }
 
 @theme {
   /* Colors */
-  --color-canopy: #104336;
-  --color-mint-pulse: #0fff87;
-  --color-orb-violet: #7c18d3;
-  --color-cream-paper: #f3f1ec;
-  --color-sheet-white: #ffffff;
-  --color-bark: #101f1e;
-  --color-ink: #000000;
-  --color-slate: #535e5d;
-  --color-charcoal: #333333;
-  --color-sage-mist: #afc4bf;
-  --color-pale-sage: #c2cec8;
-  --color-muted-slate: #798281;
-  --color-hero-wash: #e8e7f5;
+  --color-obsidian-shell: #132322;
+  --color-pure-white: #ffffff;
+  --color-mint-frost: #edf7f5;
+  --color-deep-abyss: #0e1a19;
+  --color-charcoal: #070f0f;
+  --color-fog-border: #d0d3d3;
+  --color-stone-border: #b2b6b4;
+  --color-slate-text: #828786;
+  --color-graphite-fill: #424f4f;
+  --color-pure-black: #000000;
+  --color-neon-pulse: #3ddc91;
+  --color-mint-whisper: #97ddbc;
+  --color-signal-yellow: #ffcd48;
+
+  /* Legacy semantic aliases mapped to Sauce Labs dark/light tokens so all modules update cleanly */
+  --color-cream-paper: #132322;
+  --color-sheet-white: #0e1a19;
+  --color-canopy: #3ddc91;
+  --color-bark: #ffffff;
+  --color-ink: #ffffff;
+  --color-slate: #828786;
+  --color-sage-mist: #424f4f;
+  --color-pale-sage: #424f4f;
+  --color-muted-slate: #828786;
+  --color-mint-pulse: #3ddc91;
+  --color-orb-violet: #ffcd48;
 
   /* Typography */
-  --font-dm-sans: 'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-helvetica: 'Helvetica', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-aeonik: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-aeonikfono: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Border Radius */
-  --radius-md: 4px;
-  --radius-lg: 8px;
+  --radius-lg: 10px;
   --radius-2xl: 16px;
+  --radius-2xl-2: 20px;
+  --radius-3xl: 32px;
+  --radius-full: 50px;
+  --radius-full-2: 56px;
+  --radius-full-3: 60px;
+  --radius-full-4: 80px;
+
+  /* Shadows */
+  --shadow-md: rgba(0, 0, 0, 0.04) 1px 0px 9px 2px;
 }
 
 @layer base {
   html {
-    background-color: var(--color-cream-paper);
-    color: var(--color-bark);
-    font-family: var(--font-dm-sans);
-    font-feature-settings: "ss01" on;
+    background-color: var(--color-obsidian-shell);
+    color: var(--color-pure-white);
+    font-family: var(--font-aeonik);
+    font-feature-settings: "ss01" on, "cv11" on;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--color-cream-paper);
-    color: var(--color-bark);
-    font-family: var(--font-dm-sans);
+    background-color: var(--color-obsidian-shell);
+    color: var(--color-pure-white);
+    font-family: var(--font-aeonik);
     font-weight: 400;
     font-size: 16px;
     line-height: 1.5;
-    font-feature-settings: "ss01" on;
+    letter-spacing: -0.08px;
+    font-feature-settings: "ss01" on, "cv11" on;
   }
 
   h1, h2, h3, .font-display {
-    font-family: var(--font-dm-sans);
-    font-feature-settings: "ss01" on;
+    font-family: var(--font-aeonikfono);
+    font-feature-settings: "ss01" on, "cv11" on;
   }
 
   code, kbd, samp, pre, .font-mono {
@@ -141,243 +170,204 @@
   }
 
   select option {
-    background-color: #ffffff;
-    color: #101f1e;
+    background-color: #0e1a19;
+    color: #ffffff;
   }
 }
 
 /* ============================================================================
-   ARCADIA OBSERVATORY DESIGN SYSTEM UTILITIES
-   Flat editorial surfaces, 1px Sage Mist hairlines, zero drop shadows
+   SAUCE LABS CONSOLE DESIGN SYSTEM UTILITIES
+   Obsidian Shell (#132322) · Deep Abyss (#0e1a19) · Mint Frost (#edf7f5) · Neon Pulse (#3ddc91)
    ============================================================================ */
 
-.arcadia-hero-wash {
-  background: linear-gradient(212.12deg, #afc4bf 14.83%, #e8e7f5 52.99%, #f1eee9 79.47%);
-}
-
-.arcadia-iso-wash {
-  background: linear-gradient(180deg, #e8f0ec 0%, #f1eee9 100%);
-}
-
-.arcadia-display {
-  font-family: var(--font-dm-sans);
-  font-weight: 300;
-  font-size: clamp(38px, 5.2vw, 56px);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--color-ink);
-}
-
-.arcadia-heading {
-  font-family: var(--font-dm-sans);
-  font-weight: 300;
-  font-size: clamp(28px, 3.6vw, 44px);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--color-ink);
-}
-
-.arcadia-heading-sm {
-  font-family: var(--font-dm-sans);
+.sauce-display {
+  font-family: var(--font-aeonikfono);
   font-weight: 500;
-  font-size: 24px;
-  line-height: 1.2;
-  letter-spacing: 0.01em;
-  color: var(--color-bark);
+  font-size: clamp(38px, 5.2vw, 64px);
+  line-height: 1.1;
+  color: var(--color-pure-white);
 }
 
-.arcadia-eyebrow {
-  font-family: var(--font-dm-sans);
-  font-weight: 700;
-  font-size: 13px;
+.sauce-heading {
+  font-family: var(--font-aeonikfono);
+  font-weight: 500;
+  font-size: clamp(28px, 3.6vw, 40px);
   line-height: 1.2;
-  letter-spacing: 0.07em;
+}
+
+.sauce-eyebrow {
+  font-family: var(--font-aeonikfono);
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.arcadia-stat-value {
-  font-family: var(--font-dm-sans);
+.sauce-stat-value {
+  font-family: var(--font-aeonikfono);
   font-weight: 500;
-  font-size: clamp(26px, 2.8vw, 36px);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--color-bark);
+  font-size: clamp(32px, 3.5vw, 48px);
+  line-height: 1.12;
+  color: var(--color-neon-pulse);
   font-variant-numeric: tabular-nums;
 }
 
-.arcadia-card {
-  background-color: var(--color-sheet-white);
-  border: 1px solid var(--color-sage-mist);
-  border-radius: 16px;
-}
-
-.arcadia-card-cream {
-  background-color: var(--color-cream-paper);
-  border: 1px solid var(--color-sage-mist);
-  border-radius: 16px;
-}
-
-.arcadia-btn-primary {
-  background-color: var(--color-canopy);
-  color: #ffffff;
-  border-radius: 8px;
-  font-family: var(--font-dm-sans);
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 1.2;
-  transition: background-color 0.18s ease, opacity 0.18s ease;
-}
-
-.arcadia-btn-primary:hover {
-  background-color: #0b3329;
-}
-
-.arcadia-btn-mint {
-  background-color: var(--color-mint-pulse);
-  color: var(--color-bark);
-  border-radius: 8px;
-  font-family: var(--font-dm-sans);
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 1.2;
+.sauce-btn-primary {
+  background-color: var(--color-neon-pulse);
+  color: var(--color-obsidian-shell);
+  border-radius: 56px;
+  font-family: var(--font-aeonik);
+  font-weight: 400;
+  font-size: 16px;
+  letter-spacing: -0.08px;
+  padding: 14px 28px;
   transition: filter 0.18s ease;
 }
 
-.arcadia-btn-mint:hover {
-  filter: brightness(0.94);
+.sauce-btn-primary:hover {
+  filter: brightness(1.06);
 }
 
-.arcadia-btn-ghost {
+.sauce-btn-ghost {
   background-color: transparent;
-  color: var(--color-canopy);
-  border: 1px solid var(--color-canopy);
-  border-radius: 8px;
-  font-family: var(--font-dm-sans);
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 1.2;
+  color: var(--color-pure-white);
+  border: 1.5px solid var(--color-pure-white);
+  border-radius: 56px;
+  font-family: var(--font-aeonik);
+  font-weight: 400;
+  font-size: 16px;
+  padding: 14px 28px;
   transition: background-color 0.18s ease;
 }
 
-.arcadia-btn-ghost:hover {
-  background-color: rgba(16, 67, 54, 0.06);
+.sauce-btn-ghost:hover {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
-.arcadia-input {
+.sauce-card-mint {
+  background-color: var(--color-mint-frost);
+  color: var(--color-obsidian-shell);
+  border-radius: 40px;
+  box-shadow: var(--shadow-md);
+}
+
+@media (min-width: 1024px) {
+  .sauce-card-mint {
+    border-radius: 60px;
+  }
+}
+
+.sauce-card-dark {
+  background-color: var(--color-deep-abyss);
+  color: var(--color-pure-white);
+  border-radius: 20px;
+}
+
+.sauce-input {
   background-color: #ffffff;
-  border: 1px solid var(--color-pale-sage);
-  color: var(--color-bark);
-  border-radius: 4px;
-  font-family: var(--font-dm-sans);
-  font-size: 14px;
-  transition: border-color 0.18s ease;
+  border: 1px solid var(--color-fog-border);
+  color: var(--color-obsidian-shell);
+  border-radius: 10px;
+  font-family: var(--font-aeonik);
+  font-size: 15px;
 }
 
-.arcadia-input:focus {
+.sauce-input:focus {
   outline: none;
-  border-color: var(--color-canopy);
+  border-color: var(--color-neon-pulse);
 }
 
-.arcadia-pill {
-  border-radius: 9999px;
-  font-family: var(--font-dm-sans);
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-/* Backwards-compatible aliases mapped strictly to Arcadia tokens (no shadows) */
-.apple-hero-display {
-  font-family: var(--font-dm-sans);
-  font-weight: 300;
-  font-size: clamp(38px, 5.2vw, 56px);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--color-ink);
-}
-
-.apple-section-heading {
-  font-family: var(--font-dm-sans);
-  font-weight: 300;
-  font-size: clamp(28px, 3.6vw, 44px);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--color-ink);
-}
-
+/* Backwards-compatible aliases mapped strictly to Sauce Labs console tokens */
 .apple-card-heading {
-  font-family: var(--font-dm-sans);
+  font-family: var(--font-aeonikfono);
   font-weight: 500;
   font-size: 20px;
   line-height: 1.25;
-  color: var(--color-bark);
+  color: var(--color-pure-white);
+}
+
+.apple-metric-display {
+  font-family: var(--font-aeonikfono);
+  font-weight: 500;
+  font-size: clamp(28px, 3vw, 36px);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
 
 .apple-body {
-  font-family: var(--font-dm-sans);
+  font-family: var(--font-aeonik);
   font-weight: 400;
   font-size: 16px;
   line-height: 1.5;
-  color: var(--color-slate);
+  color: var(--color-slate-text);
 }
 
 .apple-blue-pill {
-  background-color: var(--color-canopy);
-  color: #ffffff;
-  border-radius: 8px;
-  font-family: var(--font-dm-sans);
+  background-color: var(--color-neon-pulse);
+  color: var(--color-obsidian-shell);
+  border-radius: 56px;
+  font-family: var(--font-aeonik);
   font-weight: 500;
-  transition: background-color 0.18s ease;
+  transition: filter 0.18s ease;
 }
 
 .apple-blue-pill:hover {
-  background-color: #0b3329;
+  filter: brightness(1.06);
 }
 
 .apple-white-outline-pill {
   background-color: transparent;
-  color: var(--color-canopy);
-  border: 1px solid var(--color-canopy);
-  border-radius: 8px;
+  color: var(--color-pure-white);
+  border: 1.5px solid var(--color-pure-white);
+  border-radius: 56px;
   padding-left: 16px;
   padding-right: 16px;
-  font-family: var(--font-dm-sans);
-  font-weight: 500;
+  font-family: var(--font-aeonik);
+  font-weight: 400;
   transition: background-color 0.18s ease;
 }
 
 .apple-white-outline-pill:hover {
-  background-color: rgba(16, 67, 54, 0.06);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .apple-pill-input,
 .apple-pill-select {
-  background-color: #ffffff;
-  border: 1px solid var(--color-pale-sage);
-  color: var(--color-bark);
-  border-radius: 4px;
+  background-color: #0e1a19;
+  border: 1px solid #424f4f;
+  color: #ffffff;
+  border-radius: 10px;
   padding-left: 12px;
   padding-right: 12px;
-  font-family: var(--font-dm-sans);
+  font-family: var(--font-aeonik);
   font-size: 14px;
 }
 
 .apple-pill-input:focus,
 .apple-pill-select:focus {
   outline: none;
-  border-color: var(--color-canopy);
+  border-color: var(--color-neon-pulse);
 }
 
 .apple-badge-orange {
-  background-color: rgba(16, 67, 54, 0.08);
-  border: 1px solid var(--color-sage-mist);
-  color: var(--color-canopy);
-  border-radius: 9999px;
-  padding: 2px 8px;
-  font-family: var(--font-dm-sans);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
+  background-color: rgba(255, 205, 72, 0.15);
+  border: 1px solid #ffcd48;
+  color: #ffcd48;
+  border-radius: 56px;
+  padding: 2px 10px;
+  font-family: var(--font-aeonikfono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.apple-inline-link {
+  color: var(--color-neon-pulse);
+  font-family: var(--font-aeonik);
+}
+
+.apple-inline-link:hover {
+  text-decoration: underline;
 }

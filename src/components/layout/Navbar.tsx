@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   Bell,
   Radio,
@@ -42,10 +42,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const roleIcons: Record<UserRole, React.ReactNode> = {
-    admin: <Shield className="w-3.5 h-3.5 text-canopy" />,
-    cliente: <UserCheck className="w-3.5 h-3.5 text-canopy" />,
-    tecnico: <Wrench className="w-3.5 h-3.5 text-slate" />,
-    supervisor: <Eye className="w-3.5 h-3.5 text-bark" />,
+    admin: <Shield className="w-3.5 h-3.5 text-neon-pulse" />,
+    cliente: <UserCheck className="w-3.5 h-3.5 text-neon-pulse" />,
+    tecnico: <Wrench className="w-3.5 h-3.5 text-signal-yellow" />,
+    supervisor: <Eye className="w-3.5 h-3.5 text-pure-white" />,
   };
 
   const roleLabels: Record<UserRole, string> = {
@@ -57,45 +57,37 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <div className="sticky top-0 z-30">
-      {/* Announcement Bar — Full-bleed Canopy (#104336) */}
-      <div className="w-full bg-canopy text-sheet-white px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-normal">
+      {/* Announcement Bar — Neon Pulse (#3ddc91) */}
+      <div className="w-full bg-neon-pulse text-obsidian-shell px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-normal">
         <span
           className={`w-2 h-2 rounded-full shrink-0 ${
-            isStreaming ? 'bg-mint-pulse' : 'bg-sage-mist'
+            isStreaming ? 'bg-obsidian-shell' : 'bg-graphite-fill'
           }`}
         />
         <span className="truncate">
-          Observatorio SIMOA · Telemetría IoT MQTTS (TLS 1.3) &amp; Motor de Anomalías IA activo
+          Consola SIMOA · Telemetría IoT MQTTS (TLS 1.3) &amp; Motor de Anomalías IA activo
         </span>
-        {onBackToLanding && (
-          <button
-            onClick={onBackToLanding}
-            className="hidden sm:inline-flex items-center gap-1 text-mint-pulse hover:underline font-medium shrink-0 cursor-pointer"
-          >
-            Portada →
-          </button>
-        )}
       </div>
 
-      {/* Top Navigation — Sheet White (#ffffff), 72px height, 1px Sage Mist (#afc4bf) border */}
-      <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-sheet-white border-b border-sage-mist">
+      {/* Top Navigation — Obsidian Shell (#132322), 72px height */}
+      <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-obsidian-shell border-b border-graphite-fill/50">
         {/* Brand Logo */}
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={onBackToLanding}
             title="Volver a la página principal SIMOA"
-            className="flex items-center gap-2.5 focus:outline-none cursor-pointer"
+            className="px-3 py-1.5 rounded-[56px] bg-mint-frost flex items-center focus:outline-none cursor-pointer"
           >
             <img
               src="/assets/images/simoa-logo.webp"
               alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-              className="h-12 sm:h-14 w-auto object-contain"
+              className="h-10 sm:h-11 w-auto object-contain"
             />
           </button>
         </div>
 
-        {/* Navigation Links */}
-        <nav className="hidden lg:flex items-center gap-1">
+        {/* Navigation Links — 56px pill tabs */}
+        <nav className="hidden lg:flex items-center gap-1.5">
           {[
             { id: 'dashboard', label: 'Monitoreo en Vivo' },
             { id: 'devices', label: 'Dispositivos' },
@@ -108,13 +100,12 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`px-3.5 py-2 rounded-[8px] text-[14px] transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-[56px] text-[14px] transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'bg-canopy text-sheet-white font-medium'
-                    : 'text-bark font-normal hover:bg-cream-paper'
+                    ? 'bg-neon-pulse text-obsidian-shell font-medium'
+                    : 'text-pure-white font-normal hover:bg-deep-abyss'
                 }`}
               >
-                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-mint-pulse" />}
                 {item.label}
               </button>
             );
@@ -126,33 +117,33 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onToggleStreaming}
             title={isStreaming ? 'Pausar transmisión en vivo' : 'Reanudar transmisión en vivo'}
-            className="hidden sm:flex items-center gap-2 px-3.5 py-2 text-[13px] rounded-[8px] bg-cream-paper border border-sage-mist text-bark hover:bg-[#e8e7f5]/50 transition-colors cursor-pointer"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 text-[13px] rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse transition-colors cursor-pointer"
           >
             <Radio
               className={`w-3.5 h-3.5 ${
-                isStreaming ? 'text-canopy' : 'text-[#798281]'
+                isStreaming ? 'text-neon-pulse' : 'text-slate-text'
               }`}
             />
-            <span className="font-medium">{isStreaming ? 'En línea' : 'Pausado'}</span>
+            <span className="font-normal">{isStreaming ? 'En línea' : 'Pausado'}</span>
           </button>
 
           <button
             onClick={onOpenSimulator}
-            className="arcadia-btn-primary flex items-center gap-2 px-4 py-2 text-[14px] cursor-pointer"
+            className="sauce-btn-primary flex items-center gap-2 px-4 py-2 text-[14px] cursor-pointer"
             title="Abrir Simulador de Sensores"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-mint-pulse" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-obsidian-shell" />
             <span className="hidden md:inline">Simulador</span>
           </button>
 
           <button
             onClick={onOpenAlerts}
-            className="relative p-2 text-bark hover:bg-cream-paper rounded-[8px] bg-sheet-white border border-sage-mist transition-colors cursor-pointer"
+            className="relative p-2.5 text-pure-white hover:border-neon-pulse rounded-[56px] bg-deep-abyss border border-graphite-fill transition-colors cursor-pointer"
             title="Ver alertas"
           >
             <Bell className="w-4 h-4" />
             {activeAlertCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 text-[10px] font-bold text-bark bg-mint-pulse border border-canopy rounded-full font-mono tabular-nums leading-none">
+              <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-medium text-obsidian-shell bg-neon-pulse rounded-full font-mono tabular-nums leading-none">
                 {activeAlertCount}
               </span>
             )}
@@ -162,35 +153,35 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="relative">
             <button
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-[8px] bg-cream-paper border border-sage-mist hover:bg-[#e8e7f5]/50 transition-colors text-left cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-[56px] bg-deep-abyss border border-graphite-fill hover:border-neon-pulse transition-colors text-left cursor-pointer"
             >
-              <div className="w-7 h-7 rounded-[8px] bg-canopy flex items-center justify-center font-medium text-[12px] text-sheet-white">
+              <div className="w-7 h-7 rounded-full bg-neon-pulse flex items-center justify-center font-medium text-[12px] text-obsidian-shell">
                 {currentUser.nombre.charAt(0)}
               </div>
               <div className="hidden sm:flex flex-col">
-                <span className="text-[13px] font-medium text-bark whitespace-nowrap leading-tight">
+                <span className="text-[13px] font-medium text-pure-white whitespace-nowrap leading-tight">
                   {currentUser.nombre}
                 </span>
-                <span className="text-[11px] text-slate capitalize flex items-center gap-1">
+                <span className="text-[11px] text-slate-text capitalize flex items-center gap-1">
                   {roleIcons[currentUser.rol]}
                   {roleLabels[currentUser.rol]}
                 </span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-text" />
             </button>
 
             {userDropdownOpen && (
               <div
-                className="absolute right-0 mt-2 w-64 rounded-[16px] bg-sheet-white border border-sage-mist p-3 z-50 text-xs space-y-1"
+                className="absolute right-0 mt-2 w-64 rounded-[20px] bg-deep-abyss border border-graphite-fill p-3 z-50 text-xs space-y-1"
                 onMouseLeave={() => setUserDropdownOpen(false)}
               >
-                <div className="px-3 py-2 border-b border-sage-mist">
-                  <p className="font-medium text-bark text-[13px]">{currentUser.nombre}</p>
-                  <p className="text-[11px] text-slate truncate">{currentUser.correo}</p>
-                  <p className="text-[11px] text-canopy font-medium mt-0.5">{currentUser.empresa}</p>
+                <div className="px-3 py-2 border-b border-graphite-fill">
+                  <p className="font-medium text-pure-white text-[13px]">{currentUser.nombre}</p>
+                  <p className="text-[11px] text-slate-text truncate">{currentUser.correo}</p>
+                  <p className="text-[11px] text-neon-pulse font-medium mt-0.5">{currentUser.empresa}</p>
                 </div>
 
-                <div className="px-3 py-1.5 arcadia-eyebrow text-[11px] text-slate">
+                <div className="px-3 py-1.5 sauce-eyebrow text-slate-text">
                   Cambiar Rol / Perfil
                 </div>
 
@@ -201,19 +192,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                       onSelectUser(u);
                       setUserDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-[8px] text-left hover:bg-cream-paper transition-colors cursor-pointer ${
-                      u.id_usuario === currentUser.id_usuario ? 'bg-cream-paper font-medium' : ''
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-left hover:bg-obsidian-shell transition-colors cursor-pointer ${
+                      u.id_usuario === currentUser.id_usuario ? 'bg-obsidian-shell font-medium' : ''
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       {roleIcons[u.rol]}
                       <div>
-                        <div className="text-bark text-[13px]">{u.nombre}</div>
-                        <div className="text-[11px] text-slate">{roleLabels[u.rol]}</div>
+                        <div className="text-pure-white text-[13px]">{u.nombre}</div>
+                        <div className="text-[11px] text-slate-text">{roleLabels[u.rol]}</div>
                       </div>
                     </div>
                     {u.id_usuario === currentUser.id_usuario && (
-                      <span className="w-2 h-2 rounded-full bg-mint-pulse border border-canopy" />
+                      <span className="w-2 h-2 rounded-full bg-neon-pulse" />
                     )}
                   </button>
                 ))}
