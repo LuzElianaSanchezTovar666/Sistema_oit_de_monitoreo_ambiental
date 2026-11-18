@@ -41,6 +41,10 @@ def setup_rf02_mysql():
     emails = [u[1] for u in RF02_TEST_USERS]
     with db_cursor() as cursor:
         cursor.execute(
+            "DELETE h FROM historial_ubicaciones h INNER JOIN dispositivos d ON h.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
+            (TEST_MACS,),
+        )
+        cursor.execute(
             "DELETE m FROM mediciones m INNER JOIN dispositivos d ON m.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
             (TEST_MACS,),
         )
@@ -57,6 +61,10 @@ def setup_rf02_mysql():
             )
     yield
     with db_cursor() as cursor:
+        cursor.execute(
+            "DELETE h FROM historial_ubicaciones h INNER JOIN dispositivos d ON h.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
+            (TEST_MACS,),
+        )
         cursor.execute(
             "DELETE m FROM mediciones m INNER JOIN dispositivos d ON m.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
             (TEST_MACS,),
@@ -84,7 +92,7 @@ def test_rf02_registro_exitoso_estado_pendiente_y_credenciales_mqtt():
                 "mac_address": "aa:11:22:33:44:55",
                 "tipo": "ESP32",
                 "firmware_version": "v2.4.1",
-                "ubicacion": "Bioterio Central",
+                "ubicacion": "Bioterio",
             },
             headers={"Authorization": f"Bearer {adm_token}"},
         )
@@ -129,7 +137,7 @@ def test_rf02_rechaza_mac_formato_invalido_y_mac_duplicada():
                     "mac_address": bad_mac_val,
                     "tipo": "ESP8266",
                     "firmware_version": "v1.0.0",
-                    "ubicacion": "Lab 1",
+                    "ubicacion": "Laboratorio",
                 },
                 headers={"Authorization": f"Bearer {adm_token}"},
             )
@@ -144,7 +152,7 @@ def test_rf02_rechaza_mac_formato_invalido_y_mac_duplicada():
                 "mac_address": "AA:11:22:33:44:55",
                 "tipo": "Gateway",
                 "firmware_version": "v1.0.0",
-                "ubicacion": "Lab 2",
+                "ubicacion": "Bodega",
             },
             headers={"Authorization": f"Bearer {adm_token}"},
         )
@@ -195,7 +203,7 @@ def test_rf02_consulta_inventario_detalle_y_actualizacion():
                 "mac_address": "BB:11:22:33:44:66",
                 "tipo": "Gateway",
                 "firmware_version": "v3.0.0",
-                "ubicacion": "Cámara Fría 2",
+                "ubicacion": "Cámara fría",
                 "observacion_tecnica": "Migrado a Gateway",
             },
             headers={"Authorization": f"Bearer {adm_token}"},
@@ -260,7 +268,7 @@ def test_rf02_rbac_solo_admin_registra_edita_y_desactiva():
             "mac_address": "CC:11:22:33:44:77",
             "tipo": "ESP32",
             "firmware_version": "v1.0.0",
-            "ubicacion": "Lab 1",
+            "ubicacion": "Laboratorio",
         }
         for tok in (op_token, tec_token, sup_token):
             assert (

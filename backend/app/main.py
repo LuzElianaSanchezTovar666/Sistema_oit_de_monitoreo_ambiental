@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .database import run_migrations
-from .routers import auth, dispositivos, protected_simoa
+from .routers import auth, dispositivos, protected_simoa, ubicaciones
 
 
 @asynccontextmanager
@@ -31,6 +31,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(auth.router)
+    app.include_router(ubicaciones.router)
     app.include_router(dispositivos.router)
     app.include_router(protected_simoa.router)
 

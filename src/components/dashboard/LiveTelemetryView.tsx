@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Thermometer,
   Droplets,
@@ -16,6 +16,12 @@ import { Ubicacion, Dispositivo, Sensor, Medicion, Alerta } from '../../types/io
 import { TelemetryChart } from './TelemetryChart';
 import { buildEntityIndexes, selectColumns } from '../../services/performanceEngine';
 import { VirtualList } from '../common/VirtualList';
+import {
+  DashboardMedicionDTO,
+  DashboardUbicacionResumenDTO,
+  fetchDashboardMedicionesPorUbicacion,
+  fetchDispositivosByUbicacion,
+} from '../../services/locationService';
 
 interface LiveTelemetryViewProps {
   locations: Ubicacion[];
@@ -83,6 +89,35 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
   );
 
   const isOnline = currentDevice?.estado === 'ONLINE';
+
+  // RF-03: Datos reales en MySQL filtrados y agrupados por ubicación
+  const [mysqlDevicesInLoc, setMysqlDevicesInLoc] = useState<
+    Array<{ id_dispositivo: string; codigo: string; nombre: string; mac_address: string; tipo: string; estado: string }>
+  >([]);
+  const [mysqlMediciones, setMysqlMediciones] = useState<DashboardMedicionDTO[]>([]);
+  const [mysqlResumen, setMysqlResumen] = useState<DashboardUbicacionResumenDTO[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const locId = currentLocation?.id_ubicacion;
+    if (!locId) return;
+
+    Promise.all([
+      fetchDispositivosByUbicacion(locId).catch(() => null),
+      fetchDashboardMedicionesPorUbicacion(locId).catch(() => null),
+    ]).then(([devRes, medRes]) => {
+      if (!active) return;
+      if (devRes) setMysqlDevicesInLoc(devRes.items);
+      if (medRes) {
+        setMysqlMediciones(medRes.mediciones);
+        setMysqlResumen(medRes.resumen_por_ubicacion);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [currentLocation?.id_ubicacion]);
 
   return (
     <div className="space-y-[24px]">
@@ -429,6 +464,70 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
             </div>
           )}
         />
+      </div>
+
+      {/* RF-03: Dispositivos y Mediciones Históricas en MySQL por Ubicación */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-sheet-white rounded-[16px] p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[15px] font-semibold text-bark">
+              Dispositivos asignados en MySQL ({currentLocation?.nombre})
+            </h3>
+            <span className="text-[11px] font-mono text-canopy">
+              {mysqlDevicesInLoc.length} nodo(s)
+            </span>
+          </div>
+          {mysqlDevicesInLoc.length === 0 ? (
+            <p className="text-xs text-slate">
+              No hay nodos registrados en MySQL para {currentLocation?.nombre}.
+            </p>
+          ) : (
+            <div className="space-y-2 text-xs">
+              {mysqlDevicesInLoc.map((d) => (
+                <div
+                  key={d.id_dispositivo}
+                  className="p-2.5 rounded-[10px] bg-cream-paper border border-sage-mist flex items-center justify-between"
+                >
+                  <div>
+                    <div className="font-medium text-bark">{d.nombre}</div>
+                    <div className="font-mono text-slate">
+                      {d.codigo} · {d.mac_address} · {d.tipo}
+                    </div>
+                  </div>
+                  <span className="font-mono text-canopy">{d.estado}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-sheet-white rounded-[16px] p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-[15px] font-semibold text-bark">
+              Agrupación de mediciones por ubicación (MySQL)
+            </h3>
+            <span className="text-[11px] font-mono text-slate">
+              {mysqlMediciones.length} en recinto actual
+            </span>
+          </div>
+          <div className="space-y-2 text-xs">
+            {mysqlResumen.map((r) => (
+              <div
+                key={r.ubicacion_id}
+                className="p-2.5 rounded-[10px] bg-cream-paper border border-sage-mist flex items-center justify-between"
+              >
+                <div>
+                  <span className="font-medium text-bark">{r.ubicacion_nombre}</span>{' '}
+                  <span className="font-mono text-slate">({r.codigo_area})</span>
+                </div>
+                <div className="font-mono text-canopy">
+                  {r.total_mediciones} lecturas
+                  {r.promedio_temp !== null ? ` · ${r.promedio_temp}°C / ${r.promedio_hum}%` : ''}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

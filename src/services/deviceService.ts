@@ -15,7 +15,9 @@ export interface DispositivoDTO {
   mac_address: string;
   tipo: DispositivoTipo;
   firmware_version: string;
+  ubicacion_id: string;
   ubicacion: string;
+  codigo_area?: string;
   estado: DispositivoEstado;
   observacion_tecnica?: string | null;
   mqtt_client_id?: string | null;
@@ -48,7 +50,8 @@ export interface CreateDispositivoPayload {
   mac_address: string;
   tipo: DispositivoTipo;
   firmware_version: string;
-  ubicacion: string;
+  ubicacion_id?: string;
+  ubicacion?: string;
   observacion_tecnica?: string;
 }
 

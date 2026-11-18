@@ -13,7 +13,7 @@ from ..database import db_cursor
 from ..dependencies import require_roles
 from ..security import hash_password
 
-router = APIRouter(prefix="/api/dispositivos", tags=["Dispositivos IoT (RF-02)"])
+router = APIRouter(prefix="/api/dispositivos", tags=["Dispositivos IoT (RF-02 y RF-03)"])
 
 MAC_REGEX = re.compile(r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$")
 DeviceTypeLiteral = Literal["ESP32", "ESP8266", "Gateway"]
@@ -25,10 +25,11 @@ class DispositivoCreateRequest(BaseModel):
     mac_address: str = Field(..., min_length=1, max_length=32)
     tipo: DeviceTypeLiteral
     firmware_version: str = Field(..., min_length=1, max_length=32)
-    ubicacion: str = Field(..., min_length=2, max_length=120)
+    ubicacion_id: Optional[str] = Field(default=None, max_length=64)
+    ubicacion: Optional[str] = Field(default=None, max_length=120)
     observacion_tecnica: Optional[str] = Field(default=None, max_length=255)
 
-    @field_validator("nombre", "firmware_version", "ubicacion")
+    @field_validator("nombre", "firmware_version")
     @classmethod
     def strip_non_empty(cls, v: str) -> str:
         cleaned = v.strip()
@@ -42,16 +43,22 @@ class DispositivoUpdateRequest(BaseModel):
     mac_address: str = Field(..., min_length=1, max_length=32)
     tipo: DeviceTypeLiteral
     firmware_version: str = Field(..., min_length=1, max_length=32)
-    ubicacion: str = Field(..., min_length=2, max_length=120)
+    ubicacion_id: Optional[str] = Field(default=None, max_length=64)
+    ubicacion: Optional[str] = Field(default=None, max_length=120)
     observacion_tecnica: Optional[str] = Field(default=None, max_length=255)
 
-    @field_validator("nombre", "firmware_version", "ubicacion")
+    @field_validator("nombre", "firmware_version")
     @classmethod
     def strip_non_empty(cls, v: str) -> str:
         cleaned = v.strip()
         if not cleaned:
             raise ValueError("El campo no puede estar vacío.")
         return cleaned
+
+
+class DispositivoReasignarUbicacionRequest(BaseModel):
+    ubicacion_id: str = Field(..., min_length=1, max_length=64)
+    motivo: Optional[str] = Field(default=None, max_length=255)
 
 
 def _check_mqtt_broker_status() -> Dict[str, Any]:
@@ -88,6 +95,42 @@ def _normalize_mac_or_400(mac_raw: str) -> str:
     return cleaned
 
 
+def _resolve_active_ubicacion(cursor: Any, ubicacion_id: Optional[str], ubicacion_name: Optional[str]) -> Dict[str, Any]:
+    """Valida que la ubicación exista en MySQL y esté ACTIVA (RN-04)."""
+    uid = (ubicacion_id or "").strip()
+    uname = (ubicacion_name or "").strip()
+
+    if not uid and not uname:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Todo dispositivo activo debe tener una ubicación física asignada (RN-04).",
+        )
+
+    if uid:
+        cursor.execute(
+            "SELECT ubicacion_id, nombre, codigo_area, estado FROM ubicaciones WHERE ubicacion_id = %s LIMIT 1",
+            (uid,),
+        )
+    else:
+        cursor.execute(
+            "SELECT ubicacion_id, nombre, codigo_area, estado FROM ubicaciones WHERE ubicacion_id = %s OR nombre = %s LIMIT 1",
+            (uname, uname),
+        )
+
+    ubi = cursor.fetchone()
+    if ubi is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="La ubicación seleccionada no existe en el catálogo (RN-04).",
+        )
+    if ubi["estado"] != "ACTIVA":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No se puede asignar una ubicación inactiva (RN-04).",
+        )
+    return ubi
+
+
 def _serialize_device(row: Dict[str, Any]) -> Dict[str, Any]:
     fr = row.get("fecha_registro")
     fa = row.get("fecha_actualizacion")
@@ -99,7 +142,9 @@ def _serialize_device(row: Dict[str, Any]) -> Dict[str, Any]:
         "mac_address": row["mac_address"],
         "tipo": row.get("tipo", "ESP32"),
         "firmware_version": row.get("firmware_version", ""),
-        "ubicacion": row.get("ubicacion") or row.get("ubicacion_id") or "",
+        "ubicacion_id": row.get("ubicacion_id") or "",
+        "ubicacion": row.get("ubicacion_nombre") or row.get("ubicacion") or row.get("ubicacion_id") or "",
+        "codigo_area": row.get("codigo_area") or "",
         "estado": row["estado"],
         "observacion_tecnica": row.get("observacion_tecnica"),
         "mqtt_client_id": row.get("mqtt_client_id"),
@@ -111,11 +156,25 @@ def _serialize_device(row: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+_DEVICE_SELECT = """
+    SELECT
+      d.id_dispositivo, d.id_usuario, d.codigo, d.nombre, d.mac_address, d.tipo,
+      d.ubicacion_id, d.ubicacion, u.nombre AS ubicacion_nombre, u.codigo_area,
+      d.estado, d.firmware_version, d.observacion_tecnica,
+      d.mqtt_client_id, d.mqtt_topic, d.mqtt_username, d.fecha_registro, d.fecha_actualizacion,
+      COUNT(m.id_medicion) AS historial_mediciones_count
+    FROM dispositivos d
+    LEFT JOIN ubicaciones u ON u.ubicacion_id = d.ubicacion_id
+    LEFT JOIN mediciones m ON m.dispositivo_id = d.id_dispositivo
+"""
+
+
 @router.get("")
 def list_dispositivos(
     search: Optional[str] = Query(default=None),
     estado: Optional[str] = Query(default=None),
     tipo: Optional[str] = Query(default=None),
+    ubicacion_id: Optional[str] = Query(default=None),
     _current_user: Dict[str, Any] = Depends(
         require_roles("Administrador", "Operador", "Técnico", "Supervisor")
     ),
@@ -125,27 +184,24 @@ def list_dispositivos(
 
     if search and search.strip():
         q = f"%{search.strip()}%"
-        conditions.append("(d.nombre LIKE %s OR d.codigo LIKE %s OR d.mac_address LIKE %s OR d.ubicacion LIKE %s)")
-        params.extend([q, q, q, q])
+        conditions.append("(d.nombre LIKE %s OR d.codigo LIKE %s OR d.mac_address LIKE %s OR d.ubicacion LIKE %s OR u.codigo_area LIKE %s)")
+        params.extend([q, q, q, q, q])
     if estado and estado.strip() and estado != "ALL":
         conditions.append("d.estado = %s")
         params.append(estado.strip())
     if tipo and tipo.strip() and tipo != "ALL":
         conditions.append("d.tipo = %s")
         params.append(tipo.strip())
+    if ubicacion_id and ubicacion_id.strip() and ubicacion_id != "ALL":
+        conditions.append("d.ubicacion_id = %s")
+        params.append(ubicacion_id.strip())
 
     where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
     with db_cursor() as cursor:
         cursor.execute(
             f"""
-            SELECT
-              d.id_dispositivo, d.id_usuario, d.codigo, d.nombre, d.mac_address, d.tipo,
-              d.ubicacion_id, d.ubicacion, d.estado, d.firmware_version, d.observacion_tecnica,
-              d.mqtt_client_id, d.mqtt_topic, d.mqtt_username, d.fecha_registro, d.fecha_actualizacion,
-              COUNT(m.id_medicion) AS historial_mediciones_count
-            FROM dispositivos d
-            LEFT JOIN mediciones m ON m.dispositivo_id = d.id_dispositivo
+            {_DEVICE_SELECT}
             {where_clause}
             GROUP BY d.id_dispositivo
             ORDER BY d.fecha_registro DESC, d.id_dispositivo ASC
@@ -171,14 +227,8 @@ def get_dispositivo(
 ) -> Dict[str, Any]:
     with db_cursor() as cursor:
         cursor.execute(
-            """
-            SELECT
-              d.id_dispositivo, d.id_usuario, d.codigo, d.nombre, d.mac_address, d.tipo,
-              d.ubicacion_id, d.ubicacion, d.estado, d.firmware_version, d.observacion_tecnica,
-              d.mqtt_client_id, d.mqtt_topic, d.mqtt_username, d.fecha_registro, d.fecha_actualizacion,
-              COUNT(m.id_medicion) AS historial_mediciones_count
-            FROM dispositivos d
-            LEFT JOIN mediciones m ON m.dispositivo_id = d.id_dispositivo
+            f"""
+            {_DEVICE_SELECT}
             WHERE d.id_dispositivo = %s
             GROUP BY d.id_dispositivo
             LIMIT 1
@@ -217,6 +267,8 @@ def create_dispositivo(
 
     try:
         with db_cursor() as cursor:
+            ubi = _resolve_active_ubicacion(cursor, payload.ubicacion_id, payload.ubicacion)
+
             cursor.execute(
                 "SELECT id_dispositivo FROM dispositivos WHERE mac_address = %s LIMIT 1",
                 (mac_normalized,),
@@ -243,8 +295,8 @@ def create_dispositivo(
                     payload.nombre,
                     mac_normalized,
                     payload.tipo,
-                    payload.ubicacion,
-                    payload.ubicacion,
+                    ubi["ubicacion_id"],
+                    ubi["nombre"],
                     payload.firmware_version,
                     payload.observacion_tecnica.strip() if payload.observacion_tecnica else None,
                     mqtt_client_id,
@@ -254,17 +306,25 @@ def create_dispositivo(
                     current_user["correo"],
                 ),
             )
+
             cursor.execute(
                 """
-                SELECT
-                  id_dispositivo, id_usuario, codigo, nombre, mac_address, tipo,
-                  ubicacion_id, ubicacion, estado, firmware_version, observacion_tecnica,
-                  mqtt_client_id, mqtt_topic, mqtt_username, fecha_registro, fecha_actualizacion,
-                  0 AS historial_mediciones_count
-                FROM dispositivos
-                WHERE id_dispositivo = %s
-                LIMIT 1
+                INSERT INTO historial_ubicaciones (
+                  dispositivo_id, ubicacion_anterior_id, ubicacion_nueva_id,
+                  usuario_responsable_id, usuario_responsable_correo, motivo
+                )
+                VALUES (%s, NULL, %s, %s, %s, 'Asignación inicial al registrar dispositivo')
                 """,
+                (
+                    device_id,
+                    ubi["ubicacion_id"],
+                    int(current_user["id_usuario"]),
+                    current_user["correo"],
+                ),
+            )
+
+            cursor.execute(
+                f"{_DEVICE_SELECT} WHERE d.id_dispositivo = %s GROUP BY d.id_dispositivo LIMIT 1",
                 (device_id,),
             )
             created = cursor.fetchone()
@@ -293,21 +353,24 @@ def create_dispositivo(
 def update_dispositivo(
     id_dispositivo: str,
     payload: DispositivoUpdateRequest,
-    _current_user: Dict[str, Any] = Depends(require_roles("Administrador")),
+    current_user: Dict[str, Any] = Depends(require_roles("Administrador")),
 ) -> Dict[str, Any]:
     mac_normalized = _normalize_mac_or_400(payload.mac_address)
 
     try:
         with db_cursor() as cursor:
             cursor.execute(
-                "SELECT id_dispositivo FROM dispositivos WHERE id_dispositivo = %s LIMIT 1",
+                "SELECT id_dispositivo, ubicacion_id, estado FROM dispositivos WHERE id_dispositivo = %s LIMIT 1",
                 (id_dispositivo,),
             )
-            if cursor.fetchone() is None:
+            existing = cursor.fetchone()
+            if existing is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Dispositivo no encontrado.",
                 )
+
+            ubi = _resolve_active_ubicacion(cursor, payload.ubicacion_id, payload.ubicacion)
 
             cursor.execute(
                 """
@@ -340,26 +403,33 @@ def update_dispositivo(
                     mac_normalized,
                     payload.tipo,
                     payload.firmware_version,
-                    payload.ubicacion,
-                    payload.ubicacion,
+                    ubi["ubicacion_id"],
+                    ubi["nombre"],
                     payload.observacion_tecnica.strip() if payload.observacion_tecnica else None,
                     id_dispositivo,
                 ),
             )
 
+            if existing["ubicacion_id"] != ubi["ubicacion_id"]:
+                cursor.execute(
+                    """
+                    INSERT INTO historial_ubicaciones (
+                      dispositivo_id, ubicacion_anterior_id, ubicacion_nueva_id,
+                      usuario_responsable_id, usuario_responsable_correo, motivo
+                    )
+                    VALUES (%s, %s, %s, %s, %s, 'Actualización de ficha de dispositivo')
+                    """,
+                    (
+                        id_dispositivo,
+                        existing["ubicacion_id"],
+                        ubi["ubicacion_id"],
+                        int(current_user["id_usuario"]),
+                        current_user["correo"],
+                    ),
+                )
+
             cursor.execute(
-                """
-                SELECT
-                  d.id_dispositivo, d.id_usuario, d.codigo, d.nombre, d.mac_address, d.tipo,
-                  d.ubicacion_id, d.ubicacion, d.estado, d.firmware_version, d.observacion_tecnica,
-                  d.mqtt_client_id, d.mqtt_topic, d.mqtt_username, d.fecha_registro, d.fecha_actualizacion,
-                  COUNT(m.id_medicion) AS historial_mediciones_count
-                FROM dispositivos d
-                LEFT JOIN mediciones m ON m.dispositivo_id = d.id_dispositivo
-                WHERE d.id_dispositivo = %s
-                GROUP BY d.id_dispositivo
-                LIMIT 1
-                """,
+                f"{_DEVICE_SELECT} WHERE d.id_dispositivo = %s GROUP BY d.id_dispositivo LIMIT 1",
                 (id_dispositivo,),
             )
             updated = cursor.fetchone()
@@ -373,6 +443,114 @@ def update_dispositivo(
         "message": "Dispositivo actualizado correctamente.",
         "dispositivo": _serialize_device(updated),
     }
+
+
+@router.put("/{id_dispositivo}/ubicacion")
+def assign_dispositivo_ubicacion(
+    id_dispositivo: str,
+    payload: DispositivoReasignarUbicacionRequest,
+    current_user: Dict[str, Any] = Depends(require_roles("Administrador")),
+) -> Dict[str, Any]:
+    """RF-03: Asigna o reasigna la ubicación física de un dispositivo conservando historial."""
+    with db_cursor() as cursor:
+        cursor.execute(
+            "SELECT id_dispositivo, ubicacion_id, estado FROM dispositivos WHERE id_dispositivo = %s LIMIT 1",
+            (id_dispositivo,),
+        )
+        existing = cursor.fetchone()
+        if existing is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dispositivo no encontrado.")
+
+        if existing["estado"] == "INACTIVO":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Un dispositivo INACTIVO conserva su última ubicación como historial (RN-04).",
+            )
+
+        ubi = _resolve_active_ubicacion(cursor, payload.ubicacion_id, None)
+
+        cursor.execute(
+            "UPDATE dispositivos SET ubicacion_id = %s, ubicacion = %s WHERE id_dispositivo = %s",
+            (ubi["ubicacion_id"], ubi["nombre"], id_dispositivo),
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO historial_ubicaciones (
+              dispositivo_id, ubicacion_anterior_id, ubicacion_nueva_id,
+              usuario_responsable_id, usuario_responsable_correo, motivo
+            )
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (
+                id_dispositivo,
+                existing["ubicacion_id"],
+                ubi["ubicacion_id"],
+                int(current_user["id_usuario"]),
+                current_user["correo"],
+                payload.motivo.strip() if payload.motivo else "Reasignación de ubicación",
+            ),
+        )
+
+        cursor.execute(
+            f"{_DEVICE_SELECT} WHERE d.id_dispositivo = %s GROUP BY d.id_dispositivo LIMIT 1",
+            (id_dispositivo,),
+        )
+        updated = cursor.fetchone()
+
+    return {
+        "message": f"Ubicación actualizada a {ubi['nombre']} ({ubi['codigo_area']}).",
+        "dispositivo": _serialize_device(updated),
+    }
+
+
+@router.get("/{id_dispositivo}/historial-ubicaciones")
+def get_dispositivo_historial_ubicaciones(
+    id_dispositivo: str,
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> Dict[str, Any]:
+    with db_cursor() as cursor:
+        cursor.execute(
+            "SELECT id_dispositivo FROM dispositivos WHERE id_dispositivo = %s LIMIT 1",
+            (id_dispositivo,),
+        )
+        if cursor.fetchone() is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dispositivo no encontrado.")
+
+        cursor.execute(
+            """
+            SELECT
+              h.id_historial,
+              h.dispositivo_id,
+              h.ubicacion_anterior_id,
+              ua.nombre AS ubicacion_anterior_nombre,
+              ua.codigo_area AS ubicacion_anterior_codigo,
+              h.ubicacion_nueva_id,
+              un.nombre AS ubicacion_nueva_nombre,
+              un.codigo_area AS ubicacion_nueva_codigo,
+              h.usuario_responsable_id,
+              u.nombre AS usuario_responsable_nombre,
+              h.usuario_responsable_correo,
+              h.motivo,
+              h.fecha_cambio
+            FROM historial_ubicaciones h
+            LEFT JOIN ubicaciones ua ON ua.ubicacion_id = h.ubicacion_anterior_id
+            INNER JOIN ubicaciones un ON un.ubicacion_id = h.ubicacion_nueva_id
+            LEFT JOIN usuarios u ON u.id_usuario = h.usuario_responsable_id
+            WHERE h.dispositivo_id = %s
+            ORDER BY h.fecha_cambio DESC, h.id_historial DESC
+            """,
+            (id_dispositivo,),
+        )
+        rows = cursor.fetchall()
+
+    for r in rows:
+        fc = r.get("fecha_cambio")
+        r["fecha_cambio"] = fc.isoformat() if hasattr(fc, "isoformat") else str(fc)
+
+    return {"items": rows, "total": len(rows)}
 
 
 @router.patch("/{id_dispositivo}/desactivar")
@@ -397,18 +575,7 @@ def deactivate_dispositivo(
         )
 
         cursor.execute(
-            """
-            SELECT
-              d.id_dispositivo, d.id_usuario, d.codigo, d.nombre, d.mac_address, d.tipo,
-              d.ubicacion_id, d.ubicacion, d.estado, d.firmware_version, d.observacion_tecnica,
-              d.mqtt_client_id, d.mqtt_topic, d.mqtt_username, d.fecha_registro, d.fecha_actualizacion,
-              COUNT(m.id_medicion) AS historial_mediciones_count
-            FROM dispositivos d
-            LEFT JOIN mediciones m ON m.dispositivo_id = d.id_dispositivo
-            WHERE d.id_dispositivo = %s
-            GROUP BY d.id_dispositivo
-            LIMIT 1
-            """,
+            f"{_DEVICE_SELECT} WHERE d.id_dispositivo = %s GROUP BY d.id_dispositivo LIMIT 1",
             (id_dispositivo,),
         )
         updated = cursor.fetchone()
@@ -452,7 +619,6 @@ def delete_dispositivo_rn03(
                 ),
             )
 
-        # Incluso sin mediciones, aplicamos desactivación lógica recomendada para trazabilidad
         cursor.execute(
             "UPDATE dispositivos SET estado = 'INACTIVO' WHERE id_dispositivo = %s",
             (id_dispositivo,),

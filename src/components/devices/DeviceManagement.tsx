@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus,
   Cpu,
@@ -31,6 +31,13 @@ import {
   MqttCredentialsOnce,
   updateDispositivo,
 } from '../../services/deviceService';
+import {
+  assignDispositivoUbicacion,
+  fetchHistorialUbicaciones,
+  fetchUbicaciones,
+  HistorialUbicacionDTO,
+  UbicacionDTO,
+} from '../../services/locationService';
 
 interface DeviceManagementProps {
   devices?: Dispositivo[];
@@ -95,7 +102,13 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
     const [newMac, setNewMac] = useState('');
     const [newTipo, setNewTipo] = useState<DispositivoTipo>('ESP32');
     const [newFirmware, setNewFirmware] = useState('v2.4.0');
-    const [newUbicacion, setNewUbicacion] = useState(locations[0]?.nombre || 'Laboratorio Central');
+    const [newUbicacion, setNewUbicacion] = useState('ubi-lab-01');
+    const [activeUbicaciones, setActiveUbicaciones] = useState<UbicacionDTO[]>([]);
+    const [deviceHistorial, setDeviceHistorial] = useState<HistorialUbicacionDTO[]>([]);
+    const [reassignTargetUbiId, setReassignTargetUbiId] = useState('');
+    const [reassignMotivo, setReassignMotivo] = useState('');
+    const [confirmReassignOpen, setConfirmReassignOpen] = useState(false);
+    const [reassigning, setReassigning] = useState(false);
 
     // Modal Credenciales MQTT (una sola vez tras crear)
     const [createdCreds, setCreatedCreds] = useState<MqttCredentialsOnce | null>(null);
@@ -122,20 +135,27 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
       setLoading(true);
       setLoadError('');
       try {
-        const res = await fetchDispositivos({
-          search: debouncedSearch,
-          estado: estadoFilter,
-          tipo: tipoFilter,
-        });
+        const [res, ubiRes] = await Promise.all([
+          fetchDispositivos({
+            search: debouncedSearch,
+            estado: estadoFilter,
+            tipo: tipoFilter,
+          }),
+          fetchUbicaciones({ estado: 'ACTIVA' }),
+        ]);
         setItems(res.items);
         setBrokerDisponible(res.mqtt_broker_disponible);
         setBrokerMensaje(res.mqtt_broker_mensaje);
+        setActiveUbicaciones(ubiRes.items);
+        if (ubiRes.items.length > 0 && !ubiRes.items.some((u) => u.ubicacion_id === newUbicacion)) {
+          setNewUbicacion(ubiRes.items[0].ubicacion_id);
+        }
       } catch (err: any) {
         setLoadError(err?.message || 'No se pudo cargar el inventario desde MySQL.');
       } finally {
         setLoading(false);
       }
-    }, [debouncedSearch, estadoFilter, tipoFilter]);
+    }, [debouncedSearch, estadoFilter, tipoFilter, newUbicacion]);
 
     useEffect(() => {
       loadInventory();
@@ -175,7 +195,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
           mac_address: newMac.trim().toUpperCase(),
           tipo: newTipo,
           firmware_version: newFirmware.trim(),
-          ubicacion: newUbicacion.trim(),
+          ubicacion_id: newUbicacion.trim(),
         });
         setShowAddModal(false);
         setNewNombre('');
@@ -195,22 +215,51 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
     const openDetailModal = async (dev: DispositivoDTO) => {
       setEditError('');
       setConfirmSaveOpen(false);
+      setConfirmReassignOpen(false);
+      setReassignMotivo('');
       setLoadingDetail(true);
       setDetailDevice(dev);
       try {
-        const res = await fetchDispositivoDetail(dev.id_dispositivo);
+        const [res, histRes] = await Promise.all([
+          fetchDispositivoDetail(dev.id_dispositivo),
+          fetchHistorialUbicaciones(dev.id_dispositivo),
+        ]);
         const fresh = res.dispositivo;
         setDetailDevice(fresh);
+        setDeviceHistorial(histRes.items);
         setEditNombre(fresh.nombre);
         setEditMac(fresh.mac_address);
         setEditTipo(fresh.tipo);
         setEditFirmware(fresh.firmware_version);
-        setEditUbicacion(fresh.ubicacion);
+        setEditUbicacion(fresh.ubicacion_id || '');
+        setReassignTargetUbiId(fresh.ubicacion_id || '');
         setEditObs(fresh.observacion_tecnica || '');
       } catch (err: any) {
         setEditError(err?.message || 'Error al cargar el detalle.');
       } finally {
         setLoadingDetail(false);
+      }
+    };
+
+    const handleConfirmReassign = async () => {
+      if (!detailDevice || !reassignTargetUbiId) return;
+      setReassigning(true);
+      setEditError('');
+      try {
+        const res = await assignDispositivoUbicacion(
+          detailDevice.id_dispositivo,
+          reassignTargetUbiId,
+          reassignMotivo.trim() || undefined
+        );
+        onNotify?.(res.message, 'success');
+        setConfirmReassignOpen(false);
+        await openDetailModal(detailDevice);
+        await loadInventory();
+      } catch (err: any) {
+        setEditError(err?.message || 'No se pudo reasignar la ubicación.');
+        setConfirmReassignOpen(false);
+      } finally {
+        setReassigning(false);
       }
     };
 
@@ -235,7 +284,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
           mac_address: editMac.trim().toUpperCase(),
           tipo: editTipo,
           firmware_version: editFirmware.trim(),
-          ubicacion: editUbicacion.trim(),
+          ubicacion_id: editUbicacion.trim(),
           observacion_tecnica: editObs.trim() || undefined,
         });
         setDetailDevice(res.dispositivo);
@@ -536,21 +585,19 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                   </div>
 
                   <div>
-                    <label className="block text-xs text-slate-text mb-1">Ubicación asignada *</label>
-                    <input
-                      type="text"
+                    <label className="block text-xs text-slate-text mb-1">Ubicación asignada (catálogo activo) *</label>
+                    <select
                       required
-                      list="simoa-locations-list"
                       value={newUbicacion}
                       onChange={(e) => setNewUbicacion(e.target.value)}
-                      placeholder="Bioterio Central"
-                      className="apple-pill-input w-full py-2.5"
-                    />
-                    <datalist id="simoa-locations-list">
-                      {locations.map((l) => (
-                        <option key={l.id_ubicacion} value={l.nombre} />
+                      className="apple-pill-select w-full py-2.5"
+                    >
+                      {activeUbicaciones.map((u) => (
+                        <option key={u.ubicacion_id} value={u.ubicacion_id}>
+                          {u.nombre} ({u.codigo_area})
+                        </option>
                       ))}
-                    </datalist>
+                    </select>
                   </div>
                 </div>
 
@@ -740,14 +787,19 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs text-slate-text mb-1">Ubicación</label>
-                      <input
-                        type="text"
-                        disabled={!isAdmin}
+                      <label className="block text-xs text-slate-text mb-1">Ubicación asignada (catálogo activo)</label>
+                      <select
+                        disabled={!isAdmin || detailDevice.estado === 'INACTIVO'}
                         value={editUbicacion}
                         onChange={(e) => setEditUbicacion(e.target.value)}
-                        className="apple-pill-input w-full py-2 disabled:opacity-60"
-                      />
+                        className="apple-pill-select w-full py-2 disabled:opacity-60"
+                      >
+                        {activeUbicaciones.map((u) => (
+                          <option key={u.ubicacion_id} value={u.ubicacion_id}>
+                            {u.nombre} ({u.codigo_area})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="sm:col-span-2">
                       <label className="block text-xs text-slate-text mb-1">Observación técnica</label>
@@ -767,6 +819,115 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                       <span>{editError}</span>
                     </div>
                   )}
+
+                  {/* RF-03: Reasignación dedicada con confirmación Actual -> Nueva */}
+                  {isAdmin && detailDevice.estado !== 'INACTIVO' && (
+                    <div className="p-3.5 rounded-[12px] bg-obsidian-shell border border-graphite-fill space-y-2.5 text-xs">
+                      <div className="font-medium text-pure-white">
+                        Reasignar ubicación física (RF-03)
+                      </div>
+                      <div className="text-slate-text">
+                        Ubicación actual:{' '}
+                        <strong className="text-neon-pulse">
+                          {detailDevice.ubicacion} ({detailDevice.codigo_area || detailDevice.ubicacion_id})
+                        </strong>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <select
+                          value={reassignTargetUbiId}
+                          onChange={(e) => {
+                            setReassignTargetUbiId(e.target.value);
+                            setConfirmReassignOpen(false);
+                          }}
+                          className="apple-pill-select py-2 text-xs"
+                        >
+                          {activeUbicaciones.map((u) => (
+                            <option key={u.ubicacion_id} value={u.ubicacion_id}>
+                              {u.nombre} ({u.codigo_area})
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          value={reassignMotivo}
+                          onChange={(e) => setReassignMotivo(e.target.value)}
+                          placeholder="Motivo del traslado (opcional)"
+                          className="apple-pill-input py-2 text-xs"
+                        />
+                      </div>
+
+                      {reassignTargetUbiId &&
+                        reassignTargetUbiId !== detailDevice.ubicacion_id &&
+                        !confirmReassignOpen && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmReassignOpen(true)}
+                            className="px-4 py-1.5 rounded-[56px] bg-neon-pulse text-obsidian-shell font-medium cursor-pointer"
+                          >
+                            Cambiar ubicación
+                          </button>
+                        )}
+
+                      {confirmReassignOpen && (
+                        <div className="p-3 rounded-[10px] bg-signal-yellow/15 border border-signal-yellow/50 space-y-2">
+                          <p className="text-signal-yellow">
+                            Confirmar traslado: <strong>{detailDevice.ubicacion}</strong> →{' '}
+                            <strong>
+                              {activeUbicaciones.find((u) => u.ubicacion_id === reassignTargetUbiId)?.nombre}
+                            </strong>
+                          </p>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setConfirmReassignOpen(false)}
+                              className="px-3 py-1 rounded-[56px] border border-graphite-fill text-pure-white cursor-pointer"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              disabled={reassigning}
+                              onClick={handleConfirmReassign}
+                              className="sauce-btn-primary px-4 py-1 text-xs inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              {reassigning && <Loader2 className="w-3 h-3 animate-spin" />}
+                              Confirmar traslado
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* RF-03: Historial de Cambios de Ubicación */}
+                  <div className="p-3.5 rounded-[12px] bg-obsidian-shell border border-graphite-fill space-y-2 text-xs">
+                    <div className="font-medium text-pure-white">
+                      Historial de ubicaciones ({deviceHistorial.length})
+                    </div>
+                    {deviceHistorial.length === 0 ? (
+                      <p className="text-slate-text">Sin cambios registrados.</p>
+                    ) : (
+                      <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                        {deviceHistorial.map((h) => (
+                          <div
+                            key={h.id_historial}
+                            className="p-2 rounded-[8px] bg-deep-abyss border border-graphite-fill/60 flex flex-col gap-0.5"
+                          >
+                            <div className="text-pure-white">
+                              {h.ubicacion_anterior_nombre ? `${h.ubicacion_anterior_nombre} → ` : 'Inicial → '}
+                              <span className="text-neon-pulse font-medium">
+                                {h.ubicacion_nueva_nombre} ({h.ubicacion_nueva_codigo})
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-text font-mono">
+                              {new Date(h.fecha_cambio).toLocaleString()} · {h.usuario_responsable_correo}
+                              {h.motivo ? ` · ${h.motivo}` : ''}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   {isAdmin && confirmSaveOpen && (
                     <div className="p-3.5 rounded-[12px] bg-signal-yellow/15 border border-signal-yellow/50 text-xs space-y-3">
