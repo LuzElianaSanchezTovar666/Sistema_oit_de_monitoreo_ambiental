@@ -10,7 +10,6 @@ import {
   Server,
   Database,
   ArrowRightLeft,
-  FileText,
 } from 'lucide-react';
 import { UserRole } from '../../types/iot';
 
@@ -39,10 +38,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'devices',
-      label: 'Nodos y Sensores',
+      label: 'Dispositivos',
       icon: <Cpu className="w-4 h-4" />,
       badge: devicesCount.toString(),
-      badgeStyle: 'bg-[#E3F2E6] text-[#0D3B1E] rounded-[5px]',
+      badgeStyle: 'bg-obsidian-shell text-pure-white rounded-[10px]',
       allowedRoles: ['admin', 'tecnico', 'supervisor'],
     },
     {
@@ -50,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Alertas e Incidencias',
       icon: <AlertTriangle className="w-4 h-4" />,
       badge: alertCount > 0 ? alertCount.toString() : null,
-      badgeStyle: 'bg-[#DC2626] text-[#ffffff] rounded-[5px]',
+      badgeStyle: 'bg-neon-pulse text-obsidian-shell rounded-[10px]',
       allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'],
     },
     {
@@ -63,9 +62,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'ai',
       label: 'Diagnóstico IA',
-      icon: <Sparkles className="w-4 h-4 text-[#15803D]" />,
+      icon: <Sparkles className="w-4 h-4" />,
       badge: 'IA',
-      badgeStyle: 'apple-badge-orange',
+      badgeStyle: 'bg-signal-yellow/20 text-signal-yellow rounded-[56px]',
       allowedRoles: ['admin', 'cliente', 'supervisor'],
     },
     {
@@ -78,9 +77,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'simulator',
       label: 'Pruebas de Sensores',
-      icon: <Radio className="w-4 h-4 text-[#D97706]" />,
+      icon: <Radio className="w-4 h-4" />,
       badge: null,
-       badgeStyle: 'apple-badge-orange',
       allowedRoles: ['admin', 'tecnico', 'supervisor'],
     },
   ];
@@ -88,42 +86,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const visibleItems = navItems.filter((item) => item.allowedRoles.includes(userRole));
 
   return (
-    <aside className="w-64 shrink-0 bg-[#FFFFFF] border-r border-[#C8E6C9]/80 flex flex-col justify-between p-4 hidden md:flex">
-      <div className="space-y-5">
-        <div className="p-3 rounded-[20px] bg-[#F2F8F4] border border-[#C8E6C9] flex items-center justify-center">
+    <aside className="w-64 shrink-0 bg-deep-abyss border-r border-graphite-fill/50 flex flex-col justify-between p-5 hidden md:flex">
+      <div className="space-y-6">
+        <div className="p-3.5 rounded-[20px] bg-mint-frost flex items-center justify-center">
           <img
             src="/assets/images/simoa-logo.webp"
             alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-            className="h-10 w-auto object-contain"
+            className="h-14 w-auto object-contain"
           />
         </div>
+
         <div>
-          <span className="text-[11px] font-semibold text-[#3B694C] uppercase tracking-wider px-3">
+          <span className="sauce-eyebrow text-slate-text px-2">
             Menú Principal
           </span>
-          <nav className="mt-2.5 space-y-1.5">
+          <nav className="mt-3 space-y-1.5">
             {visibleItems.map((item) => {
               const isActive = activeTab === item.id;
               return (
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-[980px] text-[12px] tracking-[-0.12px] transition-colors ${
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-[56px] text-[14px] transition-colors cursor-pointer ${
                     isActive
-                      ? 'bg-[#1B5E20] text-[#ffffff] font-semibold'
-                      : 'text-[#3B694C] hover:text-[#0D3B1E] hover:bg-[#F2F8F4]'
+                      ? 'bg-neon-pulse text-obsidian-shell font-medium'
+                      : 'text-pure-white font-normal hover:bg-obsidian-shell'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    {item.icon}
+                    <span className={isActive ? 'text-obsidian-shell' : 'text-slate-text'}>
+                      {item.icon}
+                    </span>
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
                     <span
-                      className={`px-1.5 py-0.5 text-[10px] font-mono tabular-nums font-semibold ${
+                      className={`px-2 py-0.5 text-[10px] font-mono tabular-nums font-medium ${
                         isActive
-                          ? 'bg-[#FFFFFF]/25 text-[#ffffff] rounded-[5px]'
-                          : item.badgeStyle || 'bg-[#E3F2E6] text-[#0D3B1E] rounded-[5px]'
+                          ? 'bg-obsidian-shell text-neon-pulse rounded-[56px]'
+                          : item.badgeStyle || 'bg-obsidian-shell text-pure-white rounded-[10px]'
                       }`}
                     >
                       {item.badge}
@@ -135,44 +136,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
         </div>
 
-        {/* Infrastructure Topology Card — Feature Metric Tile (#F2F8F4, 28px radius, 16px padding) */}
-        <div className="p-[16px] rounded-[28px] bg-[#F2F8F4] text-xs space-y-2.5">
-          <div className="flex items-center justify-between text-[12px] font-semibold text-[#0D3B1E]">
+        {/* Infrastructure Topology Card */}
+        <div className="p-4 rounded-[20px] bg-obsidian-shell text-xs space-y-3">
+          <div className="flex items-center justify-between text-[13px] font-medium text-pure-white">
             <span>Topología Activa</span>
-            <span className="text-[#15803D] font-mono text-[11px]">● Nominal</span>
+            <span className="inline-flex items-center gap-1.5 text-neon-pulse font-mono text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-neon-pulse" />
+              Nominal
+            </span>
           </div>
-          <div className="space-y-1.5 text-[11px] text-[#3B694C] font-mono">
+          <div className="space-y-2 text-[11px] text-slate-text font-mono">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Server className="w-3 h-3 text-[#3B694C]" /> Mosquitto TLS
+                <Server className="w-3 h-3 text-neon-pulse" /> Mosquitto TLS
               </span>
-              <span className="text-[#15803D]">8883 MQTTS</span>
+              <span className="text-pure-white">8883 MQTTS</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Database className="w-3 h-3 text-[#3B694C]" /> TimescaleDB
+                <Database className="w-3 h-3 text-neon-pulse" /> TimescaleDB
               </span>
-              <span className="text-[#0D3B1E]">Hypertable</span>
+              <span className="text-pure-white">Hypertable</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <ArrowRightLeft className="w-3 h-3 text-[#3B694C]" /> Redis + CDN
+                <ArrowRightLeft className="w-3 h-3 text-signal-yellow" /> IA Pipeline
               </span>
-              <span className="text-[#15803D]">30 Opt OK</span>
+              <span className="text-signal-yellow">Isolation Forest</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Footer Info */}
-      <div className="pt-3 border-t border-[#C8E6C9]/70 text-[11px] text-[#3B694C] px-2">
+      <div className="pt-4 border-t border-graphite-fill/50 text-[12px] text-slate-text px-1 space-y-1">
         <div className="flex items-center justify-between">
           <span>Plataforma</span>
-          <span className="font-semibold text-[#0D3B1E]">SIMOA Cloud v2.4</span>
+          <span className="font-medium text-pure-white">SIMOA Cloud v2.4</span>
         </div>
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex items-center justify-between">
           <span>Estado Red</span>
-          <span className="font-semibold text-[#15803D]">● Conectado</span>
+          <span className="inline-flex items-center gap-1.5 font-medium text-neon-pulse">
+            <span className="w-1.5 h-1.5 rounded-full bg-neon-pulse" />
+            Conectado
+          </span>
         </div>
       </div>
     </aside>

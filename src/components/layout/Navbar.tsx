@@ -1,28 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Activity,
   Bell,
   Radio,
   SlidersHorizontal,
-  ChevronDown,
   UserCheck,
   Shield,
   Wrench,
   Eye,
-  Gauge,
+  LogOut,
 } from 'lucide-react';
 import { Usuario, UserRole } from '../../types/iot';
 
 interface NavbarProps {
   currentUser: Usuario;
-  allUsers: Usuario[];
-  onSelectUser: (user: Usuario) => void;
+  onLogout: () => void;
   activeAlertCount: number;
   onOpenAlerts: () => void;
   onOpenSimulator: () => void;
   onOpenPerformanceMonitor?: () => void;
-  darkMode: boolean;
-  onToggleDarkMode: () => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
   isStreaming: boolean;
@@ -32,8 +27,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
-  allUsers,
-  onSelectUser,
+  onLogout,
   activeAlertCount,
   onOpenAlerts,
   onOpenSimulator,
@@ -43,172 +37,149 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleStreaming,
   onBackToLanding,
 }) => {
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-
   const roleIcons: Record<UserRole, React.ReactNode> = {
-    admin: <Shield className="w-3.5 h-3.5 text-[#15803D]" />,
-    cliente: <UserCheck className="w-3.5 h-3.5 text-[#1B5E20]" />,
-    tecnico: <Wrench className="w-3.5 h-3.5 text-[#D97706]" />,
-    supervisor: <Eye className="w-3.5 h-3.5 text-[#0D3B1E]" />,
+    admin: <Shield className="w-3.5 h-3.5 text-neon-pulse" />,
+    cliente: <UserCheck className="w-3.5 h-3.5 text-neon-pulse" />,
+    tecnico: <Wrench className="w-3.5 h-3.5 text-signal-yellow" />,
+    supervisor: <Eye className="w-3.5 h-3.5 text-pure-white" />,
   };
 
   const roleLabels: Record<UserRole, string> = {
     admin: 'Administrador',
-    cliente: 'Operador / Cliente',
-    tecnico: 'Técnico Campo',
+    cliente: 'Operador',
+    tecnico: 'Técnico',
     supervisor: 'Supervisor',
   };
 
+  const navItems: Array<{ id: string; label: string; allowedRoles: UserRole[] }> = [
+    { id: 'dashboard', label: 'Monitoreo en Vivo', allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'] },
+    { id: 'devices', label: 'Dispositivos', allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'] },
+    { id: 'alerts', label: 'Alertas', allowedRoles: ['admin', 'cliente', 'supervisor'] },
+    { id: 'analytics', label: 'Analítica', allowedRoles: ['admin', 'cliente', 'supervisor'] },
+    { id: 'ai', label: 'Diagnóstico IA', allowedRoles: ['admin', 'supervisor'] },
+  ];
+
+  const visibleNavItems = navItems.filter((item) => item.allowedRoles.includes(currentUser.rol));
+
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between gap-6 px-6 h-[64px] bg-[#FFFFFF]/95 backdrop-blur-md border-b border-[#C8E6C9] shadow-[0_2px_14px_rgba(13,59,30,0.04)]">
-      {/* Zone 1: Official SIMOA Brand Logo */}
-      <div className="flex items-center gap-3 shrink-0">
-        <button
-          onClick={onBackToLanding}
-          title="Volver a la página principal SIMOA"
-          className="flex items-center gap-2.5 focus:outline-none cursor-pointer group"
-        >
-          <img
-            src="/assets/images/simoa-logo.webp"
-            alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-            className="h-9 sm:h-10 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
-          />
-        </button>
+    <div className="sticky top-0 z-30">
+      {/* Announcement Bar — Neon Pulse (#3ddc91) */}
+      <div className="w-full bg-neon-pulse text-obsidian-shell px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-normal">
+        <span
+          className={`w-2 h-2 rounded-full shrink-0 ${
+            isStreaming ? 'bg-obsidian-shell' : 'bg-graphite-fill'
+          }`}
+        />
+        <span className="truncate">
+          Consola SIMOA · Sesión autenticada ({roleLabels[currentUser.rol]})
+        </span>
       </div>
 
-      {/* Zone 2: Clean Pill Navigation Links */}
-      <nav className="hidden lg:flex items-center gap-1 bg-[#F2F8F4] p-1 rounded-full border border-[#C8E6C9]/80">
-        {[
-          { id: 'dashboard', label: 'Monitoreo en Vivo' },
-          { id: 'devices', label: 'Dispositivos y Sensores' },
-          { id: 'alerts', label: 'Alertas' },
-          { id: 'analytics', label: 'Analítica' },
-          { id: 'ai', label: 'Diagnóstico IA' },
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onTabChange(item.id)}
-            className={`px-3.5 py-1.5 rounded-full text-[12px] transition-all whitespace-nowrap shrink-0 cursor-pointer ${
-              activeTab === item.id
-                ? 'bg-[#1B5E20] text-[#FFFFFF] font-semibold shadow-xs'
-                : 'text-[#265336] hover:text-[#1B5E20] hover:bg-[#FFFFFF]'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
-
-      {/* Zone 3: Actions & Profile */}
-      <div className="flex items-center gap-2.5 shrink-0">
-        {/* Streaming state toggle */}
-        <button
-          onClick={onToggleStreaming}
-          title={isStreaming ? 'Pausar transmisión en vivo' : 'Reanudar transmisión en vivo'}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-[12px] tracking-[-0.12px] rounded-full bg-[#E8F5E9] border border-[#A5D6A7] text-[#1B5E20] hover:bg-[#C8E6C9]/60 transition-colors cursor-pointer"
-        >
-          <Radio className={`w-3.5 h-3.5 ${isStreaming ? 'text-[#16A34A] animate-pulse' : 'text-[#3B694C]'}`} />
-          <span className="font-semibold">{isStreaming ? 'En línea' : 'Pausado'}</span>
-        </button>
-
-        {/* Edge Simulator button */}
-        <button
-          onClick={onOpenSimulator}
-          className="apple-blue-pill flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] cursor-pointer"
-          title="Abrir Simulador de Sensores"
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5 text-[#ffffff]" />
-          <span className="hidden md:inline font-semibold">Simulador</span>
-        </button>
-
-        {/* Alerts trigger */}
-        <button
-          onClick={onOpenAlerts}
-          className="relative p-2 text-[#265336] hover:text-[#1B5E20] hover:bg-[#E8F5E9] rounded-full bg-[#F2F8F4] border border-[#C8E6C9] transition-colors cursor-pointer"
-          title="Ver alertas"
-        >
-          <Bell className="w-4 h-4" />
-          {activeAlertCount > 0 && (
-            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-semibold text-[#ffffff] bg-[#DC2626] rounded-full font-mono tabular-nums leading-none">
-              {activeAlertCount}
-            </span>
-          )}
-        </button>
-
-        {/* Botón Volver al Inicio */}
-        {onBackToLanding && (
+      {/* Top Navigation — Obsidian Shell (#132322), 72px height */}
+      <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-obsidian-shell border-b border-graphite-fill/50">
+        {/* Brand Logo */}
+        <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={onBackToLanding}
-            className="apple-white-outline-pill py-1.5 text-[12px] font-semibold tracking-[-0.12px] cursor-pointer"
-            title="Volver a la página de inicio"
+            title="Volver a la página principal SIMOA"
+            className="px-3 py-1.5 rounded-[56px] bg-mint-frost flex items-center focus:outline-none cursor-pointer"
           >
-            Inicio
+            <img
+              src="/assets/images/simoa-logo.webp"
+              alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
+              className="h-10 sm:h-11 w-auto object-contain"
+            />
           </button>
-        )}
+        </div>
 
-        {/* User profile & Role switcher */}
-        <div className="relative">
+        {/* Navigation Links — 56px pill tabs filtered by RBAC */}
+        <nav className="hidden lg:flex items-center gap-1.5">
+          {visibleNavItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onTabChange(item.id)}
+                className={`px-4 py-2 rounded-[56px] text-[14px] transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-neon-pulse text-obsidian-shell font-medium'
+                    : 'text-pure-white font-normal hover:bg-deep-abyss'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Actions & Authenticated Profile */}
+        <div className="flex items-center gap-2.5 shrink-0">
           <button
-            onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-            className="flex items-center gap-2 px-3 py-1 rounded-[980px] bg-[#E3F2E6] hover:bg-[#E3F2E6]/80 transition-colors text-left"
+            onClick={onToggleStreaming}
+            title={isStreaming ? 'Pausar transmisión en vivo' : 'Reanudar transmisión en vivo'}
+            className="hidden sm:flex items-center gap-2 px-4 py-2 text-[13px] rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse transition-colors cursor-pointer"
           >
-            <div className="w-6 h-6 rounded-full bg-[#F2F8F4] flex items-center justify-center font-semibold text-[11px] text-[#0D3B1E]">
+            <Radio
+              className={`w-3.5 h-3.5 ${
+                isStreaming ? 'text-neon-pulse' : 'text-slate-text'
+              }`}
+            />
+            <span className="font-normal">{isStreaming ? 'En línea' : 'Pausado'}</span>
+          </button>
+
+          {(['admin', 'tecnico'] as UserRole[]).includes(currentUser.rol) && (
+            <button
+              onClick={onOpenSimulator}
+              className="sauce-btn-primary flex items-center gap-2 px-4 py-2 text-[14px] cursor-pointer"
+              title="Abrir Simulador de Sensores"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-obsidian-shell" />
+              <span className="hidden md:inline">Simulador</span>
+            </button>
+          )}
+
+          {(['admin', 'cliente', 'supervisor'] as UserRole[]).includes(currentUser.rol) && (
+            <button
+              onClick={onOpenAlerts}
+              className="relative p-2.5 text-pure-white hover:border-neon-pulse rounded-[56px] bg-deep-abyss border border-graphite-fill transition-colors cursor-pointer"
+              title="Ver alertas"
+            >
+              <Bell className="w-4 h-4" />
+              {activeAlertCount > 0 && (
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-medium text-obsidian-shell bg-neon-pulse rounded-full font-mono tabular-nums leading-none">
+                  {activeAlertCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Authenticated User Badge */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[56px] bg-deep-abyss border border-graphite-fill">
+            <div className="w-7 h-7 rounded-full bg-neon-pulse flex items-center justify-center font-medium text-[12px] text-obsidian-shell">
               {currentUser.nombre.charAt(0)}
             </div>
             <div className="hidden sm:flex flex-col">
-              <span className="text-[12px] font-semibold text-[#0D3B1E] whitespace-nowrap leading-tight">
+              <span className="text-[13px] font-medium text-pure-white whitespace-nowrap leading-tight">
                 {currentUser.nombre}
               </span>
-              <span className="text-[10px] text-[#3B694C] capitalize flex items-center gap-1">
+              <span className="text-[11px] text-slate-text flex items-center gap-1">
                 {roleIcons[currentUser.rol]}
                 {roleLabels[currentUser.rol]}
               </span>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-[#265336]" />
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={onLogout}
+            title="Cerrar sesión"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse hover:text-neon-pulse text-[13px] transition-colors cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Salir</span>
           </button>
-
-          {userDropdownOpen && (
-            <div
-              className="absolute right-0 mt-2 w-64 rounded-[28px] bg-[#FFFFFF] border border-[#C8E6C9] p-3 z-50 text-xs space-y-1"
-              onMouseLeave={() => setUserDropdownOpen(false)}
-            >
-              <div className="px-3 py-2 border-b border-[#C8E6C9]">
-                <p className="font-semibold text-[#0D3B1E]">{currentUser.nombre}</p>
-                <p className="text-[11px] text-[#3B694C] truncate">{currentUser.correo}</p>
-                <p className="text-[11px] text-[#15803D] font-medium mt-0.5">{currentUser.empresa}</p>
-              </div>
-
-              <div className="px-3 py-1.5 text-[10px] font-semibold text-[#3B694C] uppercase tracking-wider">
-                Cambiar Rol / Perfil
-              </div>
-
-              {allUsers.map((u) => (
-                <button
-                  key={u.id_usuario}
-                  onClick={() => {
-                    onSelectUser(u);
-                    setUserDropdownOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-[14px] text-left hover:bg-[#E3F2E6]/60 transition-colors ${
-                    u.id_usuario === currentUser.id_usuario ? 'bg-[#F2F8F4] font-semibold' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {roleIcons[u.rol]}
-                    <div>
-                      <div className="text-[#0D3B1E] text-[12px]">{u.nombre}</div>
-                      <div className="text-[10px] text-[#3B694C]">{roleLabels[u.rol]}</div>
-                    </div>
-                  </div>
-                  {u.id_usuario === currentUser.id_usuario && (
-                    <span className="text-[10px] text-[#15803D] font-semibold">Activo</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
-      </div>
-    </header>
+      </header>
+    </div>
   );
 };

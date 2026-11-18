@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   SlidersHorizontal,
   Flame,
@@ -74,25 +74,25 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-      <div className="bg-[#FFFFFF] border border-[#C8E6C9] rounded-[28px] w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#C8E6C9] shrink-0">
+        <div className="flex items-center justify-between p-6 border-b border-sage-mist shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#F2F8F4] text-[#D97706] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-cream-paper text-[#D97706] flex items-center justify-center">
               <SlidersHorizontal className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-[17px] font-semibold text-[#0D3B1E]">
+              <h3 className="text-[17px] font-semibold text-bark">
                 Simulador de Campo IoT & Dead Letter Queue (DLQ)
               </h3>
-              <p className="text-xs text-[#3B694C]">
+              <p className="text-xs text-slate">
                 Inyección de fallas termodinámicas, pruebas de reconexión y manejo de paquetes corruptos
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#3B694C] hover:text-[#0D3B1E] text-base font-semibold"
+            className="text-slate hover:text-bark text-base font-semibold"
           >
             ✕
           </button>
@@ -101,12 +101,12 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
         {/* Content Scrollable */}
         <div className="p-6 space-y-6 overflow-y-auto text-xs">
           {/* Selector de Sensor Destino */}
-          <div className="bg-[#F2F8F4] p-4 rounded-[28px] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-cream-paper p-4 rounded-[16px] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <label className="block text-[#3B694C] font-semibold mb-0.5">
+              <label className="block text-slate font-semibold mb-0.5">
                 Nodo IoT Objetivo para Inyección:
               </label>
-              <div className="font-semibold text-[#0D3B1E] text-sm">
+              <div className="font-semibold text-bark text-sm">
                 {currentLocation?.nombre} · {currentDevice?.nombre} ({currentSensor?.tipo_sensor})
               </div>
             </div>
@@ -130,8 +130,8 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
 
           {/* Sección 1: Inyección de Fallas Físicas / Ambientales */}
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold text-[#0D3B1E] uppercase tracking-wider flex items-center gap-1.5">
-              <Zap className="w-4 h-4 text-[#15803D]" />
+            <h4 className="text-xs font-semibold text-bark uppercase tracking-wider flex items-center gap-1.5">
+              <Zap className="w-4 h-4 text-canopy" />
               <span>Escenarios de Falla Ambiental y Umbrales</span>
             </h4>
 
@@ -139,13 +139,13 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
               {/* Botón Falla AC */}
               <button
                 onClick={handleSimulateAcFailure}
-                className="p-4 rounded-[28px] bg-[#F2F8F4] hover:bg-[#E3F2E6]/50 border border-[#DC2626]/40 text-left transition-colors space-y-1.5"
+                className="p-4 rounded-[16px] bg-cream-paper hover:bg-cream-paper/50 border border-[#DC2626]/40 text-left transition-colors space-y-1.5"
               >
                 <div className="flex items-center gap-2 text-[#DC2626] font-semibold">
                   <Flame className="w-4 h-4" />
                   <span>Falla Climatización</span>
                 </div>
-                <p className="text-[11px] text-[#3B694C]">
+                <p className="text-[11px] text-slate">
                   Induce alza instantánea de +9.5°C para disparar umbral operacional superior.
                 </p>
               </button>
@@ -153,13 +153,13 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
               {/* Botón Puerta Fría */}
               <button
                 onClick={handleSimulateDoorOpen}
-                className="p-4 rounded-[28px] bg-[#F2F8F4] hover:bg-[#E3F2E6]/50 border border-[#D97706]/40 text-left transition-colors space-y-1.5"
+                className="p-4 rounded-[16px] bg-cream-paper hover:bg-cream-paper/50 border border-[#D97706]/40 text-left transition-colors space-y-1.5"
               >
                 <div className="flex items-center gap-2 text-[#D97706] font-semibold">
                   <DoorOpen className="w-4 h-4" />
                   <span>Puerta Abierta</span>
                 </div>
-                <p className="text-[11px] text-[#3B694C]">
+                <p className="text-[11px] text-slate">
                   Aumenta temperatura +6.2°C y humedad +25% simulando ingreso de aire.
                 </p>
               </button>
@@ -169,27 +169,27 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
                 onClick={() => {
                   if (currentDevice) onToggleDeviceOffline(currentDevice.id_dispositivo);
                 }}
-                className="p-4 rounded-[28px] bg-[#F2F8F4] hover:bg-[#E3F2E6]/50 border border-[#C8E6C9] text-left transition-colors space-y-1.5"
+                className="p-4 rounded-[16px] bg-cream-paper hover:bg-cream-paper/50 border border-sage-mist text-left transition-colors space-y-1.5"
               >
-                <div className="flex items-center gap-2 text-[#0D3B1E] font-semibold">
-                  <WifiOff className="w-4 h-4 text-[#3B694C]" />
+                <div className="flex items-center gap-2 text-bark font-semibold">
+                  <WifiOff className="w-4 h-4 text-slate" />
                   <span>{currentDevice?.estado === 'ONLINE' ? 'Simular Offline' : 'Restablecer Online'}</span>
                 </div>
-                <p className="text-[11px] text-[#3B694C]">
+                <p className="text-[11px] text-slate">
                   Simula timeout de ping MQTT (&gt;3 min) para verificar estado Desconectado.
                 </p>
               </button>
             </div>
 
             {hasFault && (
-              <div className="flex items-center justify-between p-4 rounded-[20px] bg-[#E8F5E9] text-[#D97706] animate-fadeIn">
+              <div className="flex items-center justify-between p-4 rounded-[16px] bg-cream-paper text-[#D97706] animate-fadeIn">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
                   <span>Hay una simulación activa en este sensor. Las métricas continuarán alteradas.</span>
                 </div>
                 <button
                   onClick={() => onClearFault(selectedSensorId)}
-                  className="flex items-center gap-1 text-xs font-semibold text-[#0D3B1E] underline shrink-0"
+                  className="flex items-center gap-1 text-xs font-semibold text-bark underline shrink-0"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Restablecer
@@ -199,12 +199,12 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
           </div>
 
           {/* Sección 2: Escenario B - Dead Letter Queue (DLQ) */}
-          <div className="space-y-3 pt-3 border-t border-[#C8E6C9]">
-            <h4 className="text-xs font-semibold text-[#0D3B1E] uppercase tracking-wider flex items-center gap-1.5">
+          <div className="space-y-3 pt-3 border-t border-sage-mist">
+            <h4 className="text-xs font-semibold text-bark uppercase tracking-wider flex items-center gap-1.5">
               <FileWarning className="w-4 h-4 text-[#DC2626]" />
               <span>Escenario B: Dead Letter Queue (Payload Telemétrico Corrupto)</span>
             </h4>
-            <p className="text-[11px] text-[#3B694C]">
+            <p className="text-[11px] text-slate">
               Prueba la resiliencia del pipeline en Node-RED enviando un paquete JSON truncado o dañado. El broker enrutará el fallo a la cola DLQ para auditoría.
             </p>
 
@@ -224,20 +224,20 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
             </div>
 
             {/* Registros en DLQ */}
-            <div className="bg-[#F2F8F4] text-[#0D3B1E] rounded-[20px] p-4 font-mono text-[11px] space-y-2 max-h-40 overflow-y-auto">
-              <div className="text-[#3B694C] font-semibold border-b border-[#C8E6C9] pb-1.5">
+            <div className="bg-cream-paper text-bark rounded-[16px] p-4 font-mono text-[11px] space-y-2 max-h-40 overflow-y-auto">
+              <div className="text-slate font-semibold border-b border-sage-mist pb-1.5">
                 Cola Dead Letter Queue (Últimos eventos capturados):
               </div>
               {dlqEntries.length === 0 ? (
-                <div className="text-[#3B694C] py-1">Cola vacía. Cero paquetes descartados.</div>
+                <div className="text-slate py-1">Cola vacía. Cero paquetes descartados.</div>
               ) : (
                 dlqEntries.map((dlq) => (
-                  <div key={dlq.id} className="space-y-0.5 border-b border-[#C8E6C9]/60 pb-1.5">
-                    <div className="flex items-center justify-between text-[#3B694C]">
+                  <div key={dlq.id} className="space-y-0.5 border-b border-sage-mist/60 pb-1.5">
+                    <div className="flex items-center justify-between text-slate">
                       <span className="text-[#DC2626]">{dlq.id} · {dlq.topic}</span>
                       <span>{new Date(dlq.fecha_hora).toLocaleTimeString()}</span>
                     </div>
-                    <div className="text-[#0D3B1E] truncate">Payload: {dlq.raw_payload}</div>
+                    <div className="text-bark truncate">Payload: {dlq.raw_payload}</div>
                     <div className="text-[#D97706] text-[10px]">{dlq.error_motivo}</div>
                   </div>
                 ))
@@ -247,7 +247,7 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-5 bg-[#F2F8F4] border-t border-[#C8E6C9] flex justify-end gap-2.5 shrink-0">
+        <div className="p-5 bg-cream-paper border-t border-sage-mist flex justify-end gap-2.5 shrink-0">
           <button
             onClick={() => onClearFault(selectedSensorId)}
             className="apple-white-outline-pill flex items-center gap-1.5 py-2 text-xs font-semibold"

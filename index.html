@@ -5,8 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>SIMOA · Sistema Inteligente de Monitoreo Ambiental</title>
     <meta name="description" content="Sistema Inteligente de Monitoreo Ambiental (SIMOA) con telemetría IoT en tiempo real, detección inteligente de anomalías con IA, gestión de nodos ESP32 y alertas MQTT." />
-    <meta name="theme-color" content="#1B5E20" />
+    <meta name="theme-color" content="#132322" />
     <link rel="icon" type="image/png" href="/assets/images/simoa-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     <meta property="og:title" content="SIMOA · Sistema Inteligente de Monitoreo Ambiental" />
     <meta property="og:description" content="Sistema Inteligente de Monitoreo Ambiental con telemetría en tiempo real, detección de anomalías térmicas e higrométricas, gestión de nodos ESP32 y alertas." />
     <meta property="og:type" content="website" />
@@ -35,76 +41,60 @@
       fetchpriority="high"
     />
 
-    <!-- Self-hosted / System Font Stack limited strictly to weights 400 and 600 with font-display: swap -->
+    <!-- Sauce Labs Obsidian Console SSR App Shell -->
     <style>
-      @font-face {
-        font-family: 'SF Pro Display Local';
-        src: local('SF Pro Display'), local('Inter'), local('Segoe UI'), local('Roboto');
-        font-weight: 600;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'SF Pro Text Local';
-        src: local('SF Pro Text'), local('Inter'), local('Segoe UI'), local('Roboto');
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: 'SF Pro Text Local';
-        src: local('SF Pro Text Semibold'), local('Inter SemiBold'), local('Segoe UI Semibold'), local('Roboto Medium');
-        font-weight: 600;
-        font-style: normal;
-        font-display: swap;
-      }
       body {
         margin: 0;
-        background-color: #F2F8F4;
-        color: #0D3B1E;
-        font-family: 'SF Pro Text Local', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #132322;
+        color: #ffffff;
+        font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-feature-settings: "ss01" on, "cv11" on;
       }
       .ssr-shell {
         min-height: 100vh;
-        background: linear-gradient(180deg, #F2F8F4 0%, #E7F3EB 100%);
-        color: #0D3B1E;
+        background-color: #132322;
+        color: #ffffff;
         display: flex;
         flex-direction: column;
       }
+      .ssr-announcement {
+        background: #3ddc91;
+        color: #132322;
+        padding: 10px 24px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 400;
+      }
       .ssr-nav {
-        height: 56px;
-        background: #FFFFFF;
-        border-bottom: 1px solid #C8E6C9;
+        height: 72px;
+        background: #132322;
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 0 24px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #1B5E20;
+        font-size: 15px;
+        font-weight: 400;
+        color: #ffffff;
       }
       .ssr-hero {
-        max-width: 1280px;
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 56px 24px;
+        padding: 80px 24px;
       }
       .ssr-badge {
         display: inline-block;
-        background: #E8F5E9;
-        border: 1px solid #A5D6A7;
-        color: #1B5E20;
-        padding: 5px 10px;
-        border-radius: 980px;
-        font-size: 12px;
-        font-weight: 600;
+        color: #3ddc91;
+        font-size: 10px;
+        font-weight: 400;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
       }
       .ssr-title {
-        font-size: clamp(38px, 6vw, 72px);
-        font-weight: 600;
-        line-height: 1.06;
-        letter-spacing: -1.2px;
-        color: #0D3B1E;
-        margin: 18px 0;
+        font-size: clamp(40px, 5.5vw, 64px);
+        font-weight: 500;
+        line-height: 1.1;
+        color: #ffffff;
+        margin: 12px 0 20px;
       }
     </style>
   </head>
@@ -112,14 +102,17 @@
     <!-- Pre-rendered Build/SSR App Shell for instant First Contentful Paint (FCP) -->
     <div id="root">
       <div class="ssr-shell" aria-busy="true">
+        <div class="ssr-announcement">
+          SIMOA · Consola de Monitoreo Ambiental IoT con telemetría en tiempo real
+        </div>
         <div class="ssr-nav">
-          <img src="/assets/images/simoa-logo.webp" alt="SIMOA" style="height: 32px; width: auto;" />
-          <span>Sistema Inteligente de Monitoreo Ambiental</span>
+          <img src="/assets/images/simoa-logo.webp" alt="SIMOA" style="height: 36px; width: auto;" />
+          <span>SIMOA · Sistema Inteligente de Monitoreo Ambiental</span>
         </div>
         <div class="ssr-hero">
           <span class="ssr-badge">SIMOA · MONITOREO AMBIENTAL IOT</span>
           <h1 class="ssr-title">Monitoreo ambiental inteligente.</h1>
-          <p style="color:#3B694C;font-size:17px;">Cargando telemetría ambiental en tiempo real...</p>
+          <p style="color:#828786;font-size:18px;font-weight:400;">Cargando consola de telemetría ambiental...</p>
         </div>
       </div>
     </div>

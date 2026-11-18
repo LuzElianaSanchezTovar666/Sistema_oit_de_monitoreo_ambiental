@@ -6,30 +6,23 @@ import {
   AlertTriangle,
   BrainCircuit,
   FileSpreadsheet,
-  Server,
-  Layers,
   ArrowRight,
   CheckCircle2,
-  Mail,
   Send,
-  ChevronRight,
   LineChart,
-  Radio,
   Menu,
   X,
+  Server,
   ShieldCheck,
-  MapPin,
-  Clock,
+  Radio,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { ScrollReveal } from '../../hooks/useScrollAnimation';
-import { HeroSkeleton, CardGridSkeleton, FlowSequenceSkeleton, SkeletonBox } from '../common/SkeletonLoader';
-import { OptimizedImage } from '../common/OptimizedImage';
+import { HeroSkeleton } from '../common/SkeletonLoader';
 import { EnvironmentalThreeBackground } from './EnvironmentalThreeBackground';
 
 interface EnvironmentalLandingPageProps {
   onEnterSystem: (initialTab?: string) => void;
-  darkMode: boolean;
-  onToggleDarkMode: () => void;
   skeletonMode: boolean;
   onToggleSkeletonMode: () => void;
   onOpenPerformanceMonitor?: () => void;
@@ -38,9 +31,10 @@ interface EnvironmentalLandingPageProps {
 export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> = ({
   onEnterSystem,
   skeletonMode,
-  onToggleSkeletonMode,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
+  const [activeFeatureTab, setActiveFeatureTab] = useState(0);
 
   // Contact form state
   const [contactName, setContactName] = useState('');
@@ -60,983 +54,639 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
     }, 4000);
   }, []);
 
-  // 6 Feature Metric Tiles (Acerca del Sistema — 16px padding, #F2F8F4 fill, 28px radius)
-  const aboutCapabilities = [
+  const featureTabs = [
     {
-      icon: <Thermometer className="w-5 h-5 text-[#15803D]" />,
+      id: 'telemetry',
+      label: 'Telemetría',
+      eyebrow: 'FLUJO CONTINUO · MQTTS TLS 1.3',
+      title: 'Supervisión térmica e higrométrica sin puntos ciegos.',
+      desc: 'Visualiza lecturas de temperatura (°C) y humedad relativa (%RH) con bandas de tolerancia, cálculo de Z-Score y registro histórico listo para auditoría.',
+      metricA: { label: 'TEMPERATURA MEDIA', value: '23.4 °C', delta: 'Nominal · Banda 18–26 °C' },
+      metricB: { label: 'HUMEDAD RELATIVA', value: '61.8 %RH', delta: 'Estable · Banda 40–70 %' },
+      metricC: { label: 'SCORE ANOMALÍA IA', value: '0.04 σ', delta: 'Isolation Forest activo' },
+    },
+    {
+      id: 'devices',
+      label: 'Nodos ESP32',
+      eyebrow: 'GESTIÓN DE HARDWARE EN CAMPO',
+      title: 'Control centralizado de microcontroladores y sondas.',
+      desc: 'Administra direcciones MAC, latidos PINGREQ, intensidad WiFi RSSI y calibración de sensores DHT22, BME280 y SHT31 desde un solo panel.',
+      metricA: { label: 'NODOS EN LÍNEA', value: '12 / 12', delta: 'Ping promedio 18 ms' },
+      metricB: { label: 'SONDAS ACTIVAS', value: '24', delta: 'DHT22 · BME280 · SHT31' },
+      metricC: { label: 'UPTIME MENSUAL', value: '99.94 %', delta: 'Reconexión automática' },
+    },
+    {
+      id: 'alerts',
+      label: 'Alertas 5 min',
+      eyebrow: 'SEGURIDAD OPERATIVA CON DEBOUNCING',
+      title: 'Notificaciones precisas sin saturación por falsos positivos.',
+      desc: 'El motor anti-rebote consolida excursiones térmicas en ventanas de 5 minutos, clasifica severidad y registra la causa raíz de cada incidencia.',
+      metricA: { label: 'VENTANA DEBOUNCE', value: '5 min', delta: 'Cero spam de alertas' },
+      metricB: { label: 'INCIDENCIAS HOY', value: '0', delta: '100% dentro de umbral' },
+      metricC: { label: 'TIEMPO DE RESPUESTA', value: '< 1.2 s', delta: 'Alerta visual y sonora' },
+    },
+    {
+      id: 'ai',
+      label: 'Diagnóstico IA',
+      eyebrow: 'MACHINE LEARNING MULTIVARIANTE',
+      title: 'Detecta fallos de climatización antes de perder muestras.',
+      desc: 'Isolation Forest y Z-Score 3σ evalúan correlaciones anómalas entre temperatura y humedad para diagnosticar fallas en menos de 200 ms.',
+      metricA: { label: 'LATENCIA INFERENCIA', value: '142 ms', delta: 'Evaluación por lectura' },
+      metricB: { label: 'PRECISIÓN Z-SCORE', value: '3.0 σ', delta: 'Control estadístico' },
+      metricC: { label: 'TRAMAS AISLADAS DLQ', value: '0', delta: 'Integridad JSON 100%' },
+    },
+  ];
+
+  const capabilities = [
+    {
+      icon: <Thermometer className="w-5 h-5 text-neon-pulse" />,
+      eyebrow: 'PRECISIÓN TÉRMICA',
       metric: '±0.2 °C',
-      metricColor: 'text-[#15803D]',
-      title: 'Registro de Temperatura y Humedad',
-      desc: 'Captura periódica y continua de variables higrotérmicas en recintos críticos con sondas calibradas.',
+      title: 'Registro de temperatura y humedad',
+      desc: 'Captura periódica en recintos críticos con sondas calibradas DHT22, BME280 y SHT31.',
     },
     {
-      icon: <Cpu className="w-5 h-5 text-[#0D3B1E]" />,
+      icon: <Cpu className="w-5 h-5 text-neon-pulse" />,
+      eyebrow: 'NODOS EDGE',
       metric: 'ESP32',
-      metricColor: 'text-[#0D3B1E]',
-      title: 'Supervisión de Dispositivos IoT',
-      desc: 'Seguimiento en tiempo real de nodos microcontroladores con control de estado y telemetría.',
+      title: 'Supervisión de dispositivos IoT',
+      desc: 'Control de latidos PINGREQ, validación de dirección MAC y estado Online/Offline.',
     },
     {
-      icon: <LineChart className="w-5 h-5 text-[#15803D]" />,
-      metric: '100%',
-      metricColor: 'text-[#15803D]',
-      title: 'Consultas e Historiales en Vivo',
-      desc: 'Base de datos temporal TimescaleDB con trazabilidad integral de millones de puntos telemétricos.',
-    },
-    {
-      icon: <Activity className="w-5 h-5 text-[#0D3B1E]" />,
+      icon: <LineChart className="w-5 h-5 text-signal-yellow" />,
+      eyebrow: 'SERIES TEMPORALES',
       metric: '1 Hz',
-      metricColor: 'text-[#0D3B1E]',
-      title: 'Gráficas Ambientales Dinámicas',
-      desc: 'Series de tiempo interactivas en SVG con bandas de tolerancia, líneas de umbral y zoom temporal.',
+      title: 'Históricos y gráficas dinámicas',
+      desc: 'Series temporales con bandas de tolerancia, umbrales configurables y exportación CSV.',
     },
     {
-      icon: <AlertTriangle className="w-5 h-5 text-[#DC2626]" />,
+      icon: <AlertTriangle className="w-5 h-5 text-signal-yellow" />,
+      eyebrow: 'SEGURIDAD OPERATIVA',
       metric: '5 min',
-      metricColor: 'text-[#DC2626]',
-      title: 'Alertas Preventivas con Debouncing',
-      desc: 'Disparo inmediato ante superación de límites, consolidando eventos críticos sin saturación.',
+      title: 'Alertas con debouncing',
+      desc: 'Notificaciones inmediatas ante excursiones térmicas evitando falsos positivos.',
     },
     {
-      icon: <BrainCircuit className="w-5 h-5 text-[#15803D]" />,
+      icon: <BrainCircuit className="w-5 h-5 text-neon-pulse" />,
+      eyebrow: 'INTELIGENCIA ARTIFICIAL',
       metric: '<200 ms',
-      metricColor: 'text-[#15803D]',
-      title: 'Detección Inteligente con IA',
-      desc: 'Algoritmos Isolation Forest y Z-Score dinámico que discriminan picos de anomalías reales.',
+      title: 'Detección de anomalías',
+      desc: 'Isolation Forest y Z-Score 3σ que identifican fallos antes de comprometer el recinto.',
+    },
+    {
+      icon: <FileSpreadsheet className="w-5 h-5 text-neon-pulse" />,
+      eyebrow: 'AUDITORÍA GXP',
+      metric: '99.9%',
+      title: 'Trazabilidad y reportes SLA',
+      desc: 'Estadísticas consolidadas (Mín, Máx, Promedio y Desviación Estándar) listas para auditoría.',
     },
   ];
 
-  // 6 Main Modules with Next-Gen AVIF/WebP Imagery & Lazy Loading
-  const functionalModules: Array<{
-    tag: string;
-    icon: React.ReactNode;
-    title: string;
-    desc: string;
-    highlight: string;
-    metricValue: string;
-    metricTone: string;
-    imageBase: 'module-esp32-node' | 'module-sensors-dht22' | 'module-mqtt-broker' | 'module-ai-anomaly' | 'module-lab-bioterium' | 'module-climate-chamber';
-    imageAlt: string;
-  }> = [
-    {
-      tag: 'Hardware & Red',
-      icon: <Cpu className="w-5 h-5 text-[#0D3B1E]" />,
-      title: 'Dispositivos IoT',
-      desc: 'Administración y seguimiento de nodos ESP32, ESP8266 y Gateways industriales. Validación estricta de dirección MAC, control de paquetes PINGREQ y estado Online/Offline.',
-      highlight: 'Validación MAC & Pings 3s',
-      metricValue: '99.9%',
-      metricTone: 'text-[#15803D]',
-      imageBase: 'module-esp32-node',
-      imageAlt: 'Microcontrolador ESP32-WROOM iluminado en galería oscura con telemetría activa',
-    },
-    {
-      tag: 'Instrumentación',
-      icon: <Thermometer className="w-5 h-5 text-[#15803D]" />,
-      title: 'Sensores Ambientales',
-      desc: 'Gestión y parametrización de sensores DHT22, BME280 y SHT31. Definición de umbrales operacionales mínimos y máximos, así como límites críticos de contingencia.',
-      highlight: 'DHT22 · BME280 · SHT31',
-      metricValue: '23.8°',
-      metricTone: 'text-[#15803D]',
-      imageBase: 'module-sensors-dht22',
-      imageAlt: 'Anillos concéntricos de temperatura y humedad relativa del sensor DHT22',
-    },
-    {
-      tag: 'Telemetría Viva',
-      icon: <Activity className="w-5 h-5 text-[#0D3B1E]" />,
-      title: 'Mediciones e Historial',
-      desc: 'Streaming de series temporales en tiempo real sin latencia. Visualización simultánea de temperatura (°C) y humedad relativa (%RH) con almacenamiento TimescaleDB.',
-      highlight: 'Streaming continuo 1Hz',
-      metricValue: '68%RH',
-      metricTone: 'text-[#0D3B1E]',
-      imageBase: 'module-mqtt-broker',
-      imageAlt: 'Onda de transmisión de paquetes telemétricos MQTTS en tiempo real',
-    },
-    {
-      tag: 'Seguridad Operativa',
-      icon: <AlertTriangle className="w-5 h-5 text-[#DC2626]" />,
-      title: 'Gestor de Alertas',
-      desc: 'Seguimiento de condiciones fuera de parámetro con debouncing de 5 minutos. Catálogo normalizado de causas, alarma sonora en cabina y registro de operadores.',
-      highlight: 'Debouncing 5 min & Beeper',
-      metricValue: '3.0σ',
-      metricTone: 'text-[#DC2626]',
-      imageBase: 'module-climate-chamber',
-      imageAlt: 'Recinto clínico monitoreado con alertas preventivas ante excursiones térmicas',
-    },
-    {
-      tag: 'Machine Learning',
-      icon: <BrainCircuit className="w-5 h-5 text-[#15803D]" />,
-      title: 'Inteligencia Artificial',
-      desc: 'Inferencia multivariante mediante el algoritmo Isolation Forest combinado con Z-Score 3σ. Diagnóstico predictivo de causa raíz transmitido token a token.',
-      highlight: 'Isolation Forest & Z-Score',
-      metricValue: '0.08',
-      metricTone: 'text-[#15803D]',
-      imageBase: 'module-ai-anomaly',
-      imageAlt: 'Detección de anomalías mediante algoritmo Isolation Forest en galería oscura',
-    },
-    {
-      tag: 'Trazabilidad & Auditoría',
-      icon: <FileSpreadsheet className="w-5 h-5 text-[#0D3B1E]" />,
-      title: 'Reportes y Analítica',
-      desc: 'Estadísticas consolidadas (Mín, Máx, Promedio, Desviación Estándar y Tasa de Conformidad SLA). Exportación asíncrona mediante cola de trabajos en CSV y JSON.',
-      highlight: 'Descarga CSV / JSON / SLA',
-      metricValue: 'GxP',
-      metricTone: 'text-[#0D3B1E]',
-      imageBase: 'module-lab-bioterium',
-      imageAlt: 'Laboratorio e incubadora ambiental con certificación de cadena de frío GxP',
-    },
-  ];
-
-  // 4 Core Technologies
-  const techStack = [
-    {
-      name: 'Python & IA',
-      category: 'Procesamiento & Modelos',
-      desc: 'FastAPI para backend asíncrono, NumPy y Scikit-Learn ejecutando el modelo Isolation Forest y control estadístico Z-Score para la detección de anomalías.',
-      badge: 'Python 3.10+ · Scikit-Learn',
-    },
-    {
-      name: 'MQTT Protocol',
-      category: 'Broker de Mensajería IoT',
-      desc: 'Eclipse Mosquitto v2.0+ implementando comunicación publish/subscribe ultraliviana sobre canal cifrado MQTTS con TLS 1.3 en puerto 8883.',
-      badge: 'Mosquitto · MQTTS TLS 8883',
-    },
-    {
-      name: 'Node-RED',
-      category: 'Orquestación de Flujos',
-      desc: 'Motor visual de interconexión para transformación de payloads JSON telemétricos, filtrado de tramas corruptas y desvío a Dead Letter Queue (DLQ).',
-      badge: 'Node-RED Runtime v3.0+',
-    },
-    {
-      name: 'Sensores IoT',
-      category: 'Captura Ambiental',
-      desc: 'Sondas digitales de alta precisión DHT22, Bosch BME280 y Sensirion SHT31 conectadas a microcontroladores ESP32 con lecturas estables cada 2.5s.',
-      badge: 'ESP32 · DHT22 · BME280',
-    },
-  ];
-
-  // 6 Pipeline Steps (Funcionamiento)
-  const pipelineSteps = [
-    {
-      step: '01',
-      title: 'Sensores Ambientales',
-      desc: 'Sondas DHT22/BME280 miden temperatura y humedad relativa en el espacio físico.',
-      icon: <Thermometer className="w-4 h-4 text-[#15803D]" />,
-    },
-    {
-      step: '02',
-      title: 'Nodo ESP32',
-      desc: 'El microcontrolador digitaliza señales y empaqueta la telemetría en JSON ligero.',
-      icon: <Cpu className="w-4 h-4 text-[#0D3B1E]" />,
-    },
-    {
-      step: '03',
-      title: 'Broker Mosquitto',
-      desc: 'Transmisión cifrada MQTTS TLS 1.3 sobre puerto 8883 con garantía QoS 1.',
-      icon: <Server className="w-4 h-4 text-[#0D3B1E]" />,
-    },
-    {
-      step: '04',
-      title: 'Node-RED Engine',
-      desc: 'Valida la integridad del paquete JSON; si está corrupto lo aísla en la cola DLQ.',
-      icon: <Layers className="w-4 h-4 text-[#0D3B1E]" />,
-    },
-    {
-      step: '05',
-      title: 'Motor Python e IA',
-      desc: 'FastAPI almacena en TimescaleDB y ejecuta Isolation Forest en <200ms.',
-      icon: <BrainCircuit className="w-4 h-4 text-[#15803D]" />,
-    },
-    {
-      step: '06',
-      title: 'Dashboard en Vivo',
-      desc: 'La interfaz actualiza gráficas, indicadores y alertas críticas al instante.',
-      icon: <Activity className="w-4 h-4 text-[#DC2626]" />,
-    },
-  ];
+  const currentFeature = featureTabs[activeFeatureTab];
 
   return (
-    <div className="relative min-h-screen bg-[#F2F8F4] text-[#0D3B1E] selection:bg-[#1B5E20] selection:text-[#ffffff] overflow-x-hidden">
-      {/* Fondo 3D Interactivo con Three.js (figuras dispersas, partículas y seguimiento de cursor) */}
+    <div className="relative min-h-screen bg-obsidian-shell text-pure-white selection:bg-neon-pulse selection:text-obsidian-shell overflow-x-hidden">
+      {/* Fondo 3D Interactivo con Three.js (paleta Sauce Labs: Neon Pulse, Mint Whisper, Signal Yellow) */}
       <EnvironmentalThreeBackground />
 
-      {/* BARRA DE NAVEGACIÓN PRINCIPAL UNIFICADA Y PROFESIONAL */}
-      <header className="sticky top-0 z-50 bg-[#FFFFFF]/95 backdrop-blur-md border-b border-[#C8E6C9] shadow-[0_4px_20px_rgba(13,59,30,0.05)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[76px] flex items-center justify-between gap-6">
-          {/* Logo Oficial SIMOA */}
-          <a
-            href="#inicio"
-            className="flex items-center gap-3 shrink-0 group focus:outline-none"
+      {/* 1. ANNOUNCEMENT BANNER — Full-width Neon Pulse (#3ddc91) */}
+      {showAnnouncement && (
+        <div className="relative z-20 w-full bg-neon-pulse text-obsidian-shell px-6 py-2.5 text-center text-[14px] font-normal flex items-center justify-center gap-3">
+          <span>
+            SIMOA Consola v2.4 · Telemetría MQTTS cifrada y motor de anomalías Isolation Forest activo
+          </span>
+          <button
+            onClick={() => setShowAnnouncement(false)}
+            aria-label="Cerrar aviso"
+            className="absolute right-4 p-1 rounded-full hover:bg-obsidian-shell/10 cursor-pointer"
           >
-            <img
-              src="/assets/images/simoa-logo.webp"
-              alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-              className="h-11 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
-            />
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* 2. NAVIGATION BAR — Full-width Obsidian Shell (#132322) */}
+      <header className="relative z-20 bg-obsidian-shell/95 backdrop-blur-sm">
+        <div className="max-w-[1200px] mx-auto px-6 h-[76px] flex items-center justify-between gap-6">
+          <a href="#inicio" className="flex items-center gap-3 shrink-0 focus:outline-none">
+            <div className="px-3 py-1.5 rounded-[56px] bg-mint-frost flex items-center">
+              <img
+                src="/assets/images/simoa-logo.webp"
+                alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
+                className="h-10 sm:h-11 w-auto object-contain"
+              />
+            </div>
           </a>
 
-          {/* Enlaces de Navegación Centrales */}
-          <nav className="hidden lg:flex items-center gap-1 bg-[#F2F8F4] p-1.5 rounded-full border border-[#C8E6C9]/80">
-            {[
-              { href: '#inicio', label: 'Inicio' },
-              { href: '#acerca', label: 'Nosotros' },
-              { href: '#funcionalidades', label: 'Soluciones' },
-              { href: '#tecnologias', label: 'Tecnología' },
-              { href: '#funcionamiento', label: 'Cómo Funciona' },
-              { href: '#contacto', label: 'Contacto' },
-            ].map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="px-4 py-1.5 rounded-full text-[13px] font-semibold text-[#265336] hover:text-[#1B5E20] hover:bg-[#FFFFFF] hover:shadow-xs transition-all"
-              >
-                {link.label}
-              </a>
-            ))}
+          <nav className="hidden lg:flex items-center gap-8 text-[15px] font-normal text-pure-white">
+            <a href="#modulos" className="hover:text-neon-pulse transition-colors">
+              Módulos
+            </a>
+            <a href="#capacidades" className="hover:text-neon-pulse transition-colors">
+              Capacidades
+            </a>
+            <a href="#arquitectura" className="hover:text-neon-pulse transition-colors">
+              Arquitectura
+            </a>
+            <a href="#contacto" className="hover:text-neon-pulse transition-colors">
+              Contacto
+            </a>
           </nav>
 
-          {/* Acciones Comerciales Derecha */}
-          <div className="hidden sm:flex items-center gap-3 shrink-0">
-            <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E8F5E9] border border-[#A5D6A7] text-[12px] font-semibold text-[#1B5E20]">
-              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
-              <span>Red IoT Activa</span>
-            </div>
-
+          <div className="flex items-center gap-4">
             <a
               href="#contacto"
-              className="px-4 py-2 rounded-full text-[13px] font-semibold text-[#1B5E20] hover:bg-[#E8F5E9] transition-colors"
+              className="hidden sm:inline-block text-[15px] font-normal text-pure-white hover:text-neon-pulse transition-colors px-2 py-1"
             >
-              Solicitar Demo
+              Solicitar demo
             </a>
-
             <button
               onClick={() => onEnterSystem('dashboard')}
-              className="apple-blue-pill px-5 py-2.5 text-[13px] font-semibold flex items-center gap-2 cursor-pointer"
+              className="hidden sm:inline-flex sauce-btn-primary text-[15px] py-2.5 px-6 cursor-pointer items-center gap-2"
             >
-              <span>Ingresar al Sistema</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Botón Menú Móvil */}
-          <div className="flex sm:hidden items-center gap-2">
-            <button
-              onClick={() => onEnterSystem('dashboard')}
-              className="apple-blue-pill px-3.5 py-2 text-[12px] font-semibold"
-            >
-              Ingresar
+              Abrir consola
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Abrir menú de navegación"
-              className="p-2 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9] text-[#0D3B1E]"
+              className="lg:hidden p-2 rounded-[10px] border border-graphite-fill text-pure-white cursor-pointer"
+              aria-label="Menú"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Menú Desplegable Móvil */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-[#FFFFFF] border-t border-[#C8E6C9] px-6 py-4 space-y-2 shadow-lg">
+          <div className="lg:hidden bg-deep-abyss border-t border-graphite-fill px-6 py-4 space-y-3 text-[15px]">
             {[
-              { href: '#inicio', label: 'Inicio' },
-              { href: '#acerca', label: 'Nosotros' },
-              { href: '#funcionalidades', label: 'Soluciones' },
-              { href: '#tecnologias', label: 'Tecnología' },
-              { href: '#funcionamiento', label: 'Cómo Funciona' },
+              { href: '#modulos', label: 'Módulos' },
+              { href: '#capacidades', label: 'Capacidades' },
+              { href: '#arquitectura', label: 'Arquitectura' },
               { href: '#contacto', label: 'Contacto' },
-            ].map((link) => (
+            ].map((item) => (
               <a
-                key={link.href}
-                href={link.href}
+                key={item.href}
+                href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2.5 rounded-xl text-[14px] font-semibold text-[#0D3B1E] hover:bg-[#F2F8F4] hover:text-[#1B5E20]"
+                className="block py-1.5 text-pure-white hover:text-neon-pulse"
               >
-                {link.label}
+                {item.label}
               </a>
             ))}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onEnterSystem('dashboard');
+              }}
+              className="sauce-btn-primary w-full py-2.5 text-[15px] cursor-pointer"
+            >
+              Abrir consola
+            </button>
           </div>
         )}
       </header>
 
-      {/* SKELETON MODE PREVIEW */}
-      {skeletonMode ? (
-        <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
-          <div className="flex items-center justify-between p-4 bg-[#FFFFFF] rounded-[28px] text-xs">
-            <span className="font-semibold text-[#15803D] font-mono">
-              [Modo Skeleton Loading Activo en Toda la Web]
-            </span>
+      {/* 3. HERO SECTION — Split composition on Obsidian Shell (#132322) */}
+      <section id="inicio" className="relative z-10 pt-14 pb-20 px-6">
+        {skeletonMode ? (
+          <div className="max-w-[1200px] mx-auto">
+            <HeroSkeleton />
+          </div>
+        ) : (
+          <div className="max-w-[1200px] mx-auto space-y-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              {/* Left Column — Headline & CTAs */}
+              <div className="space-y-6">
+                <p className="sauce-eyebrow text-neon-pulse">
+                  CONSOLA IOT · TELEMETRÍA AMBIENTAL EN TIEMPO REAL
+                </p>
+                <h1 className="sauce-display">
+                  Control ambiental preciso para cada recinto crítico.
+                </h1>
+                <p className="text-[18px] leading-[1.45] text-pure-white/75 font-normal max-w-[520px]">
+                  Supervisa nodos ESP32, analiza series de temperatura y humedad y detecta anomalías
+                  térmicas con IA desde una consola unificada.
+                </p>
+                <div className="pt-2 flex flex-wrap items-center gap-4">
+                  <button
+                    onClick={() => onEnterSystem('dashboard')}
+                    className="sauce-btn-primary cursor-pointer inline-flex items-center gap-2"
+                  >
+                    Iniciar monitoreo
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <a
+                    href="#modulos"
+                    className="sauce-btn-ghost inline-flex items-center gap-2"
+                  >
+                    Explorar módulos
+                  </a>
+                </div>
+              </div>
+
+              {/* Right Column — 3D Isometric Product Illustration */}
+              <div className="flex justify-center lg:justify-end">
+                <svg
+                  viewBox="0 0 520 420"
+                  className="w-full max-w-[500px] h-auto"
+                  aria-label="Ilustración isométrica de consola SIMOA"
+                >
+                  {/* Isometric Base Console */}
+                  <polygon points="260,385 470,275 260,165 50,275" fill="#0e1a19" stroke="#424f4f" strokeWidth="1.5" />
+                  <polygon points="50,275 260,385 260,402 50,292" fill="#070f0f" />
+                  <polygon points="470,275 260,385 260,402 470,292" fill="#132322" stroke="#424f4f" strokeWidth="1" />
+
+                  {/* Stacked Isometric Module 1 — Mint Frost */}
+                  <polygon points="260,315 410,235 260,155 110,235" fill="#edf7f5" />
+                  <polygon points="110,235 260,315 260,330 110,250" fill="#97ddbc" />
+                  <polygon points="410,235 260,315 260,330 410,250" fill="#828786" />
+
+                  {/* Stacked Isometric Module 2 — Signal Yellow */}
+                  <polygon points="260,245 390,176 260,107 130,176" fill="#ffcd48" />
+                  <polygon points="130,176 260,245 260,258 130,189" fill="#d9a92b" />
+                  <polygon points="390,176 260,245 260,258 390,189" fill="#b38818" />
+
+                  {/* Stacked Isometric Module 3 — Neon Pulse */}
+                  <polygon points="260,175 370,117 260,59 150,117" fill="#3ddc91" />
+                  <polygon points="150,117 260,175 260,188 150,130" fill="#28b572" />
+                  <polygon points="370,117 260,175 260,188 370,130" fill="#1c8f58" />
+
+                  {/* Thin Connector Lines & Floating Tags */}
+                  <line x1="150" y1="117" x2="75" y2="85" stroke="#97ddbc" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="370" y1="117" x2="445" y2="85" stroke="#3ddc91" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="390" y1="176" x2="455" y2="176" stroke="#ffcd48" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="110" y1="235" x2="55" y2="220" stroke="#edf7f5" strokeWidth="1.2" strokeDasharray="4 4" />
+
+                  {/* Floating Labels */}
+                  <rect x="20" y="68" width="90" height="28" rx="14" fill="#0e1a19" stroke="#3ddc91" strokeWidth="1" />
+                  <text x="65" y="86" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="500">ESP32</text>
+
+                  <rect x="405" y="68" width="95" height="28" rx="14" fill="#0e1a19" stroke="#3ddc91" strokeWidth="1" />
+                  <text x="452" y="86" textAnchor="middle" fill="#3ddc91" fontSize="11" fontWeight="500">MQTTS</text>
+
+                  <rect x="415" y="162" width="90" height="28" rx="14" fill="#0e1a19" stroke="#ffcd48" strokeWidth="1" />
+                  <text x="460" y="180" textAnchor="middle" fill="#ffcd48" fontSize="11" fontWeight="500">IA 3σ</text>
+
+                  <rect x="12" y="206" width="88" height="28" rx="14" fill="#0e1a19" stroke="#97ddbc" strokeWidth="1" />
+                  <text x="56" y="224" textAnchor="middle" fill="#edf7f5" fontSize="11" fontWeight="500">ALERTAS</text>
+                </svg>
+              </div>
+            </div>
+
+            {/* 4. STAT BLOCK ROW — 4 columns directly on #132322, no container */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-4">
+              {[
+                { num: '±0.2°C', label: 'PRECISIÓN DE SONDAS CALIBRADAS' },
+                { num: '<200ms', label: 'DETECCIÓN DE ANOMALÍAS IA' },
+                { num: '99.9%', label: 'CONFORMIDAD EN CADENA DE FRÍO' },
+                { num: '1 Hz', label: 'FRECUENCIA DE TELEMETRÍA VIVA' },
+              ].map((stat) => (
+                <div key={stat.label} className="space-y-2">
+                  <div className="sauce-stat-value">{stat.num}</div>
+                  <div className="sauce-eyebrow text-pure-white/50">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 5. LOGO BAR — Dark #0e1a19 rounded-[60px] tiles */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+              {[
+                'ESP32-WROOM',
+                'DHT22 · BME280',
+                'MOSQUITTO MQTTS',
+                'TIMESCALEDB',
+                'SCIKIT-LEARN IA',
+              ].map((logo) => (
+                <div
+                  key={logo}
+                  className="h-[104px] rounded-[60px] bg-deep-abyss flex items-center justify-center px-5 text-center"
+                >
+                  <span className="text-[13px] font-medium tracking-[0.05em] text-pure-white/90 uppercase">
+                    {logo}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* 6. LIGHT CONTENT CARD (#edf7f5 Mint Frost, 60px radius) — Tab Pill Navigation + Product Preview */}
+      <section id="modulos" className="relative z-10 py-16 px-6">
+        <div className="max-w-[1200px] mx-auto sauce-card-mint p-8 sm:p-12 space-y-10">
+          <div className="max-w-[740px] mx-auto text-center space-y-4">
+            <p className="sauce-eyebrow text-obsidian-shell">
+              PLATAFORMA INTEGRAL · UN SOLO PANEL DE CONTROL
+            </p>
+            <h2 className="sauce-heading text-obsidian-shell">
+              {currentFeature.title}
+            </h2>
+            <p className="text-[16px] text-graphite-fill leading-[1.5]">
+              {currentFeature.desc}
+            </p>
+          </div>
+
+          {/* Tab Pill Navigation (56px radius pills) */}
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             <button
-              onClick={onToggleSkeletonMode}
-              className="apple-blue-pill px-4 py-1.5 font-semibold text-xs"
+              onClick={() =>
+                setActiveFeatureTab((prev) => (prev - 1 + featureTabs.length) % featureTabs.length)
+              }
+              aria-label="Módulo anterior"
+              className="p-2.5 rounded-[56px] text-slate-text hover:text-obsidian-shell cursor-pointer hidden sm:inline-flex"
             >
-              Ver Contenido Real
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {featureTabs.map((tab, idx) => {
+              const isActive = idx === activeFeatureTab;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveFeatureTab(idx)}
+                  className={`px-6 py-3 rounded-[56px] text-[16px] font-normal transition-colors cursor-pointer ${
+                    isActive
+                      ? 'bg-neon-pulse text-obsidian-shell font-medium'
+                      : 'bg-transparent text-slate-text hover:text-obsidian-shell'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setActiveFeatureTab((prev) => (prev + 1) % featureTabs.length)}
+              aria-label="Siguiente módulo"
+              className="p-2.5 rounded-[56px] text-slate-text hover:text-obsidian-shell cursor-pointer hidden sm:inline-flex"
+            >
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-          <HeroSkeleton />
-          <div className="space-y-4">
-            <SkeletonBox className="h-6 w-52" />
-            <SkeletonBox className="h-4 w-96" />
-            <CardGridSkeleton count={6} />
-          </div>
-          <div className="space-y-4">
-            <SkeletonBox className="h-6 w-60" />
-            <FlowSequenceSkeleton />
+
+          {/* Embedded Product Screenshot Panel (#0e1a19 chrome + #ffffff screen) */}
+          <div className="rounded-[20px] bg-deep-abyss p-3 sm:p-4">
+            <div className="flex items-center gap-2 px-2 pb-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-graphite-fill" />
+              <span className="w-2.5 h-2.5 rounded-full bg-graphite-fill" />
+              <span className="w-2.5 h-2.5 rounded-full bg-neon-pulse" />
+              <span className="ml-3 text-[11px] font-mono text-slate-text">
+                simoa-console.local / {currentFeature.id}
+              </span>
+            </div>
+
+            <div className="rounded-[12px] bg-pure-white text-obsidian-shell p-6 sm:p-8 space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-fog-border pb-4">
+                <div>
+                  <span className="sauce-eyebrow text-slate-text">{currentFeature.eyebrow}</span>
+                  <h3 className="text-[20px] font-medium text-obsidian-shell mt-1">
+                    {currentFeature.label} · Vista de Consola
+                  </h3>
+                </div>
+                <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[56px] bg-mint-frost text-obsidian-shell text-[12px] font-medium">
+                  <span className="w-2 h-2 rounded-full bg-neon-pulse" />
+                  Señal activa
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {[currentFeature.metricA, currentFeature.metricB, currentFeature.metricC].map(
+                  (m) => (
+                    <div
+                      key={m.label}
+                      className="p-5 rounded-[20px] bg-mint-frost border border-fog-border space-y-2"
+                    >
+                      <div className="sauce-eyebrow text-slate-text">{m.label}</div>
+                      <div className="text-[32px] font-medium text-obsidian-shell tabular-nums">
+                        {m.value}
+                      </div>
+                      <div className="text-[13px] text-graphite-fill">{m.delta}</div>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      ) : (
-        <main className="relative z-10 space-y-[24px]">
-          {/* 3. HERO PRODUCT STAGE */}
-          <section id="inicio" className="bg-transparent pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-6 space-y-12">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-                {/* Left Column: Monumental Launch Statement */}
-                <ScrollReveal animation="slide-up" className="lg:col-span-7 space-y-6">
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="apple-badge-orange">TELEMETRÍA AMBIENTAL EN TIEMPO REAL</span>
-                    <span className="apple-nav-text text-[#3B694C] uppercase tracking-wider font-semibold">
-                      PRECISIÓN INDUSTRIAL · IA PREDICTIVA
-                    </span>
-                  </div>
+      </section>
 
-                  <h1 className="apple-hero-display text-balance">
-                    Monitoreo ambiental inteligente.
-                  </h1>
+      {/* 7. DARK CAPABILITIES & ARCHITECTURE BAND (#132322 + #0e1a19 20px cards) */}
+      <section id="capacidades" className="relative z-10 py-20 px-6">
+        <div className="max-w-[1200px] mx-auto space-y-12">
+          <div id="arquitectura" className="max-w-[680px] space-y-4">
+            <p className="sauce-eyebrow text-neon-pulse">ARQUITECTURA Y CAPACIDADES</p>
+            <h2 className="sauce-heading text-pure-white">
+              Ingeniería de monitoreo construida para operar sin interrupciones.
+            </h2>
+          </div>
 
-                  <p className="apple-body text-[#3B694C] max-w-xl">
-                    Plataforma integral de supervisión ambiental para invernaderos, laboratorios, cámaras de conservación y espacios críticos. Controla temperatura y humedad en vivo con alertas preventivas e Inteligencia Artificial.
-                  </p>
-
-                  {/* Primary & Secondary Commercial CTAs */}
-                  <div className="flex flex-wrap items-center gap-3.5 pt-2">
-                    <button
-                      onClick={() => onEnterSystem('dashboard')}
-                      className="apple-blue-pill px-7 py-3.5 text-[14px] font-semibold leading-[18px] flex items-center gap-2 cursor-pointer"
-                    >
-                      <span>Acceder al Panel en Vivo</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                    <a
-                      href="#funcionalidades"
-                      className="apple-white-outline-pill py-3.5 px-6 text-[14px] font-semibold leading-[18px]"
-                    >
-                      Conocer Soluciones
-                    </a>
-                  </div>
-                </ScrollReveal>
-
-                {/* Right Column: Isolated Hardware Showcase on Gallery Black using AVIF/WebP <picture> */}
-                <ScrollReveal animation="slide-right" delay={120} className="lg:col-span-5">
-                  <div className="relative rounded-[28px] overflow-hidden bg-[#F2F8F4]">
-                    <OptimizedImage
-                      baseName="hero-iot-stage"
-                      alt="Hardware IoT ESP32 y sensores ambientales en formato AVIF/WebP con lecturas luminosas sobre fondo negro"
-                      priority={true}
-                      width={1200}
-                      height={800}
-                      className="w-full h-80 sm:h-96 lg:h-[440px] object-cover opacity-90"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#F2F8F4] via-transparent to-[#F2F8F4]/40" />
-
-                    {/* Health/Sensor Readout Overlay 1 — Vital Green & Pulse Red reserved for metrics */}
-                    <div className="absolute top-4 left-4 p-4 rounded-[28px] bg-[#FFFFFF]/90 backdrop-blur-md space-y-1">
-                      <div className="flex items-center gap-2 text-[12px] text-[#3B694C] tracking-[-0.12px]">
-                        <Radio className="w-3.5 h-3.5 text-[#15803D] animate-pulse" />
-                        <span>NODO INVERNADERO A1 · DHT22</span>
-                      </div>
-                      <div className="flex items-baseline gap-4 pt-1">
-                        <div>
-                          <span className="text-[28px] font-semibold tracking-[0.196px] text-[#15803D] font-display tabular-nums">
-                            23.8°
-                          </span>
-                          <span className="text-[12px] text-[#3B694C] ml-1">TEMP</span>
-                        </div>
-                        <div>
-                          <span className="text-[28px] font-semibold tracking-[0.196px] text-[#0D3B1E] font-display tabular-nums">
-                            68.4%
-                          </span>
-                          <span className="text-[12px] text-[#3B694C] ml-1">HUM</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Health/Sensor Readout Overlay 2 */}
-                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-[28px] bg-[#FFFFFF]/95 backdrop-blur-md flex items-center justify-between">
-                      <div>
-                        <div className="text-[12px] text-[#3B694C]">ANOMALÍA IA · ISOLATION FOREST</div>
-                        <div className="text-[14px] font-semibold text-[#0D3B1E] mt-0.5">
-                          Score <span className="text-[#15803D]">0.082 Nominal</span> · Umbral Crítico{' '}
-                          <span className="text-[#DC2626]">3.0σ</span>
-                        </div>
-                      </div>
-                      <span className="apple-badge-orange">PROTECCIÓN ACTIVA</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {capabilities.map((cap) => (
+              <div key={cap.title} className="sauce-card-dark p-6 flex flex-col justify-between space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="sauce-eyebrow text-pure-white/60">{cap.eyebrow}</span>
+                    <div className="w-10 h-10 rounded-[10px] bg-obsidian-shell flex items-center justify-center">
+                      {cap.icon}
                     </div>
                   </div>
-                </ScrollReveal>
-              </div>
-
-              {/* Floating Dark Utility Capsule (#C8E6C9, 36px radius, 14px/600 copy + trailing Apple Blue 980px pill) */}
-              <ScrollReveal animation="fade-in" delay={180}>
-                <div className="apple-utility-capsule p-3 pl-6 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-8 text-[14px] font-semibold leading-[18px] tracking-[-0.224px] text-[#0D3B1E]">
-                    <span>Ingesta 100% sin pérdida</span>
-                    <span className="text-[#3B694C] hidden sm:inline">|</span>
-                    <span>
-                      Inferencia IA <span className="text-[#15803D]">&lt; 200 ms</span>
-                    </span>
-                    <span className="text-[#3B694C] hidden sm:inline">|</span>
-                    <span>
-                      Debouncing de alertas <span className="text-[#DC2626]">5 min</span>
-                    </span>
+                  <div className="text-[36px] font-medium text-neon-pulse tabular-nums">
+                    {cap.metric}
                   </div>
-                  <button
-                    onClick={() => onEnterSystem()}
-                    className="apple-blue-pill px-5 py-2.5 text-[12px] font-normal leading-[16px] tracking-[-0.12px] shrink-0 w-full sm:w-auto text-center"
-                  >
-                    Ingresar al Dashboard
-                  </button>
-                </div>
-              </ScrollReveal>
-            </div>
-          </section>
-
-          {/* 4. UPGRADE COMPARISON MODULE */}
-          <section id="acerca" className="px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto bg-[#FFFFFF]/90 backdrop-blur-sm border border-[#C8E6C9]/80 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
-              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-4">
-                <span className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#3B694C] block">
-                  Misión y alcance del sistema
-                </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
-                  Precisión clínica en cada lectura ambiental.
-                </h2>
-                <p className="apple-body text-[#3B694C]">
-                  Diseñado para aulas, laboratorios farmacéuticos, bodegas e invernaderos donde la estabilidad higrotérmica es crítica. SIMOA unifica sensores electrónicos, transmisión MQTT segura y detección de anomalías por IA.
-                </p>
-              </ScrollReveal>
-
-              {/* Featured Two-Column AVIF/WebP Hardware Showcase Cards (Lazy Loaded) */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-[16px]">
-                <div className="bg-[#F2F8F4] rounded-[28px] overflow-hidden flex flex-col justify-between">
-                  <div className="relative h-60 w-full overflow-hidden">
-                    <OptimizedImage
-                      baseName="module-lab-bioterium"
-                      alt="Monitoreo de laboratorios y bioterios con sensores de precisión en formato AVIF/WebP"
-                      priority={false}
-                      className="w-full h-full object-cover opacity-85"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#F2F8F4] via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 apple-badge-orange">CADENA DE FRÍO · 24/7</span>
-                  </div>
-                  <div className="p-6 space-y-2">
-                    <div className="flex items-baseline justify-between">
-                      <h3 className="apple-card-heading text-[#0D3B1E]">
-                        Laboratorios, Invernaderos y Cámaras Frías
-                      </h3>
-                      <span className="text-[28px] font-semibold text-[#15803D] font-display tabular-nums">
-                        4.2°C
-                      </span>
-                    </div>
-                    <p className="text-[14px] text-[#3B694C]">
-                      Supervisión ininterrumpida 24/7 con trazabilidad histórica completa y respuesta inmediata para proteger cultivos e insumos sensibles.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-[#F2F8F4] rounded-[28px] overflow-hidden flex flex-col justify-between">
-                  <div className="relative h-60 w-full overflow-hidden">
-                    <OptimizedImage
-                      baseName="module-climate-chamber"
-                      alt="Control ambiental en tiempo real con alertas automáticas"
-                      priority={false}
-                      className="w-full h-full object-cover opacity-85"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#F2F8F4] via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 apple-badge-orange">ALERTAS AUTOMÁTICAS</span>
-                  </div>
-                  <div className="p-6 space-y-2">
-                    <div className="flex items-baseline justify-between">
-                      <h3 className="apple-card-heading text-[#0D3B1E]">
-                        Detección Temprana de Excursiones
-                      </h3>
-                      <span className="text-[28px] font-semibold text-[#DC2626] font-display tabular-nums">
-                        +3.1σ
-                      </span>
-                    </div>
-                    <p className="text-[14px] text-[#3B694C]">
-                      Cuando una variable supera los rangos establecidos, el motor dispara alertas con debouncing y diagnóstico IA transmitido token a token.
-                    </p>
-                  </div>
+                  <h3 className="text-[20px] font-medium text-pure-white">{cap.title}</h3>
+                  <p className="text-[15px] text-slate-text leading-[1.5]">{cap.desc}</p>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              {/* Three-column Feature Metric Tiles (#F2F8F4, 28px radius, 16px padding, no shadow) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px]">
-                {aboutCapabilities.map((item, idx) => (
-                  <ScrollReveal
-                    key={idx}
-                    animation="slide-up"
-                    delay={idx * 60}
-                    lazy
-                    skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
-                  >
-                    <div className="bg-[#F2F8F4] rounded-[28px] p-[16px] h-full flex flex-col justify-between space-y-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[12px] text-[#3B694C] font-semibold uppercase tracking-[-0.12px]">
-                            Telemetría SIMOA
-                          </span>
-                          {item.icon}
-                        </div>
-                        <div className={`apple-metric-display ${item.metricColor} py-1 tabular-nums`}>
-                          {item.metric}
-                        </div>
-                        <h3 className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#0D3B1E]">
-                          {item.title}
-                        </h3>
-                        <p className="text-[14px] leading-[1.29] tracking-[-0.224px] text-[#3B694C]">
-                          {item.desc}
-                        </p>
-                      </div>
-                      <div className="pt-2 flex items-center gap-1.5 text-[12px] text-[#3B694C]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" />
-                        <span>Módulo activo en tiempo real</span>
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                ))}
+      {/* 8. LIGHT CONTACT CARD (#edf7f5 Mint Frost, 60px radius) */}
+      <section id="contacto" className="relative z-10 py-16 px-6">
+        <div className="max-w-[1200px] mx-auto sauce-card-mint p-8 sm:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          <div className="space-y-5">
+            <p className="sauce-eyebrow text-obsidian-shell">CONTACTO TÉCNICO</p>
+            <h2 className="sauce-heading text-obsidian-shell">
+              Integra SIMOA con tus nodos ESP32.
+            </h2>
+            <p className="text-[16px] text-graphite-fill leading-[1.5]">
+              Solicita una demostración o prueba el simulador de campo integrado para validar
+              umbrales térmicos, alertas y reportes.
+            </p>
+            <div className="pt-2 space-y-3 text-[15px] text-obsidian-shell">
+              <div className="flex items-center gap-2.5">
+                <Server className="w-4 h-4 text-obsidian-shell" />
+                <span>Soporte MQTTS TLS 1.3 (Puerto 8883)</span>
               </div>
-            </div>
-          </section>
-
-          {/* 5. FEATURE MEDIA CARDS */}
-          <section id="funcionalidades" className="py-12 px-4 sm:px-6 bg-transparent">
-            <div className="max-w-7xl mx-auto space-y-10">
-              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#15803D] block">
-                  Soluciones de Monitoreo Integral
-                </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
-                  Seis módulos. Un ecosistema continuo.
-                </h2>
-                <p className="apple-body text-[#3B694C]">
-                  Arquitectura completa para supervisar cada punto de tu operación ambiental desde la captura en campo hasta el análisis predictivo.
-                </p>
-              </ScrollReveal>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[24px]">
-                {functionalModules.map((mod, idx) => (
-                  <ScrollReveal
-                    key={idx}
-                    animation="slide-up"
-                    delay={idx * 70}
-                    lazy
-                    skeleton={<SkeletonBox className="h-80" rounded="rounded-[28px]" />}
-                  >
-                    <div className="bg-[#FFFFFF] border border-[#C8E6C9]/80 shadow-xs rounded-[28px] overflow-hidden flex flex-col justify-between h-full">
-                      {/* Media Header */}
-                      <div className="relative h-44 w-full bg-[#F2F8F4] overflow-hidden">
-                        <OptimizedImage
-                          baseName={mod.imageBase}
-                          alt={mod.imageAlt}
-                          priority={false}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#FFFFFF] via-transparent to-transparent" />
-                        <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                          <span className="text-[12px] font-semibold px-3 py-1 rounded-[980px] bg-[#FFFFFF]/95 text-[#0D3B1E] shadow-xs">
-                            {mod.tag}
-                          </span>
-                          <span className="apple-badge-orange">{mod.highlight}</span>
-                        </div>
-                      </div>
-
-                      <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
-                        <div className="space-y-3">
-                          <div className="bg-[#F2F8F4] rounded-[28px] p-[16px] flex items-center justify-between">
-                            <div className="space-y-0.5">
-                              <span className="text-[12px] text-[#3B694C] block">Indicador Operativo</span>
-                              <span className={`apple-metric-display ${mod.metricTone} tabular-nums`}>
-                                {mod.metricValue}
-                              </span>
-                            </div>
-                            <div className="w-11 h-11 rounded-full bg-[#FFFFFF] flex items-center justify-center">
-                              {mod.icon}
-                            </div>
-                          </div>
-
-                          <h3 className="apple-card-heading text-[#0D3B1E] pt-1">
-                            {mod.title}
-                          </h3>
-
-                          <p className="text-[14px] leading-[1.4] tracking-[-0.224px] text-[#3B694C]">
-                            {mod.desc}
-                          </p>
-                        </div>
-
-                        <div className="pt-3 border-t border-[#C8E6C9]/60 flex items-center justify-between">
-                          <button
-                            onClick={() => onEnterSystem()}
-                            className="apple-inline-link text-[14px] font-semibold flex items-center gap-1 cursor-pointer"
-                          >
-                            <span>Explorar solución</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
-                          <span className="text-[11px] font-semibold text-[#15803D]">● En tiempo real</span>
-                        </div>
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                ))}
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-obsidian-shell" />
+                <span>Trazabilidad auditada de mediciones e incidencias</span>
               </div>
-            </div>
-          </section>
-
-          {/* 6. SECCIÓN DE TECNOLOGÍAS */}
-          <section id="tecnologias" className="px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto bg-[#FFFFFF]/90 backdrop-blur-sm border border-[#C8E6C9]/80 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
-              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#3B694C] block">
-                  Stack & Protocolos
-                </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
-                  Ingeniería abierta de grado industrial.
-                </h2>
-                <p className="apple-body text-[#3B694C]">
-                  Estándares abiertos de baja latencia con compresión Brotli/Gzip, caché Redis, pool de conexiones co-localizado y trazabilidad OpenTelemetry.
-                </p>
-              </ScrollReveal>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
-                {techStack.map((tech, idx) => (
-                  <ScrollReveal
-                    key={idx}
-                    animation="slide-up"
-                    delay={idx * 80}
-                    lazy
-                    skeleton={<SkeletonBox className="h-56" rounded="rounded-[28px]" />}
-                  >
-                    <div className="bg-[#F2F8F4] rounded-[28px] p-[16px] flex flex-col justify-between h-full space-y-4">
-                      <div className="space-y-2">
-                        <span className="text-[12px] font-semibold text-[#3B694C] uppercase tracking-[-0.12px]">
-                          {tech.category}
-                        </span>
-                        <h3 className="apple-card-heading text-[#0D3B1E]">
-                          {tech.name}
-                        </h3>
-                        <p className="text-[14px] leading-[1.35] tracking-[-0.224px] text-[#3B694C]">
-                          {tech.desc}
-                        </p>
-                      </div>
-                      <div className="pt-3 border-t border-[#C8E6C9]/60">
-                        <span className="text-[12px] font-mono text-[#15803D] font-semibold">
-                          {tech.badge}
-                        </span>
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                ))}
+              <div className="flex items-center gap-2.5">
+                <Radio className="w-4 h-4 text-obsidian-shell" />
+                <span>Simulador de campo integrado en la consola</span>
               </div>
-            </div>
-          </section>
-
-          {/* 7. SECCIÓN DE FUNCIONAMIENTO */}
-          <section id="funcionamiento" className="py-12 px-4 sm:px-6 bg-transparent">
-            <div className="max-w-7xl mx-auto space-y-10">
-              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#3B694C] block">
-                  Flujo de información secuencial
-                </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
-                  Del sensor al dashboard en milisegundos.
-                </h2>
-                <p className="apple-body text-[#3B694C]">
-                  Trazabilidad completa desde la captura física en el nodo ESP32 hasta la evaluación por Inteligencia Artificial y la alerta en pantalla.
-                </p>
-              </ScrollReveal>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-[16px]">
-                {pipelineSteps.map((step, idx) => (
-                  <ScrollReveal
-                    key={idx}
-                    animation="scale-in"
-                    delay={idx * 70}
-                    lazy
-                    skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
-                  >
-                    <div className="bg-[#FFFFFF] p-[16px] rounded-[28px] space-y-3 h-full flex flex-col justify-between">
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[12px] font-mono font-semibold text-[#3B694C]">
-                            PASO {step.step}
-                          </span>
-                          <div className="w-8 h-8 rounded-full bg-[#F2F8F4] flex items-center justify-center">
-                            {step.icon}
-                          </div>
-                        </div>
-                        <h4 className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#0D3B1E]">
-                          {step.title}
-                        </h4>
-                        <p className="text-[12px] leading-[1.4] tracking-[-0.12px] text-[#3B694C]">
-                          {step.desc}
-                        </p>
-                      </div>
-                      <div className="text-[12px] text-[#1B5E20] font-semibold pt-1">
-                        Etapa verificada →
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* 8. SECCIÓN DE CONTACTO Y DESPLIEGUE COMERCIAL */}
-          <section id="contacto" className="bg-[#E7F3EB]/80 backdrop-blur-[2px] border-t border-[#C8E6C9] text-[#0D3B1E] py-20 px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto space-y-10">
-              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[12px] font-semibold uppercase tracking-wider text-[#1B5E20]">
-                  Atención y Despliegue Empresarial
-                </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
-                  Implementa SIMOA en tu operación.
-                </h2>
-                <p className="apple-body text-[#3B694C]">
-                  Configura tu red de sensores ambientales para invernaderos, laboratorios, cámaras de frío o bodegas. Nuestro equipo especialista te asesora en la instalación y calibración.
-                </p>
-              </ScrollReveal>
-
-              <ScrollReveal animation="slide-up" delay={100}>
-                <div className="bg-[#FFFFFF] border border-[#C8E6C9] shadow-sm text-[#0D3B1E] rounded-[28px] p-6 sm:p-12 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                  {/* Columna de Información Comercial */}
-                  <div className="lg:col-span-5 space-y-6">
-                    <div className="space-y-3">
-                      <div className="inline-block px-3 py-1.5 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9]">
-                        <img
-                          src="/assets/images/simoa-logo.webp"
-                          alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-                          className="h-10 w-auto object-contain"
-                        />
-                      </div>
-                      <span className="apple-badge-orange block w-fit">SOLUCIONES A MEDIDA</span>
-                      <h3 className="apple-card-heading text-[#0D3B1E] pt-1">
-                        Ecosistema de Monitoreo Ambiental
-                      </h3>
-                      <p className="text-[14px] leading-[1.45] tracking-[-0.224px] text-[#3B694C]">
-                        Integramos nodos inalámbricos de alta precisión con transmisión segura en tiempo real, paneles analíticos y alertas predictivas.
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="p-[16px] rounded-[20px] bg-[#F2F8F4] border border-[#C8E6C9]/60 flex items-start gap-3">
-                        <ShieldCheck className="w-5 h-5 text-[#15803D] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[12px] text-[#3B694C] block">Variables Supervisadas</span>
-                          <span className="text-[14px] font-semibold text-[#0D3B1E] block">
-                            Temperatura (°C), Humedad Relativa (%RH) y Punto de Rocío
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="p-[16px] rounded-[20px] bg-[#F2F8F4] border border-[#C8E6C9]/60 flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-[#15803D] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[12px] text-[#3B694C] block">Sectores de Aplicación</span>
-                          <span className="text-[14px] font-semibold text-[#0D3B1E] block">
-                            Agroindustria, Invernaderos, Laboratorios y Cadena de Frío
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="p-[16px] rounded-[20px] bg-[#F2F8F4] border border-[#C8E6C9]/60 flex items-start gap-3">
-                        <Clock className="w-5 h-5 text-[#15803D] shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[12px] text-[#3B694C] block">Disponibilidad y Soporte</span>
-                          <span className="text-[14px] font-semibold text-[#15803D] block">
-                            Monitoreo continuo 24/7 con alertas instantáneas
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Columna de Formulario Comercial */}
-                  <div className="lg:col-span-7 bg-[#F2F8F4] border border-[#C8E6C9]/70 rounded-[28px] p-6 sm:p-8 space-y-5">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#0D3B1E] flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-[#15803D]" />
-                        <span>Solicitar Asesoría o Cotización</span>
-                      </h4>
-                    </div>
-
-                    {contactSent ? (
-                      <div className="p-5 rounded-[28px] bg-[#FFFFFF] border border-[#A5D6A7] text-[#15803D] text-[14px] font-semibold flex items-center gap-2.5">
-                        <CheckCircle2 className="w-5 h-5 text-[#15803D] shrink-0" />
-                        <span>¡Solicitud enviada con éxito! Nuestro equipo se pondrá en contacto contigo pronto.</span>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleContactSubmit} className="space-y-4 text-[14px]">
-                        <div>
-                          <label className="block text-[12px] font-semibold text-[#265336] mb-1.5">
-                            Tipo de Solución o Espacio a Monitorear
-                          </label>
-                          <select
-                            value={contactHardwareModel}
-                            onChange={(e) => setContactHardwareModel(e.target.value)}
-                            className="apple-pill-select w-full py-2.5 text-[14px]"
-                          >
-                            <option value="ESP32-WROOM + Sensor DHT22">Invernadero / Cultivo Protegido (Temperatura y Humedad)</option>
-                            <option value="ESP32-WROOM + Bosch BME280">Laboratorio Clínico o Farmacéutico (Alta Precisión)</option>
-                            <option value="Gateway MQTTS + Sensirion SHT31">Cámara de Conservación / Cadena de Frío</option>
-                            <option value="ESP8266 NodeMCU + DHT11">Bodega de Almacenamiento o Recinto Interior</option>
-                          </select>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[12px] font-semibold text-[#265336] mb-1.5">
-                              Nombre Completo o Empresa
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="Tu nombre o empresa"
-                              value={contactName}
-                              onChange={(e) => setContactName(e.target.value)}
-                              className="apple-pill-input w-full py-2.5 text-[14px] placeholder-[#4A7C59]/70"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[12px] font-semibold text-[#265336] mb-1.5">
-                              Correo Electrónico
-                            </label>
-                            <input
-                              type="email"
-                              required
-                              placeholder="contacto@empresa.com"
-                              value={contactEmail}
-                              onChange={(e) => setContactEmail(e.target.value)}
-                              className="apple-pill-input w-full py-2.5 text-[14px] placeholder-[#4A7C59]/70"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[12px] font-semibold text-[#265336] mb-1.5">
-                            Detalles del Proyecto
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Cuéntanos cuántos puntos de medición necesitas o las condiciones de tu espacio..."
-                            value={contactMessage}
-                            onChange={(e) => setContactMessage(e.target.value)}
-                            className="apple-pill-input w-full py-2.5 text-[14px] placeholder-[#4A7C59]/70"
-                          />
-                        </div>
-
-                        <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
-                          <button
-                            type="submit"
-                            className="apple-blue-pill px-6 py-2.5 text-[14px] font-semibold flex items-center gap-2 cursor-pointer"
-                          >
-                            <Send className="w-3.5 h-3.5" />
-                            <span>Enviar Solicitud</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => onEnterSystem('dashboard')}
-                            className="apple-white-outline-pill py-2.5 text-[12px] font-semibold cursor-pointer"
-                          >
-                            Acceder al Dashboard →
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
-                </div>
-              </ScrollReveal>
-            </div>
-          </section>
-        </main>
-      )}
-
-      {/* 9. FOOTER COMERCIAL */}
-      <footer className="relative z-10 py-12 bg-[#FFFFFF]/95 backdrop-blur-sm border-t border-[#C8E6C9]/80 text-[12px] text-[#3B694C]">
-        <div className="max-w-7xl mx-auto px-6 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-3">
-              <div className="inline-block px-3 py-1.5 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9]">
-                <img
-                  src="/assets/images/simoa-logo.webp"
-                  alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-                  className="h-9 w-auto object-contain"
-                />
-              </div>
-              <p className="text-[12px] text-[#3B694C] leading-relaxed">
-                Sistema Inteligente de Monitoreo Ambiental con telemetría IoT en tiempo real, trazabilidad histórica y detección temprana de anomalías con Inteligencia Artificial.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <span className="font-semibold text-[#0D3B1E] text-[13px] block">
-                Navegación
-              </span>
-              <ul className="space-y-1.5">
-                <li><a href="#inicio" className="hover:text-[#1B5E20] transition-colors">Inicio</a></li>
-                <li><a href="#acerca" className="hover:text-[#1B5E20] transition-colors">Nosotros</a></li>
-                <li><a href="#funcionalidades" className="hover:text-[#1B5E20] transition-colors">Soluciones</a></li>
-                <li><a href="#tecnologias" className="hover:text-[#1B5E20] transition-colors">Tecnología</a></li>
-                <li><a href="#funcionamiento" className="hover:text-[#1B5E20] transition-colors">Cómo Funciona</a></li>
-              </ul>
-            </div>
-
-            <div className="space-y-2">
-              <span className="font-semibold text-[#0D3B1E] text-[13px] block">
-                Soluciones Ambientales
-              </span>
-              <ul className="space-y-1.5 text-[#3B694C]">
-                <li>Monitoreo de Invernaderos</li>
-                <li>Control de Cadena de Frío</li>
-                <li>Supervisión de Laboratorios</li>
-                <li>Alertas Preventivas 24/7</li>
-                <li>Diagnóstico con Inteligencia Artificial</li>
-              </ul>
-            </div>
-
-            <div className="space-y-3">
-              <span className="font-semibold text-[#0D3B1E] text-[13px] block">
-                Plataforma en Línea
-              </span>
-              <p className="text-[12px] text-[#3B694C]">
-                Accede en tiempo real al panel de control de tus sensores, alertas y reportes.
-              </p>
-              <button
-                onClick={() => onEnterSystem('dashboard')}
-                className="apple-blue-pill px-5 py-2.5 text-[12px] font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Ingresar al Sistema</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#C8E6C9]/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-[#4A7C59]">
+          <form onSubmit={handleContactSubmit} className="space-y-4">
             <div>
-              © 2026 SIMOA · Sistema Inteligente de Monitoreo Ambiental. Todos los derechos reservados.
+              <label className="block text-[14px] font-medium text-obsidian-shell mb-1.5">
+                Nombre completo
+              </label>
+              <input
+                type="text"
+                required
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
+                placeholder="Ej. Laura Gómez"
+                className="sauce-input w-full px-4 py-2.5"
+              />
             </div>
-            <div className="flex items-center gap-4">
-              <a href="#contacto" className="hover:text-[#1B5E20] transition-colors">Soporte Técnico</a>
-              <span>·</span>
-              <a href="#inicio" className="hover:text-[#1B5E20] transition-colors">Privacidad y Seguridad</a>
+            <div>
+              <label className="block text-[14px] font-medium text-obsidian-shell mb-1.5">
+                Correo institucional
+              </label>
+              <input
+                type="email"
+                required
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="nombre@organizacion.org"
+                className="sauce-input w-full px-4 py-2.5"
+              />
             </div>
+            <div>
+              <label className="block text-[14px] font-medium text-obsidian-shell mb-1.5">
+                Hardware de interés
+              </label>
+              <select
+                value={contactHardwareModel}
+                onChange={(e) => setContactHardwareModel(e.target.value)}
+                className="sauce-input w-full px-4 py-2.5"
+              >
+                <option>ESP32-WROOM + Sensor DHT22</option>
+                <option>ESP32 + Sensor Bosch BME280</option>
+                <option>Gateway Industrial + Sensirion SHT31</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[14px] font-medium text-obsidian-shell mb-1.5">
+                Mensaje o requerimiento
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={contactMessage}
+                onChange={(e) => setContactMessage(e.target.value)}
+                placeholder="Describe los recintos o variables ambientales a monitorear..."
+                className="sauce-input w-full px-4 py-2.5"
+              />
+            </div>
+
+            {contactSent ? (
+              <div className="p-4 rounded-[10px] bg-pure-white border border-neon-pulse text-obsidian-shell text-[14px] flex items-center gap-2 font-medium">
+                <CheckCircle2 className="w-4 h-4 text-obsidian-shell" />
+                Solicitud registrada correctamente. Nuestro equipo responderá pronto.
+              </div>
+            ) : (
+              <button
+                type="submit"
+                className="sauce-btn-primary w-full cursor-pointer inline-flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Enviar solicitud
+              </button>
+            )}
+          </form>
+        </div>
+      </section>
+
+      {/* 9. FOOTER — Deep Abyss (#0e1a19) */}
+      <footer className="relative z-10 bg-deep-abyss text-pure-white py-20 px-6 mt-12">
+        <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="space-y-4 md:col-span-2">
+            <div className="flex items-center gap-2.5">
+              <span className="w-3 h-3 rounded-full bg-neon-pulse" />
+              <span className="text-[20px] font-medium text-pure-white">SIMOA</span>
+            </div>
+            <p className="text-[14px] text-slate-text max-w-[380px] leading-[1.6]">
+              Sistema Inteligente de Monitoreo Ambiental IoT. Telemetría continua, gestión de nodos
+              ESP32 y diagnóstico predictivo con IA.
+            </p>
           </div>
+
+          <div className="space-y-3 text-[14px]">
+            <p className="sauce-eyebrow text-neon-pulse">CONSOLA</p>
+            <ul className="space-y-2.5 text-slate-text">
+              <li>
+                <button
+                  onClick={() => onEnterSystem('dashboard')}
+                  className="hover:text-pure-white cursor-pointer"
+                >
+                  Monitoreo en Vivo
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onEnterSystem('devices')}
+                  className="hover:text-pure-white cursor-pointer"
+                >
+                  Dispositivos
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onEnterSystem('analytics')}
+                  className="hover:text-pure-white cursor-pointer"
+                >
+                  Histórico y CSV
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onEnterSystem('ai')}
+                  className="hover:text-pure-white cursor-pointer"
+                >
+                  Diagnóstico IA
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-3 text-[14px]">
+            <p className="sauce-eyebrow text-neon-pulse">SISTEMA</p>
+            <ul className="space-y-2.5 text-slate-text">
+              <li>
+                <a href="#modulos" className="hover:text-pure-white">
+                  Módulos
+                </a>
+              </li>
+              <li>
+                <a href="#capacidades" className="hover:text-pure-white">
+                  Capacidades
+                </a>
+              </li>
+              <li>
+                <a href="#arquitectura" className="hover:text-pure-white">
+                  Arquitectura MQTTS
+                </a>
+              </li>
+              <li>
+                <a href="#contacto" className="hover:text-pure-white">
+                  Contacto
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-[1200px] mx-auto mt-14 pt-8 border-t border-graphite-fill flex flex-wrap items-center justify-between gap-4 text-[13px] text-slate-text">
+          <span>© 2026 SIMOA · Sistema Inteligente de Monitoreo Ambiental</span>
+          <span>Consola IoT · Luz Eliana Sánchez Tovar</span>
         </div>
       </footer>
     </div>
   );
 };
-
-export default EnvironmentalLandingPage;

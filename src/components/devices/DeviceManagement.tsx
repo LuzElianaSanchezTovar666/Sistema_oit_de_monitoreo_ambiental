@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+﻿import React, { useState, useMemo, useCallback } from 'react';
 import {
   Plus,
   Cpu,
@@ -168,11 +168,11 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
       {/* Header y Acciones */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="apple-card-heading text-[#0D3B1E] flex items-center gap-2.5">
-            <Cpu className="w-6 h-6 text-[#15803D]" />
+          <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
+            <Cpu className="w-6 h-6 text-canopy" />
             <span>Gestión de Nodos IoT y Sensores</span>
           </h2>
-          <p className="text-[14px] text-[#3B694C] mt-1">
+          <p className="text-[14px] text-slate mt-1">
             Búsqueda con debounce (280ms) · Autocompletado indexado O(1) sin consultas N+1 · Paginación activa
           </p>
         </div>
@@ -187,9 +187,9 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
       </div>
 
       {/* Barra de Filtros, Búsqueda con Debounce y Autocompletado */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#FFFFFF] p-4 rounded-[28px]">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-sheet-white p-4 rounded-[16px]">
         <div className="relative w-full sm:w-96">
-          <Search className="w-3.5 h-3.5 absolute left-4 top-3 text-[#3B694C]" />
+          <Search className="w-3.5 h-3.5 absolute left-4 top-3 text-slate" />
           <input
             type="text"
             placeholder="Buscar por nombre, tipo o MAC (Debounce 280ms)..."
@@ -206,8 +206,8 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
 
           {/* Dropdown de Autocompletado con Debounce */}
           {showAutocomplete && autocompleteSuggestions.length > 0 && (
-            <div className="absolute left-0 right-0 mt-2 rounded-[20px] bg-[#F2F8F4] border border-[#C8E6C9] p-2 z-30 space-y-1">
-              <div className="px-3 py-1 text-[10px] font-mono text-[#3B694C] uppercase">
+            <div className="absolute left-0 right-0 mt-2 rounded-[16px] bg-cream-paper border border-sage-mist p-2 z-30 space-y-1">
+              <div className="px-3 py-1 text-[10px] font-mono text-slate uppercase">
                 Autocompletado Instantáneo (Índice O(1))
               </div>
               {autocompleteSuggestions.map((sug) => (
@@ -218,26 +218,26 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                     setSearchTerm(sug.nombre);
                     setShowAutocomplete(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] hover:bg-[#FFFFFF] text-left text-xs"
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-[12px] hover:bg-sheet-white text-left text-xs"
                 >
-                  <span className="font-semibold text-[#0D3B1E]">{sug.nombre}</span>
-                  <span className="font-mono text-[11px] text-[#15803D]">{sug.mac_address}</span>
+                  <span className="font-semibold text-bark">{sug.nombre}</span>
+                  <span className="font-mono text-[11px] text-canopy">{sug.mac_address}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-1 p-1 bg-[#F2F8F4] rounded-[980px] text-[12px] self-stretch sm:self-auto justify-center">
+        <div className="flex items-center gap-1 p-1 bg-cream-paper rounded-[8px] text-[12px] self-stretch sm:self-auto justify-center">
           <button
             onClick={() => {
               setSelectedFilter('all');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-[980px] transition-colors ${
+            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               selectedFilter === 'all'
-                ? 'bg-[#E3F2E6] text-[#0D3B1E] font-semibold'
-                : 'text-[#3B694C] hover:text-[#0D3B1E]'
+                ? 'bg-cream-paper text-bark font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             Todos ({devices.length})
@@ -247,10 +247,10 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
               setSelectedFilter('ONLINE');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-[980px] transition-colors ${
+            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               selectedFilter === 'ONLINE'
-                ? 'bg-[#E3F2E6] text-[#15803D] font-semibold'
-                : 'text-[#3B694C] hover:text-[#0D3B1E]'
+                ? 'bg-cream-paper text-canopy font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             Online ({devices.filter((d) => d.estado === 'ONLINE').length})
@@ -260,10 +260,10 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
               setSelectedFilter('OFFLINE');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-[980px] transition-colors ${
+            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               selectedFilter === 'OFFLINE'
-                ? 'bg-[#E3F2E6] text-[#0D3B1E] font-semibold'
-                : 'text-[#3B694C] hover:text-[#0D3B1E]'
+                ? 'bg-cream-paper text-bark font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             Offline ({devices.filter((d) => d.estado === 'OFFLINE').length})
@@ -282,16 +282,16 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
           return (
             <div
               key={dev.id_dispositivo}
-              className="bg-[#FFFFFF] rounded-[28px] p-5 space-y-4 flex flex-col justify-between"
+              className="bg-sheet-white rounded-[16px] p-5 space-y-4 flex flex-col justify-between"
             >
               <div className="space-y-3">
                 {/* Encabezado de Tarjeta */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-[17px] font-semibold tracking-[-0.374px] text-[#0D3B1E]">
+                    <h3 className="text-[17px] font-semibold tracking-[-0.374px] text-bark">
                       {dev.nombre}
                     </h3>
-                    <div className="flex items-center gap-1.5 text-[12px] text-[#3B694C] mt-0.5">
+                    <div className="flex items-center gap-1.5 text-[12px] text-slate mt-0.5">
                       <span>{loc?.nombre || 'Sin Ubicación'}</span>
                       <span>·</span>
                       <span className="font-mono text-[11px]">{dev.tipo}</span>
@@ -303,33 +303,33 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                     title="Cambiar estado de conexión (Optimistic UI)"
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-[5px] text-[10px] font-mono font-semibold transition-colors ${
                       isOnline
-                        ? 'bg-[#15803D]/15 text-[#15803D]'
-                        : 'bg-[#E3F2E6] text-[#3B694C]'
+                        ? 'bg-canopy/15 text-canopy'
+                        : 'bg-cream-paper text-slate'
                     }`}
                   >
-                    {isOnline ? <Wifi className="w-3 h-3 text-[#15803D]" /> : <WifiOff className="w-3 h-3 text-[#3B694C]" />}
+                    {isOnline ? <Wifi className="w-3 h-3 text-canopy" /> : <WifiOff className="w-3 h-3 text-slate" />}
                     <span>{dev.estado}</span>
                   </button>
                 </div>
 
-                {/* Especificaciones Técnicas en Tile #F2F8F4 (28px radius, 16px padding) */}
-                <div className="space-y-1.5 text-xs font-mono bg-[#F2F8F4] p-[16px] rounded-[28px]">
-                  <div className="flex items-center justify-between text-[#0D3B1E]">
-                    <span className="text-[#3B694C] font-sans">MAC:</span>
+                {/* Especificaciones Técnicas en Tile #f3f1ec (28px radius, 16px padding) */}
+                <div className="space-y-1.5 text-xs font-mono bg-cream-paper p-[16px] rounded-[16px]">
+                  <div className="flex items-center justify-between text-bark">
+                    <span className="text-slate font-sans">MAC:</span>
                     <span className="font-semibold">{dev.mac_address}</span>
                   </div>
-                  <div className="flex items-center justify-between text-[#0D3B1E]">
-                    <span className="text-[#3B694C] font-sans">IP / RSSI:</span>
+                  <div className="flex items-center justify-between text-bark">
+                    <span className="text-slate font-sans">IP / RSSI:</span>
                     <span>{dev.ip_address} · {dev.rssi_dbm} dBm</span>
                   </div>
-                  <div className="flex items-center justify-between text-[#0D3B1E]">
-                    <span className="text-[#3B694C] font-sans">Sensor Activo:</span>
-                    <span className="font-semibold text-[#15803D]">
+                  <div className="flex items-center justify-between text-bark">
+                    <span className="text-slate font-sans">Sensor Activo:</span>
+                    <span className="font-semibold text-canopy">
                       {sensor ? `${sensor.tipo_sensor}` : 'Sin sensor'}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-[#0D3B1E]">
-                    <span className="text-[#3B694C] font-sans">Responsable:</span>
+                  <div className="flex items-center justify-between text-bark">
+                    <span className="text-slate font-sans">Responsable:</span>
                     <span className="font-sans truncate max-w-[130px]">{user?.nombre}</span>
                   </div>
                 </div>
@@ -337,14 +337,14 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                 {/* Umbrales Actuales */}
                 {sensor && (
                   <div className="space-y-1.5 text-xs">
-                    <div className="text-[11px] font-semibold text-[#3B694C] uppercase tracking-wider">
+                    <div className="text-[11px] font-semibold text-slate uppercase tracking-wider">
                       Límites Operacionales
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-                      <div className="p-2.5 rounded-[14px] bg-[#F2F8F4] text-[#0D3B1E]">
-                        Temp: <span className="font-semibold text-[#15803D]">{sensor.limites.temp_min}° a {sensor.limites.temp_max}°C</span>
+                      <div className="p-2.5 rounded-[14px] bg-cream-paper text-bark">
+                        Temp: <span className="font-semibold text-canopy">{sensor.limites.temp_min}° a {sensor.limites.temp_max}°C</span>
                       </div>
-                      <div className="p-2.5 rounded-[14px] bg-[#F2F8F4] text-[#0D3B1E]">
+                      <div className="p-2.5 rounded-[14px] bg-cream-paper text-bark">
                         Hum: <span className="font-semibold">{sensor.limites.hum_min}% a {sensor.limites.hum_max}%</span>
                       </div>
                     </div>
@@ -353,12 +353,12 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
               </div>
 
               {/* Botones de Acción */}
-              <div className="pt-3 flex items-center justify-between border-t border-[#C8E6C9]/60 text-xs">
+              <div className="pt-3 flex items-center justify-between border-t border-sage-mist/60 text-xs">
                 <button
                   onClick={() => setCredentialsModalDevice(dev)}
-                  className="flex items-center gap-1.5 text-[#0D3B1E] hover:text-[#1B5E20] font-medium transition-colors"
+                  className="flex items-center gap-1.5 text-bark hover:text-canopy font-medium transition-colors"
                 >
-                  <Key className="w-3.5 h-3.5 text-[#3B694C]" />
+                  <Key className="w-3.5 h-3.5 text-slate" />
                   <span>Credenciales MQTT</span>
                 </button>
 
@@ -378,8 +378,8 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
       </div>
 
       {/* Controles de Paginación de Resultados */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#FFFFFF] px-5 py-3.5 rounded-[28px] text-xs">
-        <span className="text-[#3B694C] font-mono">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-sheet-white px-5 py-3.5 rounded-[16px] text-xs">
+        <span className="text-slate font-mono">
           Página {paginated.page} de {paginated.totalPages} · Mostrando {paginated.items.length} de {paginated.totalItems} dispositivos
         </span>
         <div className="flex items-center gap-2">
@@ -405,15 +405,15 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
       {/* Modal: Registrar Nuevo Dispositivo */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-          <div className="bg-[#FFFFFF] border border-[#C8E6C9] rounded-[28px] w-full max-w-lg p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#C8E6C9] pb-3">
-              <h3 className="text-[17px] font-semibold text-[#0D3B1E] flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-[#15803D]" />
+          <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
+            <div className="flex items-center justify-between border-b border-sage-mist pb-3">
+              <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
+                <Cpu className="w-5 h-5 text-canopy" />
                 <span>Alta de Nodo IoT y Configuración</span>
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-[#3B694C] hover:text-[#0D3B1E] text-sm font-semibold"
+                className="text-slate hover:text-bark text-sm font-semibold"
               >
                 ✕
               </button>
@@ -421,7 +421,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
 
             <form onSubmit={handleCreateDevice} className="space-y-4 text-xs">
               <div>
-                <label className="block text-[#3B694C] font-semibold mb-1.5">
+                <label className="block text-slate font-semibold mb-1.5">
                   Nombre del Nodo / Identificador
                 </label>
                 <input
@@ -436,7 +436,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#3B694C] font-semibold mb-1.5">
+                  <label className="block text-slate font-semibold mb-1.5">
                     Dirección MAC (Validación estricta)
                   </label>
                   <input
@@ -456,7 +456,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                 </div>
 
                 <div>
-                  <label className="block text-[#3B694C] font-semibold mb-1.5">
+                  <label className="block text-slate font-semibold mb-1.5">
                     Tipo de Microcontrolador
                   </label>
                   <select
@@ -474,7 +474,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[#3B694C] font-semibold mb-1.5">
+                  <label className="block text-slate font-semibold mb-1.5">
                     Ubicación Asignada
                   </label>
                   <select
@@ -491,7 +491,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                 </div>
 
                 <div>
-                  <label className="block text-[#3B694C] font-semibold mb-1.5">
+                  <label className="block text-slate font-semibold mb-1.5">
                     Usuario / Operador Responsable
                   </label>
                   <select
@@ -509,9 +509,9 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
               </div>
 
               {/* Asignación de Sensor y Umbrales */}
-              <div className="p-4 bg-[#F2F8F4] rounded-[28px] space-y-3">
+              <div className="p-4 bg-cream-paper rounded-[16px] space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-[#0D3B1E]">
+                  <span className="font-semibold text-bark">
                     Sonda / Sensor Conectado
                   </span>
                   <select
@@ -528,7 +528,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
                   <div>
-                    <label className="block text-[10px] text-[#3B694C] mb-1">Mín Temp (°C)</label>
+                    <label className="block text-[10px] text-slate mb-1">Mín Temp (°C)</label>
                     <input
                       type="number"
                       step="0.5"
@@ -538,7 +538,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#3B694C] mb-1">Máx Temp (°C)</label>
+                    <label className="block text-[10px] text-slate mb-1">Máx Temp (°C)</label>
                     <input
                       type="number"
                       step="0.5"
@@ -548,7 +548,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#3B694C] mb-1">Mín Hum (%RH)</label>
+                    <label className="block text-[10px] text-slate mb-1">Mín Hum (%RH)</label>
                     <input
                       type="number"
                       step="1"
@@ -558,7 +558,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-[#3B694C] mb-1">Máx Hum (%RH)</label>
+                    <label className="block text-[10px] text-slate mb-1">Máx Hum (%RH)</label>
                     <input
                       type="number"
                       step="1"
@@ -570,7 +570,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#C8E6C9]">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-sage-mist">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -593,46 +593,46 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
       {/* Modal: Credenciales y Conexión MQTT */}
       {credentialsModalDevice && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-          <div className="bg-[#FFFFFF] border border-[#C8E6C9] rounded-[28px] w-full max-w-lg p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#C8E6C9] pb-3">
-              <h3 className="text-[17px] font-semibold text-[#0D3B1E] flex items-center gap-2">
+          <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
+            <div className="flex items-center justify-between border-b border-sage-mist pb-3">
+              <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
                 <Key className="w-5 h-5 text-[#D97706]" />
                 <span>Credenciales MQTT Broker Mosquitto</span>
               </h3>
               <button
                 onClick={() => setCredentialsModalDevice(null)}
-                className="text-[#3B694C] hover:text-[#0D3B1E] text-sm font-semibold"
+                className="text-slate hover:text-bark text-sm font-semibold"
               >
                 ✕
               </button>
             </div>
 
             <div className="space-y-4 text-xs font-mono">
-              <div className="p-4 rounded-[28px] bg-[#F2F8F4] text-[#0D3B1E] space-y-2">
-                <div className="flex items-center justify-between text-[#3B694C] text-[11px] pb-1.5 border-b border-[#C8E6C9]">
+              <div className="p-4 rounded-[16px] bg-cream-paper text-bark space-y-2">
+                <div className="flex items-center justify-between text-slate text-[11px] pb-1.5 border-b border-sage-mist">
                   <span>MQTT Broker Host:</span>
-                  <span className="text-[#15803D] font-semibold">broker.iot-ambiental.com</span>
+                  <span className="text-canopy font-semibold">broker.iot-ambiental.com</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#3B694C]">Puerto MQTTS (TLS 1.3):</span>
-                  <span className="text-[#15803D]">8883</span>
+                  <span className="text-slate">Puerto MQTTS (TLS 1.3):</span>
+                  <span className="text-canopy">8883</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#3B694C]">Client ID:</span>
-                  <span className="text-[#0D3B1E]">{credentialsModalDevice.mqtt_client_id}</span>
+                  <span className="text-slate">Client ID:</span>
+                  <span className="text-bark">{credentialsModalDevice.mqtt_client_id}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#3B694C]">Tópico Telemetría:</span>
+                  <span className="text-slate">Tópico Telemetría:</span>
                   <span className="text-[#D97706]">{credentialsModalDevice.mqtt_topic}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[#3B694C]">QoS Requerido:</span>
+                  <span className="text-slate">QoS Requerido:</span>
                   <span>1 (Al menos una entrega)</span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[11px] text-[#3B694C] font-sans">
+                <div className="flex items-center justify-between text-[11px] text-slate font-sans">
                   <span>Ejemplo de publicación Arduino ESP32:</span>
                   <button
                     onClick={() => {
@@ -642,11 +642,11 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                     }}
                     className="apple-inline-link flex items-center gap-1 font-semibold"
                   >
-                    {copiedKey ? <Check className="w-3 h-3 text-[#15803D]" /> : <Copy className="w-3 h-3" />}
+                    {copiedKey ? <Check className="w-3 h-3 text-canopy" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedKey ? 'Copiado' : 'Copiar Payload'}</span>
                   </button>
                 </div>
-                <pre className="p-3.5 rounded-[20px] bg-[#F2F8F4] text-[#0D3B1E] text-[11px] overflow-x-auto">
+                <pre className="p-3.5 rounded-[16px] bg-cream-paper text-bark text-[11px] overflow-x-auto">
 {`mqttClient.publish("${credentialsModalDevice.mqtt_topic}", 
   "{\\"mac\\":\\"${credentialsModalDevice.mac_address}\\",\\"temp\\":22.4,\\"hum\\":54.2}");`}
                 </pre>
@@ -668,15 +668,15 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
       {/* Modal: Ajustar Umbrales de Sensor */}
       {editingSensor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
-          <div className="bg-[#FFFFFF] border border-[#C8E6C9] rounded-[28px] w-full max-w-md p-6 sm:p-8 space-y-5">
-            <div className="flex items-center justify-between border-b border-[#C8E6C9] pb-3">
-              <h3 className="text-[17px] font-semibold text-[#0D3B1E] flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-[#15803D]" />
+          <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-md p-6 sm:p-8 space-y-5">
+            <div className="flex items-center justify-between border-b border-sage-mist pb-3">
+              <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-canopy" />
                 <span>Ajustar Umbrales Operacionales</span>
               </h3>
               <button
                 onClick={() => setEditingSensor(null)}
-                className="text-[#3B694C] hover:text-[#0D3B1E] text-sm font-semibold"
+                className="text-slate hover:text-bark text-sm font-semibold"
               >
                 ✕
               </button>
@@ -684,12 +684,12 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
 
             <div className="space-y-4 text-xs font-mono">
               <div className="space-y-2">
-                <label className="block text-[#0D3B1E] font-semibold font-sans">
+                <label className="block text-bark font-semibold font-sans">
                   Rango de Temperatura Operacional (°C)
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[10px] text-[#3B694C] block mb-1">Mínimo Nominal</span>
+                    <span className="text-[10px] text-slate block mb-1">Mínimo Nominal</span>
                     <input
                       type="number"
                       step="0.5"
@@ -704,7 +704,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#3B694C] block mb-1">Máximo Nominal</span>
+                    <span className="text-[10px] text-slate block mb-1">Máximo Nominal</span>
                     <input
                       type="number"
                       step="0.5"
@@ -722,12 +722,12 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[#0D3B1E] font-semibold font-sans">
+                <label className="block text-bark font-semibold font-sans">
                   Rango de Humedad Relativa (%RH)
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <span className="text-[10px] text-[#3B694C] block mb-1">Mínimo Nominal</span>
+                    <span className="text-[10px] text-slate block mb-1">Mínimo Nominal</span>
                     <input
                       type="number"
                       step="1"
@@ -742,7 +742,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#3B694C] block mb-1">Máximo Nominal</span>
+                    <span className="text-[10px] text-slate block mb-1">Máximo Nominal</span>
                     <input
                       type="number"
                       step="1"
@@ -760,7 +760,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2.5 pt-2 border-t border-[#C8E6C9]">
+            <div className="flex justify-end gap-2.5 pt-2 border-t border-sage-mist">
               <button
                 onClick={() => setEditingSensor(null)}
                 className="apple-white-outline-pill py-2 text-xs"

@@ -15,7 +15,6 @@ import {
   Medicion,
 } from './types/iot';
 import {
-  USUARIOS_INICIALES,
   UBICACIONES_INICIALES,
   getStoredDispositivos,
   saveStoredDispositivos,
@@ -40,7 +39,8 @@ import { Sidebar } from './components/layout/Sidebar';
 import { EnvironmentalLandingPage } from './components/landing/EnvironmentalLandingPage';
 import { LiveTelemetryView } from './components/dashboard/LiveTelemetryView';
 import { HeroSkeleton, CardGridSkeleton } from './components/common/SkeletonLoader';
-import { Check, AlertCircle, Smartphone } from 'lucide-react';
+import { Check, AlertCircle, Smartphone, Loader2 } from 'lucide-react';
+import { fetchCurrentUser, logoutSession, getDefaultTabForRole } from './services/authService';
 
 // ErrorBoundary para evitar pantallas vacías si falla un chunk o vista
 class SystemErrorBoundary extends React.Component<
@@ -57,9 +57,9 @@ class SystemErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-8 bg-[#FFFFFF] border border-[#C8E6C9] rounded-[28px] text-center space-y-4">
-          <h3 className="text-lg font-semibold text-[#0D3B1E]">Ocurrió un error al cargar el módulo</h3>
-          <p className="text-sm text-[#3B694C]">{this.state.message}</p>
+        <div className="p-8 bg-sheet-white border border-sage-mist rounded-[16px] text-center space-y-4">
+          <h3 className="text-lg font-semibold text-bark">Ocurrió un error al cargar el módulo</h3>
+          <p className="text-sm text-slate">{this.state.message}</p>
           <button
             onClick={() => {
               this.setState({ hasError: false, message: '' });
@@ -117,19 +117,10 @@ const PerformanceMonitorModal = React.lazy(() =>
     default: m.PerformanceMonitorModal,
   }))
 );
-const SrsDocumentationView = React.lazy(() =>
-  import('./components/docs/SrsDocumentationView').then((m) => ({
-    default: m.SrsDocumentationView,
-  }))
-);
 
 export default function App() {
-  // Theme state — SIMOA Environmental Eco-Tech palette
-  const [darkMode, setDarkMode] = useState<boolean>(false);
-
   useEffect(() => {
     document.documentElement.classList.remove('dark');
-    localStorage.setItem('ecosense_theme', 'environmental');
     if ('serviceWorker' in navigator && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
       navigator.serviceWorker.getRegistrations().then((regs) => {
         regs.forEach((r) => r.unregister());
@@ -138,7 +129,7 @@ export default function App() {
         caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
       }
     }
-  }, [darkMode]);
+  }, []);
 
   // Mode: 'landing' (Página pública de presentación) vs 'system' (Plataforma de gestión IoT)
   const [viewMode, setViewMode] = useState<'landing' | 'system'>(() => {
@@ -163,9 +154,9 @@ export default function App() {
     });
   }, []);
 
-  // App entities
-  const [users] = useState<Usuario[]>(USUARIOS_INICIALES);
-  const [currentUser, setCurrentUser] = useState<Usuario>(USUARIOS_INICIALES[0]);
+  // App entities & real backend authentication state
+  const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
   const [locations] = useState<Ubicacion[]>(UBICACIONES_INICIALES);
   const [selectedLocationId, setSelectedLocationId] = useState<string>(UBICACIONES_INICIALES[0].id_ubicacion);
 
@@ -180,9 +171,25 @@ export default function App() {
 
   // Modals
   const [showSimulator, setShowSimulator] = useState<boolean>(false);
-  const [showLogin, setShowLogin] = useState<boolean>(false);
   const [showPerformanceModal, setShowPerformanceModal] = useState<boolean>(false);
   const [selectedAlertForModal, setSelectedAlertForModal] = useState<Alerta | null>(null);
+
+  // Verificar sesión activa contra FastAPI (/api/auth/me) al iniciar
+  useEffect(() => {
+    let active = true;
+    fetchCurrentUser()
+      .then((user) => {
+        if (active && user) {
+          setCurrentUser(user);
+        }
+      })
+      .finally(() => {
+        if (active) setAuthChecking(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Streaming telemetry state (initialized synchronously so frame 1 is always complete)
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
@@ -210,6 +217,33 @@ export default function App() {
     setToastType(type);
     setTimeout(() => setToastMessage(null), 3800);
   }, []);
+
+  const handleLogout = useCallback(async () => {
+    await logoutSession();
+    setCurrentUser(null);
+    setViewMode('landing');
+    showToast('Sesión cerrada correctamente.');
+  }, [showToast]);
+
+  const handleAuthorizedTabChange = useCallback(
+    (tab: string) => {
+      if (!currentUser) return;
+      const rolePermissions: Record<string, string[]> = {
+        admin: ['dashboard', 'devices', 'alerts', 'analytics', 'ai', 'maintenance', 'simulator'],
+        cliente: ['dashboard', 'devices', 'alerts', 'analytics'],
+        tecnico: ['dashboard', 'devices', 'maintenance', 'simulator'],
+        supervisor: ['dashboard', 'devices', 'alerts', 'analytics', 'ai'],
+      };
+      const allowed = rolePermissions[currentUser.rol] || ['dashboard'];
+      if (!allowed.includes(tab)) {
+        showToast('No tiene permisos suficientes para acceder a este módulo.', 'alert');
+        setActiveTab(getDefaultTabForRole(currentUser.rol));
+        return;
+      }
+      setActiveTab(tab);
+    },
+    [currentUser, showToast]
+  );
 
   // Web Audio Beeper for alerts
   const playAlertSound = useCallback(() => {
@@ -260,21 +294,6 @@ export default function App() {
           setAlerts(loadedAlerts);
           setMaintenances(loadedMaint);
           setDlqEntries(loadedDlq);
-
-          const initialBuf = telemetryEngineInstance.generateInitialHistory(
-            loadedDevices,
-            loadedSensors
-          );
-          setReadingsHistory({ ...initialBuf });
-
-          const latest: { [sensorId: string]: Medicion } = {};
-          loadedSensors.forEach((s) => {
-            const history = initialBuf[s.id_sensor] || [];
-            if (history.length > 0) {
-              latest[s.id_sensor] = history[history.length - 1];
-            }
-          });
-          setLatestReadings(latest);
           setInitialLoading(false);
         }
       );
@@ -397,7 +416,7 @@ export default function App() {
                 estado,
                 motivo_resolucion: motivo,
                 notas_resolucion: notas,
-                atendido_por: currentUser.nombre,
+                atendido_por: currentUser?.nombre || 'Sistema',
                 fecha_resolucion: new Date().toISOString(),
               }
             : a
@@ -407,7 +426,7 @@ export default function App() {
       });
       showToast('UI Optimista (0ms): Alerta resuelta sin esperar confirmación del servidor.');
     },
-    [currentUser.nombre, showToast]
+    [currentUser?.nombre, showToast]
   );
 
   // Optimistic UI Handler: Add Maintenance
@@ -444,32 +463,32 @@ export default function App() {
   // Wrapper de simulación móvil cuando el usuario elige probar en celulares (iPhone 15 390px / Android 412px)
   const mobileFrameClass =
     viewportProfile === 'iphone-15'
-      ? 'max-w-[390px] mx-auto border-x-4 border-[#C8E6C9] shadow-2xl min-h-screen'
+      ? 'max-w-[390px] mx-auto border-x-4 border-sage-mist  min-h-screen'
       : viewportProfile === 'android-mid'
-      ? 'max-w-[412px] mx-auto border-x-4 border-[#C8E6C9] shadow-2xl min-h-screen'
+      ? 'max-w-[412px] mx-auto border-x-4 border-sage-mist  min-h-screen'
       : '';
 
   // Estado de carga inicial con Skeleton Shimmer en Gallery Black
   if (initialLoading) {
     return (
-      <div className="min-h-screen bg-[#F2F8F4] p-6 flex flex-col justify-center items-center">
+      <div className="min-h-screen bg-cream-paper p-6 flex flex-col justify-center items-center">
         <HeroSkeleton />
       </div>
     );
   }
 
   return (
-    <div className={`bg-[#F2F8F4] min-h-screen ${mobileFrameClass}`}>
+    <div className={`bg-cream-paper min-h-screen ${mobileFrameClass}`}>
       {/* Barra superior de Simulación de Celular activa */}
       {viewportProfile !== 'desktop' && (
-        <div className="sticky top-0 z-50 bg-[#1B5E20] text-[#ffffff] px-4 py-1.5 text-[11px] font-semibold flex items-center justify-between">
+        <div className="sticky top-0 z-50 bg-canopy text-sheet-white px-4 py-1.5 text-[11px] font-semibold flex items-center justify-between">
           <span className="flex items-center gap-1.5 font-mono">
             <Smartphone className="w-3.5 h-3.5" />
             Simulador Móvil: {viewportProfile === 'iphone-15' ? 'iPhone 15 Pro (390px)' : 'Android Gama Media (412px)'}
           </span>
           <button
             onClick={() => networkSimulator.setViewport('desktop')}
-            className="px-2.5 py-0.5 rounded-[980px] bg-[#FFFFFF]/25 hover:bg-[#0A2E17]/55 text-[10px]"
+            className="px-2.5 py-0.5 rounded-[8px] bg-sheet-white/25 hover:bg-[#0A2E17]/55 text-[10px]"
           >
             Salir a Desktop
           </button>
@@ -478,7 +497,7 @@ export default function App() {
 
       <Suspense
         fallback={
-          <div className="min-h-screen bg-[#F2F8F4] p-6 flex flex-col justify-center items-center">
+          <div className="min-h-screen bg-cream-paper p-6 flex flex-col justify-center items-center">
             <HeroSkeleton />
           </div>
         }
@@ -494,27 +513,38 @@ export default function App() {
               setViewMode('system');
               window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
             }}
-            darkMode={darkMode}
-            onToggleDarkMode={() => setDarkMode(!darkMode)}
             skeletonMode={skeletonMode}
             onToggleSkeletonMode={() => setSkeletonMode(!skeletonMode)}
             onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
           />
+        ) : authChecking ? (
+          <div className="min-h-screen bg-obsidian-shell text-pure-white flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-neon-pulse" />
+            <p className="text-sm text-slate-text">Verificando sesión segura...</p>
+          </div>
+        ) : !currentUser ? (
+          <LoginModal
+            isOpen
+            fullPage
+            onBackToLanding={() => setViewMode('landing')}
+            onLoginSuccess={(u) => {
+              setCurrentUser(u);
+              setActiveTab(getDefaultTabForRole(u.rol));
+              showToast(`Sesión iniciada como ${u.nombre}.`);
+            }}
+          />
         ) : (
-          <div className="min-h-screen bg-[#F2F8F4] text-[#0D3B1E] flex flex-col transition-colors">
-            {/* Top Navigation Bar con acceso a volver a la Landing y Consola RUM */}
+          <div className="min-h-screen bg-cream-paper text-bark flex flex-col transition-colors">
+            {/* Top Navigation Bar con sesión real y cierre de sesión */}
             <Navbar
               currentUser={currentUser}
-              allUsers={users}
-              onSelectUser={setCurrentUser}
+              onLogout={handleLogout}
               activeAlertCount={activeAlertsCount}
-              onOpenAlerts={() => setActiveTab('alerts')}
+              onOpenAlerts={() => handleAuthorizedTabChange('alerts')}
               onOpenSimulator={() => setShowSimulator(true)}
               onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
-              darkMode={darkMode}
-              onToggleDarkMode={() => setDarkMode(!darkMode)}
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={handleAuthorizedTabChange}
               isStreaming={isStreaming}
               onToggleStreaming={() => setIsStreaming(!isStreaming)}
               onBackToLanding={() => setViewMode('landing')}
@@ -525,7 +555,7 @@ export default function App() {
               {/* Left Sidebar */}
               <Sidebar
                 activeTab={activeTab}
-                onTabChange={setActiveTab}
+                onTabChange={handleAuthorizedTabChange}
                 userRole={currentUser.rol}
                 alertCount={activeAlertsCount}
                 devicesCount={devices.length}
@@ -536,12 +566,12 @@ export default function App() {
                 {skeletonMode ? (
                   <div className="space-y-6">
                     <div className="flex justify-between items-center pb-2">
-                      <span className="font-semibold text-xs text-[#15803D] font-mono">
+                      <span className="font-semibold text-xs text-canopy font-mono">
                         [Vista Skeleton Activa en Panel de Gestión]
                       </span>
                       <button
                         onClick={() => setSkeletonMode(false)}
-                        className="px-4 py-1.5 text-xs rounded-[980px] bg-[#1B5E20] text-[#ffffff] font-semibold"
+                        className="px-4 py-1.5 text-xs rounded-[8px] bg-canopy text-sheet-white font-semibold"
                       >
                         Ver Datos Reales
                       </button>
@@ -573,7 +603,7 @@ export default function App() {
                         devices={devices}
                         sensors={sensors}
                         locations={locations}
-                        users={users}
+                        users={[currentUser]}
                         onAddDevice={handleAddDevice}
                         onUpdateSensorLimits={handleUpdateSensorLimits}
                         onToggleDeviceState={handleToggleDeviceOffline}
@@ -613,13 +643,6 @@ export default function App() {
                       />
                     )}
 
-                    {activeTab === 'srs' && (
-                      <SrsDocumentationView
-                        onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
-                        onNavigateTab={setActiveTab}
-                      />
-                    )}
-
                     {activeTab === 'maintenance' && (
                       <MaintenanceLog
                         maintenances={maintenances}
@@ -632,12 +655,12 @@ export default function App() {
 
                     {activeTab === 'simulator' && (
                       <div className="space-y-6">
-                        <div className="bg-[#FFFFFF] p-8 rounded-[28px] space-y-4">
+                        <div className="bg-sheet-white p-8 rounded-[16px] space-y-4">
                           <span className="apple-badge-orange inline-block">ENTORNO DE PRUEBAS E2E</span>
-                          <h3 className="apple-card-heading text-[#0D3B1E]">
+                          <h3 className="apple-card-heading text-bark">
                             Simulador de Campo &amp; Pruebas de Resiliencia
                           </h3>
-                          <p className="apple-body text-[#3B694C] max-w-2xl">
+                          <p className="apple-body text-slate max-w-2xl">
                             Abra la consola de control para emular microcontroladores ESP32 en condiciones de sobrecalentamiento, desconexión de red o ingesta de paquetes corruptos hacia la Dead Letter Queue (DLQ).
                           </p>
                           <div className="pt-2 flex flex-wrap gap-3">
@@ -685,19 +708,6 @@ export default function App() {
                 activeFaults={telemetryEngineInstance.getActiveFaults()}
               />
             )}
-
-            {/* Login Modal */}
-            {showLogin && (
-              <LoginModal
-                isOpen={showLogin}
-                onClose={() => setShowLogin(false)}
-                users={users}
-                onLogin={(u) => {
-                  setCurrentUser(u);
-                  showToast(`Sesión iniciada con éxito como ${u.nombre} (${u.rol}).`);
-                }}
-              />
-            )}
           </div>
         )}
 
@@ -713,10 +723,10 @@ export default function App() {
       {/* Global Toast Notification — SIMOA Eco Capsule */}
       {toastMessage && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-[36px] bg-[#FFFFFF] border border-[#2E7D32] shadow-lg text-[#0D3B1E] text-[14px] font-semibold leading-[18px] tracking-[-0.224px] animate-slideUp"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-[36px] bg-sheet-white border border-canopy  text-bark text-[14px] font-semibold leading-[18px] tracking-[-0.224px] animate-slideUp"
         >
           {toastType === 'success' ? (
-            <Check className="w-4 h-4 text-[#15803D] shrink-0" />
+            <Check className="w-4 h-4 text-canopy shrink-0" />
           ) : (
             <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
           )}

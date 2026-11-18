@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import {
   Download,
   FileSpreadsheet,
@@ -175,11 +175,11 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="apple-card-heading text-[#0D3B1E] flex items-center gap-2.5">
-            <FileSpreadsheet className="w-6 h-6 text-[#15803D]" />
+          <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
+            <FileSpreadsheet className="w-6 h-6 text-canopy" />
             <span>Analítica Histórica y Series Temporales</span>
           </h2>
-          <p className="text-[14px] text-[#3B694C] mt-1">
+          <p className="text-[14px] text-slate mt-1">
             Consolidado estadístico, proyección de columnas y cola asíncrona de trabajos pesados (Background Job Queue)
           </p>
         </div>
@@ -192,9 +192,9 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
             className="apple-blue-pill flex items-center gap-1.5 px-4 py-2 text-xs font-semibold disabled:opacity-60"
           >
             {activeJob ? (
-              <Loader2 className="w-3.5 h-3.5 text-[#ffffff] animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 text-sheet-white animate-spin" />
             ) : (
-              <Download className="w-3.5 h-3.5 text-[#ffffff]" />
+              <Download className="w-3.5 h-3.5 text-sheet-white" />
             )}
             <span>{activeJob ? `En Cola (${activeJob.progress}%)` : 'Encolar CSV'}</span>
           </button>
@@ -203,7 +203,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
             disabled={Boolean(activeJob)}
             className="apple-white-outline-pill flex items-center gap-1.5 py-2 text-xs font-semibold disabled:opacity-60"
           >
-            <FileCode className="w-3.5 h-3.5 text-[#0D3B1E]" />
+            <FileCode className="w-3.5 h-3.5 text-bark" />
             <span>Encolar JSON</span>
           </button>
         </div>
@@ -211,30 +211,30 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
 
       {/* Estado de la Cola de Trabajos en Segundo Plano si hay tareas recientes */}
       {jobs.length > 0 && (
-        <div className="bg-[#FFFFFF] rounded-[20px] p-4 border border-[#C8E6C9]/60 space-y-2">
+        <div className="bg-sheet-white rounded-[16px] p-4 border border-sage-mist/60 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-[#0D3B1E] flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-[#1B5E20]" />
+            <span className="font-semibold text-bark flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-canopy" />
               Cola de Trabajos Asíncronos (BullMQ / Worker Queue)
             </span>
-            <span className="font-mono text-[11px] text-[#3B694C]">
+            <span className="font-mono text-[11px] text-slate">
               No bloquea el hilo principal de UI
             </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {jobs.slice(0, 2).map((job) => (
-              <div key={job.id} className="bg-[#F2F8F4] p-3 rounded-[14px] flex items-center justify-between gap-3 text-xs">
+              <div key={job.id} className="bg-cream-paper p-3 rounded-[14px] flex items-center justify-between gap-3 text-xs">
                 <div className="truncate">
-                  <div className="font-semibold text-[#0D3B1E] truncate">{job.name}</div>
-                  <div className="text-[11px] text-[#3B694C] font-mono truncate">
+                  <div className="font-semibold text-bark truncate">{job.name}</div>
+                  <div className="text-[11px] text-slate font-mono truncate">
                     {job.resultSummary || `Estado: ${job.status}`}
                   </div>
                 </div>
                 <span
                   className={`px-2 py-0.5 rounded-[5px] font-mono text-[10px] font-semibold shrink-0 ${
                     job.status === 'COMPLETED'
-                      ? 'bg-[#15803D]/15 text-[#15803D]'
-                      : 'bg-[#1B5E20]/20 text-[#1B5E20]'
+                      ? 'bg-canopy/15 text-canopy'
+                      : 'bg-canopy/20 text-canopy'
                   }`}
                 >
                   {job.progress}%
@@ -246,9 +246,9 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
       )}
 
       {/* Controles de Selección — Charcoal Stage (#FFFFFF, 28px radius) */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#FFFFFF] p-4 rounded-[28px]">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-sheet-white p-4 rounded-[16px]">
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <span className="text-xs text-[#3B694C]">Espacio Analizado:</span>
+          <span className="text-xs text-slate">Espacio Analizado:</span>
           <select
             value={selectedLocId}
             onChange={(e) => setSelectedLocId(e.target.value)}
@@ -262,33 +262,33 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
           </select>
         </div>
 
-        <div className="flex items-center gap-1 p-1 bg-[#F2F8F4] rounded-[980px] text-[12px]">
+        <div className="flex items-center gap-1 p-1 bg-cream-paper rounded-[8px] text-[12px]">
           <button
             onClick={() => setTimeRange('24h')}
-            className={`px-3.5 py-1.5 rounded-[980px] transition-colors ${
+            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               timeRange === '24h'
-                ? 'bg-[#E3F2E6] text-[#0D3B1E] font-semibold'
-                : 'text-[#3B694C] hover:text-[#0D3B1E]'
+                ? 'bg-cream-paper text-bark font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             Últimas 24 Horas
           </button>
           <button
             onClick={() => setTimeRange('7d')}
-            className={`px-3.5 py-1.5 rounded-[980px] transition-colors ${
+            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               timeRange === '7d'
-                ? 'bg-[#E3F2E6] text-[#0D3B1E] font-semibold'
-                : 'text-[#3B694C] hover:text-[#0D3B1E]'
+                ? 'bg-cream-paper text-bark font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             7 Días
           </button>
           <button
             onClick={() => setTimeRange('30d')}
-            className={`px-3.5 py-1.5 rounded-[980px] transition-colors ${
+            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
               timeRange === '30d'
-                ? 'bg-[#E3F2E6] text-[#0D3B1E] font-semibold'
-                : 'text-[#3B694C] hover:text-[#0D3B1E]'
+                ? 'bg-cream-paper text-bark font-semibold'
+                : 'text-slate hover:text-bark'
             }`}
           >
             Mes Completo
@@ -299,109 +299,109 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
       {/* Tarjetas de Métricas Estadísticas — Feature Metric Tiles (28px radius, 16px padding, no shadow) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
         {/* Conformidad Operacional */}
-        <div className="bg-[#FFFFFF] rounded-[28px] p-[16px] space-y-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#3B694C]">
+        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-2 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate">
             <span className="flex items-center gap-1.5">
-              <Award className="w-4 h-4 text-[#15803D]" />
+              <Award className="w-4 h-4 text-canopy" />
               Tasa de Conformidad
             </span>
-            <span className="text-[11px] font-mono text-[#15803D]">SLA 99.5%</span>
+            <span className="text-[11px] font-mono text-canopy">SLA 99.5%</span>
           </div>
-          <div className="apple-metric-display text-[#15803D] tabular-nums py-1">
+          <div className="apple-metric-display text-canopy tabular-nums py-1">
             {stats.compliancePct}%
           </div>
-          <p className="text-[12px] text-[#3B694C]">
+          <p className="text-[12px] text-slate">
             Tiempo de operación estricto dentro de los umbrales nominales asignados.
           </p>
         </div>
 
         {/* Temperatura Media */}
-        <div className="bg-[#FFFFFF] rounded-[28px] p-[16px] space-y-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#3B694C]">
+        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-2 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate">
             <span className="flex items-center gap-1.5">
-              <Thermometer className="w-4 h-4 text-[#15803D]" />
+              <Thermometer className="w-4 h-4 text-canopy" />
               Temperatura Promedio
             </span>
             <span className="text-[11px] font-mono">σ: {stats.stdTemp}°C</span>
           </div>
-          <div className="apple-metric-display text-[#0D3B1E] tabular-nums py-1">
+          <div className="apple-metric-display text-bark tabular-nums py-1">
             {stats.avgTemp}°C
           </div>
-          <div className="flex items-center justify-between text-[11px] font-mono text-[#3B694C]">
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate">
             <span>Mín: {stats.minTemp}°C</span>
             <span>Máx: {stats.maxTemp}°C</span>
           </div>
         </div>
 
         {/* Humedad Media */}
-        <div className="bg-[#FFFFFF] rounded-[28px] p-[16px] space-y-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#3B694C]">
+        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-2 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate">
             <span className="flex items-center gap-1.5">
-              <Droplets className="w-4 h-4 text-[#1B5E20]" />
+              <Droplets className="w-4 h-4 text-canopy" />
               Humedad Promedio
             </span>
-            <span className="text-[11px] font-mono text-[#15803D]">Nominal</span>
+            <span className="text-[11px] font-mono text-canopy">Nominal</span>
           </div>
-          <div className="apple-metric-display text-[#0D3B1E] tabular-nums py-1">
+          <div className="apple-metric-display text-bark tabular-nums py-1">
             {stats.avgHum}%
           </div>
-          <div className="flex items-center justify-between text-[11px] font-mono text-[#3B694C]">
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate">
             <span>Mín: {stats.minHum}%</span>
             <span>Máx: {stats.maxHum}%</span>
           </div>
         </div>
 
         {/* Eventos Anómalos IA */}
-        <div className="bg-[#FFFFFF] rounded-[28px] p-[16px] space-y-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#3B694C]">
+        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-2 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-semibold text-slate">
             <span>Anomalías Detectadas</span>
             <span className="apple-badge-orange font-mono">ML Engine</span>
           </div>
           <div className="apple-metric-display text-[#DC2626] tabular-nums py-1">
             {stats.anomalyCount}
           </div>
-          <p className="text-[12px] text-[#3B694C]">
+          <p className="text-[12px] text-slate">
             Disparos por modelo de detección Isolation Forest (Z &gt; 2.8σ).
           </p>
         </div>
       </div>
 
       {/* Certificado de Cumplimiento Normativo ISO/GxP — Charcoal Stage (#FFFFFF, 28px radius) */}
-      <div className="bg-[#FFFFFF] rounded-[28px] p-6 space-y-4">
+      <div className="bg-sheet-white rounded-[16px] p-6 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-full bg-[#F2F8F4] text-[#15803D] flex items-center justify-center shrink-0">
+            <div className="w-11 h-11 rounded-full bg-cream-paper text-canopy flex items-center justify-center shrink-0">
               <CheckCircle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-[17px] font-semibold text-[#0D3B1E]">
+              <h3 className="text-[17px] font-semibold text-bark">
                 Certificación de Cadena de Frío y Cumplimiento Normativo GxP
               </h3>
-              <p className="text-[14px] text-[#3B694C] mt-0.5">
+              <p className="text-[14px] text-slate mt-0.5">
                 La ubicación {currentLocation?.nombre} cumple con los estándares de Buenas Prácticas de Manufactura y Almacenamiento Ambiental.
               </p>
             </div>
           </div>
-          <span className="text-xs font-mono font-semibold px-3 py-1 rounded-[5px] bg-[#15803D]/15 text-[#15803D] shrink-0">
+          <span className="text-xs font-mono font-semibold px-3 py-1 rounded-[5px] bg-canopy/15 text-canopy shrink-0">
             ESTADO: APROBADO
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono pt-4 border-t border-[#C8E6C9]/60 text-[#0D3B1E]">
-          <div className="bg-[#F2F8F4] p-3.5 rounded-[20px]">
-            <span className="text-[10px] text-[#3B694C] block font-sans">ID Protocolo</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono pt-4 border-t border-sage-mist/60 text-bark">
+          <div className="bg-cream-paper p-3.5 rounded-[16px]">
+            <span className="text-[10px] text-slate block font-sans">ID Protocolo</span>
             <span className="font-semibold">ECO-VAL-{currentLocation?.codigo_area}-2026</span>
           </div>
-          <div className="bg-[#F2F8F4] p-3.5 rounded-[20px]">
-            <span className="text-[10px] text-[#3B694C] block font-sans">Total Mediciones</span>
+          <div className="bg-cream-paper p-3.5 rounded-[16px]">
+            <span className="text-[10px] text-slate block font-sans">Total Mediciones</span>
             <span className="font-semibold">{history.length} registros</span>
           </div>
-          <div className="bg-[#F2F8F4] p-3.5 rounded-[20px]">
-            <span className="text-[10px] text-[#3B694C] block font-sans">Excursiones Térmicas</span>
-            <span className="font-semibold text-[#15803D]">0 no justificadas</span>
+          <div className="bg-cream-paper p-3.5 rounded-[16px]">
+            <span className="text-[10px] text-slate block font-sans">Excursiones Térmicas</span>
+            <span className="font-semibold text-canopy">0 no justificadas</span>
           </div>
-          <div className="bg-[#F2F8F4] p-3.5 rounded-[20px]">
-            <span className="text-[10px] text-[#3B694C] block font-sans">Firma Hash SHA-256</span>
+          <div className="bg-cream-paper p-3.5 rounded-[16px]">
+            <span className="text-[10px] text-slate block font-sans">Firma Hash SHA-256</span>
             <span className="font-semibold truncate block">e7c84a2f89...b11</span>
           </div>
         </div>

@@ -12,7 +12,7 @@ export const USUARIOS_INICIALES: Usuario[] = [
   {
     id_usuario: 'usr-admin-1',
     nombre: 'Luz Eliana Sánchez Tovar',
-    correo: 'LEST32992732@soy.sena.edu.co',
+    correo: 'admin@simoa-ejemplo.org',
     rol: 'admin',
     cargo: 'Desarrolladora & Administradora SIMOA',
     empresa: 'SIMOA · ADSO SENA',
