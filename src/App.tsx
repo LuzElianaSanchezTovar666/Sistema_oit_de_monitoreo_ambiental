@@ -123,6 +123,11 @@ const LocationCatalogView = React.lazy(() =>
     default: m.LocationCatalogView,
   }))
 );
+const SensorManagementView = React.lazy(() =>
+  import('./components/sensors/SensorManagementView').then((m) => ({
+    default: m.SensorManagementView,
+  }))
+);
 
 export default function App() {
   useEffect(() => {
@@ -260,10 +265,10 @@ export default function App() {
     (tab: string) => {
       if (!currentUser) return;
       const rolePermissions: Record<string, string[]> = {
-        admin: ['dashboard', 'devices', 'locations', 'alerts', 'analytics', 'ai', 'maintenance', 'simulator'],
-        cliente: ['dashboard', 'devices', 'locations', 'alerts', 'analytics'],
-        tecnico: ['dashboard', 'devices', 'locations', 'maintenance', 'simulator'],
-        supervisor: ['dashboard', 'devices', 'locations', 'alerts', 'analytics', 'ai'],
+        admin: ['dashboard', 'devices', 'locations', 'sensors', 'alerts', 'analytics', 'ai', 'maintenance', 'simulator'],
+        cliente: ['dashboard', 'devices', 'locations', 'sensors', 'alerts', 'analytics'],
+        tecnico: ['dashboard', 'devices', 'locations', 'sensors', 'maintenance', 'simulator'],
+        supervisor: ['dashboard', 'devices', 'locations', 'sensors', 'alerts', 'analytics', 'ai'],
       };
       const allowed = rolePermissions[currentUser.rol] || ['dashboard'];
       if (!allowed.includes(tab)) {
@@ -649,6 +654,13 @@ export default function App() {
                         currentUserRole={currentUser.rol}
                         onNotify={showToast}
                         onLocationsChanged={loadLocationsFromMySQL}
+                      />
+                    )}
+
+                    {activeTab === 'sensors' && (
+                      <SensorManagementView
+                        currentUserRole={currentUser.rol}
+                        onNotify={showToast}
                       />
                     )}
 

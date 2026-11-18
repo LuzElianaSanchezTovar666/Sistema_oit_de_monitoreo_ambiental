@@ -38,6 +38,7 @@ import {
   HistorialUbicacionDTO,
   UbicacionDTO,
 } from '../../services/locationService';
+import { fetchSensoresByDispositivo, SensorDTO } from '../../services/sensorService';
 
 interface DeviceManagementProps {
   devices?: Dispositivo[];
@@ -105,6 +106,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
     const [newUbicacion, setNewUbicacion] = useState('ubi-lab-01');
     const [activeUbicaciones, setActiveUbicaciones] = useState<UbicacionDTO[]>([]);
     const [deviceHistorial, setDeviceHistorial] = useState<HistorialUbicacionDTO[]>([]);
+    const [deviceSensores, setDeviceSensores] = useState<SensorDTO[]>([]);
     const [reassignTargetUbiId, setReassignTargetUbiId] = useState('');
     const [reassignMotivo, setReassignMotivo] = useState('');
     const [confirmReassignOpen, setConfirmReassignOpen] = useState(false);
@@ -220,13 +222,15 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
       setLoadingDetail(true);
       setDetailDevice(dev);
       try {
-        const [res, histRes] = await Promise.all([
+        const [res, histRes, senRes] = await Promise.all([
           fetchDispositivoDetail(dev.id_dispositivo),
           fetchHistorialUbicaciones(dev.id_dispositivo),
+          fetchSensoresByDispositivo(dev.id_dispositivo),
         ]);
         const fresh = res.dispositivo;
         setDetailDevice(fresh);
         setDeviceHistorial(histRes.items);
+        setDeviceSensores(senRes.items);
         setEditNombre(fresh.nombre);
         setEditMac(fresh.mac_address);
         setEditTipo(fresh.tipo);
@@ -923,6 +927,37 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                               {new Date(h.fecha_cambio).toLocaleString()} · {h.usuario_responsable_correo}
                               {h.motivo ? ` · ${h.motivo}` : ''}
                             </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* RF-04: Sensores Asociados en MySQL */}
+                  <div className="p-3.5 rounded-[12px] bg-obsidian-shell border border-graphite-fill space-y-2 text-xs">
+                    <div className="font-medium text-pure-white">
+                      Sensores asociados (RF-04) ({deviceSensores.length})
+                    </div>
+                    {deviceSensores.length === 0 ? (
+                      <p className="text-slate-text">
+                        No hay sensores vinculados a este dispositivo todavía.
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                        {deviceSensores.map((s) => (
+                          <div
+                            key={s.id_sensor}
+                            className="p-2 rounded-[8px] bg-deep-abyss border border-graphite-fill/60 flex items-center justify-between gap-2"
+                          >
+                            <div>
+                              <div className="font-mono text-neon-pulse font-medium">
+                                {s.identificador} · {s.modelo}
+                              </div>
+                              <div className="text-[11px] text-slate-text">
+                                {s.variables_medidas.map((v) => `${v.variable} (${v.unidad})`).join(', ')}
+                              </div>
+                            </div>
+                            <span className="font-mono text-[11px] text-pure-white">{s.estado}</span>
                           </div>
                         ))}
                       </div>

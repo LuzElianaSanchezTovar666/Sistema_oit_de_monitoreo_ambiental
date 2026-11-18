@@ -1,0 +1,690 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Thermometer,
+  Plus,
+  Search,
+  RefreshCw,
+  Edit3,
+  Sliders,
+  AlertCircle,
+  Loader2,
+  X,
+  ShieldAlert,
+} from 'lucide-react';
+import { UserRole } from '../../types/iot';
+import { useDebounce } from '../../hooks/useDebounce';
+import { DispositivoDTO, fetchDispositivos } from '../../services/deviceService';
+import {
+  areSensorDatesCoherent,
+  changeSensorEstado,
+  createSensor,
+  fetchSensorConfiguracion,
+  fetchSensores,
+  MODEL_CAPABILITIES,
+  SensorConfiguracionDTO,
+  SensorDTO,
+  SensorEstado,
+  SensorModelo,
+  updateSensor,
+  VariableNombre,
+} from '../../services/sensorService';
+
+interface SensorManagementViewProps {
+  currentUserRole: UserRole;
+  onNotify?: (msg: string, type?: 'success' | 'alert') => void;
+}
+
+const ESTADO_STYLE: Record<SensorEstado, string> = {
+  ACTIVO: 'bg-neon-pulse/20 text-neon-pulse border border-neon-pulse/50',
+  FALLA: 'bg-[#DC2626]/20 text-[#FCA5A5] border border-[#DC2626]/50',
+  CALIBRACION: 'bg-signal-yellow/20 text-signal-yellow border border-signal-yellow/50',
+  INACTIVO: 'bg-graphite-fill/40 text-slate-text border border-graphite-fill',
+};
+
+export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
+  currentUserRole,
+  onNotify,
+}) => {
+  const isAdmin = currentUserRole === 'admin';
+
+  const [items, setItems] = useState<SensorDTO[]>([]);
+  const [devices, setDevices] = useState<DispositivoDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Filtros
+  const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 280);
+  const [modeloFilter, setModeloFilter] = useState('ALL');
+  const [estadoFilter, setEstadoFilter] = useState('ALL');
+
+  // Modal Crear / Editar
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<SensorDTO | null>(null);
+  const [dispositivoId, setDispositivoId] = useState('');
+  const [identificador, setIdentificador] = useState('');
+  const [modelo, setModelo] = useState<SensorModelo>('DHT22');
+  const [variables, setVariables] = useState<VariableNombre[]>(['temperatura', 'humedad']);
+  const [fechaInstalacion, setFechaInstalacion] = useState('2026-01-15');
+  const [ultimaCalibracion, setUltimaCalibracion] = useState('2026-01-15');
+  const [estadoInicial, setEstadoInicial] = useState<SensorEstado>('ACTIVO');
+  const [descripcion, setDescripcion] = useState('');
+  const [formError, setFormError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  // Modal Cambio de Estado (RN-05)
+  const [estadoTarget, setEstadoTarget] = useState<SensorDTO | null>(null);
+  const [nuevoEstado, setNuevoEstado] = useState<SensorEstado>('ACTIVO');
+  const [changingEstado, setChangingEstado] = useState(false);
+
+  // Modal Configuración de Límites Predeterminados
+  const [cfgModalSensor, setCfgModalSensor] = useState<SensorDTO | null>(null);
+  const [cfgData, setCfgData] = useState<SensorConfiguracionDTO | null>(null);
+  const [loadingCfg, setLoadingCfg] = useState(false);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const [senRes, devRes] = await Promise.all([
+        fetchSensores({
+          modelo: modeloFilter,
+          estado: estadoFilter,
+          search: debouncedSearch,
+        }),
+        fetchDispositivos(),
+      ]);
+      setItems(senRes.items);
+      const activeDevs = devRes.items.filter((d) => d.estado !== 'INACTIVO');
+      setDevices(activeDevs);
+      if (activeDevs.length > 0 && !dispositivoId) {
+        setDispositivoId(activeDevs[0].id_dispositivo);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Error al cargar sensores desde MySQL.');
+    } finally {
+      setLoading(false);
+    }
+  }, [modeloFilter, estadoFilter, debouncedSearch, dispositivoId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleModeloChange = (nextModelo: SensorModelo) => {
+    setModelo(nextModelo);
+    const allowed = MODEL_CAPABILITIES[nextModelo].map((v) => v.variable);
+    const filtered = variables.filter((v) => allowed.includes(v));
+    setVariables(filtered.length > 0 ? filtered : allowed);
+  };
+
+  const toggleVariable = (v: VariableNombre) => {
+    setVariables((prev) =>
+      prev.includes(v) ? prev.filter((item) => item !== v) : [...prev, v]
+    );
+  };
+
+  const openCreate = () => {
+    setEditing(null);
+    setIdentificador('');
+    setModelo('DHT22');
+    setVariables(['temperatura', 'humedad']);
+    const today = new Date().toISOString().slice(0, 10);
+    setFechaInstalacion(today);
+    setUltimaCalibracion(today);
+    setEstadoInicial('ACTIVO');
+    setDescripcion('');
+    setFormError('');
+    if (devices.length > 0) setDispositivoId(devices[0].id_dispositivo);
+    setFormOpen(true);
+  };
+
+  const openEdit = (s: SensorDTO) => {
+    setEditing(s);
+    setDispositivoId(s.dispositivo_id);
+    setIdentificador(s.identificador);
+    setModelo(s.modelo);
+    setVariables(s.variables_medidas.map((v) => v.variable));
+    setFechaInstalacion(s.fecha_instalacion.slice(0, 10));
+    setUltimaCalibracion(s.ultima_calibracion.slice(0, 10));
+    setDescripcion(s.descripcion || '');
+    setFormError('');
+    setFormOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!editing && !dispositivoId) {
+      setFormError('Debes seleccionar un dispositivo padre activo.');
+      return;
+    }
+    if (!identificador.trim() || identificador.trim().length < 2) {
+      setFormError('El identificador único del sensor es obligatorio.');
+      return;
+    }
+    if (variables.length === 0) {
+      setFormError('Selecciona al menos una variable permitida para el modelo.');
+      return;
+    }
+    if (!areSensorDatesCoherent(fechaInstalacion, ultimaCalibracion)) {
+      setFormError('La fecha de última calibración no puede ser anterior a la fecha de instalación.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      if (editing) {
+        const res = await updateSensor(editing.id_sensor, {
+          identificador: identificador.trim(),
+          modelo,
+          variables,
+          fecha_instalacion: fechaInstalacion,
+          ultima_calibracion: ultimaCalibracion,
+          descripcion: descripcion.trim() || undefined,
+        });
+        onNotify?.(res.message, 'success');
+      } else {
+        const res = await createSensor({
+          dispositivo_id: dispositivoId,
+          identificador: identificador.trim(),
+          modelo,
+          variables,
+          fecha_instalacion: fechaInstalacion,
+          ultima_calibracion: ultimaCalibracion,
+          estado: estadoInicial,
+          descripcion: descripcion.trim() || undefined,
+        });
+        onNotify?.(res.message, 'success');
+      }
+      setFormOpen(false);
+      await loadData();
+    } catch (err: any) {
+      setFormError(err?.message || 'No se pudo guardar el sensor.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleConfirmEstado = async () => {
+    if (!estadoTarget) return;
+    setChangingEstado(true);
+    try {
+      const res = await changeSensorEstado(estadoTarget.id_sensor, nuevoEstado);
+      setEstadoTarget(null);
+      onNotify?.(res.message, 'success');
+      await loadData();
+    } catch (err: any) {
+      onNotify?.(err?.message || 'No fue posible cambiar el estado.', 'alert');
+    } finally {
+      setChangingEstado(false);
+    }
+  };
+
+  const openConfigModal = async (s: SensorDTO) => {
+    setCfgModalSensor(s);
+    setLoadingCfg(true);
+    try {
+      const res = await fetchSensorConfiguracion(s.id_sensor);
+      setCfgData(res.configuracion);
+    } catch (err: any) {
+      onNotify?.(err?.message || 'Error al consultar configuración.', 'alert');
+    } finally {
+      setLoadingCfg(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="sauce-eyebrow text-neon-pulse">RF-04 · INSTRUMENTACIÓN MYSQL</p>
+          <h1 className="text-2xl font-medium text-pure-white mt-1">
+            Registro y Vinculación de Sensores Ambientales
+          </h1>
+          <p className="text-sm text-slate-text mt-0.5">
+            Gestiona sondas DHT22, BME280 y SHT31 vinculadas a dispositivos activos y sus límites iniciales.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={loadData}
+            className="px-4 py-2.5 rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse text-xs font-medium inline-flex items-center gap-2 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Actualizar
+          </button>
+
+          {isAdmin && (
+            <button
+              onClick={openCreate}
+              className="sauce-btn-primary px-5 py-2.5 text-sm inline-flex items-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              Nuevo sensor
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <div className="bg-deep-abyss border border-graphite-fill/50 rounded-[20px] p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="md:col-span-2 relative">
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-text" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por identificador, modelo o dispositivo..."
+            className="apple-pill-input w-full pl-10 pr-4 py-2 text-sm"
+          />
+        </div>
+
+        <select
+          value={modeloFilter}
+          onChange={(e) => setModeloFilter(e.target.value)}
+          className="apple-pill-select py-2 text-sm"
+          aria-label="Filtrar por modelo"
+        >
+          <option value="ALL">Todos los modelos</option>
+          <option value="DHT22">DHT22</option>
+          <option value="BME280">BME280</option>
+          <option value="SHT31">SHT31</option>
+        </select>
+
+        <select
+          value={estadoFilter}
+          onChange={(e) => setEstadoFilter(e.target.value)}
+          className="apple-pill-select py-2 text-sm"
+          aria-label="Filtrar por estado"
+        >
+          <option value="ALL">Todos los estados</option>
+          <option value="ACTIVO">ACTIVO</option>
+          <option value="FALLA">FALLA</option>
+          <option value="CALIBRACION">CALIBRACION</option>
+          <option value="INACTIVO">INACTIVO</option>
+        </select>
+      </div>
+
+      {error && (
+        <div className="p-4 rounded-[20px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Tabla de Sensores */}
+      <div className="bg-deep-abyss border border-graphite-fill/50 rounded-[20px] overflow-hidden">
+        {loading ? (
+          <div className="p-10 flex items-center justify-center gap-3 text-slate-text text-sm">
+            <Loader2 className="w-5 h-5 animate-spin text-neon-pulse" />
+            <span>Consultando sensores en MySQL...</span>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-10 text-center space-y-2">
+            <Thermometer className="w-8 h-8 text-slate-text mx-auto" />
+            <p className="text-sm text-pure-white font-medium">
+              No hay sensores ambientales registrados.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-graphite-fill/60 text-[11px] uppercase tracking-wider text-slate-text">
+                  <th className="py-3.5 px-4">Identificador</th>
+                  <th className="py-3.5 px-4">Modelo</th>
+                  <th className="py-3.5 px-4">Dispositivo asociado</th>
+                  <th className="py-3.5 px-4">Variables</th>
+                  <th className="py-3.5 px-4">Instalación / Calibración</th>
+                  <th className="py-3.5 px-4">Estado</th>
+                  <th className="py-3.5 px-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-graphite-fill/40">
+                {items.map((s) => (
+                  <tr key={s.id_sensor} className="hover:bg-obsidian-shell/60 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="font-mono text-xs text-neon-pulse font-medium">{s.identificador}</div>
+                      {s.descripcion && (
+                        <div className="text-[11px] text-slate-text truncate max-w-[180px]">{s.descripcion}</div>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-4 text-xs text-pure-white font-medium">{s.modelo}</td>
+                    <td className="py-3.5 px-4 text-xs">
+                      <div className="text-pure-white">{s.dispositivo_nombre}</div>
+                      <div className="text-[11px] text-slate-text">
+                        {s.dispositivo_codigo} · {s.ubicacion_nombre}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs">
+                      <div className="flex flex-wrap gap-1">
+                        {s.variables_medidas.map((v) => (
+                          <span
+                            key={v.variable}
+                            className="px-2 py-0.5 rounded-[56px] bg-obsidian-shell border border-graphite-fill text-[11px] text-pure-white font-mono"
+                          >
+                            {v.variable} ({v.unidad})
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-[11px] font-mono text-slate-text">
+                      <div>Inst: {s.fecha_instalacion.slice(0, 10)}</div>
+                      <div>Cal: {s.ultima_calibracion.slice(0, 10)}</div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className={`px-2.5 py-1 rounded-[56px] text-[11px] font-mono font-medium ${ESTADO_STYLE[s.estado]}`}>
+                        {s.estado}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          onClick={() => openConfigModal(s)}
+                          className="px-3 py-1.5 rounded-[56px] bg-obsidian-shell border border-graphite-fill text-pure-white hover:border-neon-pulse text-xs inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Sliders className="w-3 h-3" />
+                          Límites
+                        </button>
+                        {isAdmin && (
+                          <>
+                            <button
+                              onClick={() => openEdit(s)}
+                              className="px-3 py-1.5 rounded-[56px] bg-obsidian-shell border border-graphite-fill text-pure-white hover:border-neon-pulse text-xs inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEstadoTarget(s);
+                                setNuevoEstado(s.estado);
+                              }}
+                              className="px-3 py-1.5 rounded-[56px] bg-signal-yellow/15 border border-signal-yellow/40 text-signal-yellow text-xs cursor-pointer"
+                            >
+                              Estado
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Crear / Editar Sensor */}
+      {formOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
+          <div className="bg-deep-abyss border border-graphite-fill rounded-[20px] w-full max-w-lg p-6 space-y-4 text-pure-white max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-medium">
+                {editing ? 'Editar sensor ambiental' : 'Registrar y vincular sensor (RF-04)'}
+              </h2>
+              <button onClick={() => setFormOpen(false)} className="text-slate-text hover:text-pure-white cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} noValidate className="space-y-3 text-sm">
+              {!editing && (
+                <div>
+                  <label className="block text-xs text-slate-text mb-1">Dispositivo IoT padre (activo) *</label>
+                  <select
+                    required
+                    value={dispositivoId}
+                    onChange={(e) => setDispositivoId(e.target.value)}
+                    className="apple-pill-select w-full py-2"
+                  >
+                    {devices.map((d) => (
+                      <option key={d.id_dispositivo} value={d.id_dispositivo}>
+                        {d.nombre} ({d.codigo}) · {d.ubicacion}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-text mb-1">Identificador único *</label>
+                  <input
+                    type="text"
+                    required
+                    value={identificador}
+                    onChange={(e) => setIdentificador(e.target.value)}
+                    placeholder="SEN-LAB-DHT22-01"
+                    className="apple-pill-input w-full py-2 font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-text mb-1">Modelo *</label>
+                  <select
+                    value={modelo}
+                    onChange={(e) => handleModeloChange(e.target.value as SensorModelo)}
+                    className="apple-pill-select w-full py-2"
+                  >
+                    <option value="DHT22">DHT22</option>
+                    <option value="BME280">BME280</option>
+                    <option value="SHT31">SHT31</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs text-slate-text mb-1.5">
+                  Variables permitidas para {modelo} *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {MODEL_CAPABILITIES[modelo].map((cap) => {
+                    const checked = variables.includes(cap.variable);
+                    return (
+                      <label
+                        key={cap.variable}
+                        className={`px-3 py-1.5 rounded-[56px] border text-xs inline-flex items-center gap-2 cursor-pointer ${
+                          checked
+                            ? 'bg-neon-pulse/20 border-neon-pulse text-neon-pulse'
+                            : 'bg-obsidian-shell border-graphite-fill text-slate-text'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleVariable(cap.variable)}
+                          className="accent-[#3ddc91]"
+                        />
+                        <span>
+                          {cap.variable} ({cap.unidad})
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-text mb-1">Fecha de instalación *</label>
+                  <input
+                    type="date"
+                    required
+                    value={fechaInstalacion}
+                    onChange={(e) => setFechaInstalacion(e.target.value)}
+                    className="apple-pill-input w-full py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-text mb-1">Última calibración *</label>
+                  <input
+                    type="date"
+                    required
+                    value={ultimaCalibracion}
+                    onChange={(e) => setUltimaCalibracion(e.target.value)}
+                    className="apple-pill-input w-full py-2"
+                  />
+                </div>
+              </div>
+
+              {!editing && (
+                <div>
+                  <label className="block text-xs text-slate-text mb-1">Estado operativo inicial</label>
+                  <select
+                    value={estadoInicial}
+                    onChange={(e) => setEstadoInicial(e.target.value as SensorEstado)}
+                    className="apple-pill-select w-full py-2"
+                  >
+                    <option value="ACTIVO">ACTIVO</option>
+                    <option value="CALIBRACION">CALIBRACION</option>
+                    <option value="FALLA">FALLA</option>
+                    <option value="INACTIVO">INACTIVO</option>
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs text-slate-text mb-1">Descripción (opcional)</label>
+                <input
+                  type="text"
+                  value={descripcion}
+                  onChange={(e) => setDescripcion(e.target.value)}
+                  placeholder="Sonda ubicada en cámara principal"
+                  className="apple-pill-input w-full py-2"
+                />
+              </div>
+
+              {formError && (
+                <div className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{formError}</span>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setFormOpen(false)}
+                  className="px-4 py-2 rounded-[56px] border border-graphite-fill text-slate-text hover:text-pure-white text-xs cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="sauce-btn-primary px-5 py-2 text-xs inline-flex items-center gap-2 cursor-pointer"
+                >
+                  {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Guardar sensor
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Cambio de Estado (RN-05) */}
+      {estadoTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
+          <div className="bg-deep-abyss border border-signal-yellow/50 rounded-[20px] w-full max-w-md p-6 space-y-4 text-pure-white">
+            <div className="flex items-center gap-2 text-signal-yellow">
+              <ShieldAlert className="w-5 h-5" />
+              <h3 className="text-lg font-medium">Cambiar estado operativo (RN-05)</h3>
+            </div>
+            <p className="text-xs text-slate-text">
+              Sensor: <strong className="text-pure-white font-mono">{estadoTarget.identificador}</strong>
+            </p>
+            <select
+              value={nuevoEstado}
+              onChange={(e) => setNuevoEstado(e.target.value as SensorEstado)}
+              className="apple-pill-select w-full py-2 text-sm"
+            >
+              <option value="ACTIVO">ACTIVO (habilitado para alertas y monitoreo)</option>
+              <option value="FALLA">FALLA (sin alertas de producción)</option>
+              <option value="CALIBRACION">CALIBRACION (sin alertas de producción)</option>
+              <option value="INACTIVO">INACTIVO (deshabilitado)</option>
+            </select>
+            {(nuevoEstado === 'FALLA' || nuevoEstado === 'CALIBRACION') && (
+              <p className="text-xs text-signal-yellow bg-signal-yellow/10 p-3 rounded-[10px]">
+                Regla RN-05: mientras permanezca en {nuevoEstado}, las mediciones conservarán su trazabilidad pero no dispararán alertas de producción ni se eliminarán mediciones previas.
+              </p>
+            )}
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEstadoTarget(null)}
+                className="px-4 py-2 rounded-[56px] border border-graphite-fill text-slate-text text-xs cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={changingEstado}
+                onClick={handleConfirmEstado}
+                className="sauce-btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                {changingEstado && <Loader2 className="w-3 h-3 animate-spin" />}
+                Confirmar estado
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Límites Predeterminados Configurables */}
+      {cfgModalSensor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
+          <div className="bg-deep-abyss border border-graphite-fill rounded-[20px] w-full max-w-md p-6 space-y-4 text-pure-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="sauce-eyebrow text-neon-pulse">{cfgModalSensor.modelo}</p>
+                <h3 className="text-lg font-medium">Límites ambientales ({cfgModalSensor.identificador})</h3>
+              </div>
+              <button onClick={() => setCfgModalSensor(null)} className="text-slate-text hover:text-pure-white cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {loadingCfg ? (
+              <div className="py-6 flex justify-center">
+                <Loader2 className="w-5 h-5 animate-spin text-neon-pulse" />
+              </div>
+            ) : cfgData ? (
+              <div className="space-y-2.5 text-xs">
+                {cfgData.es_predeterminado && (
+                  <p className="text-signal-yellow bg-signal-yellow/10 p-2.5 rounded-[10px]">
+                    Valores predeterminados configurables (ajustables posteriormente mediante RF-05 y RF-12).
+                  </p>
+                )}
+                {cfgData.temp_min !== null && (
+                  <div className="p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill flex justify-between">
+                    <span>Temperatura (°C)</span>
+                    <span className="font-mono text-neon-pulse">{cfgData.temp_min} °C – {cfgData.temp_max} °C</span>
+                  </div>
+                )}
+                {cfgData.hum_min !== null && (
+                  <div className="p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill flex justify-between">
+                    <span>Humedad relativa (%RH)</span>
+                    <span className="font-mono text-neon-pulse">{cfgData.hum_min} %RH – {cfgData.hum_max} %RH</span>
+                  </div>
+                )}
+                {cfgData.presion_min !== null && (
+                  <div className="p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill flex justify-between">
+                    <span>Presión atmosférica (hPa)</span>
+                    <span className="font-mono text-neon-pulse">{cfgData.presion_min} hPa – {cfgData.presion_max} hPa</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-text">Sin configuración registrada.</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
