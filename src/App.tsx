@@ -15,7 +15,6 @@ import {
   Medicion,
 } from './types/iot';
 import {
-  USUARIOS_INICIALES,
   UBICACIONES_INICIALES,
   getStoredDispositivos,
   saveStoredDispositivos,
@@ -40,7 +39,8 @@ import { Sidebar } from './components/layout/Sidebar';
 import { EnvironmentalLandingPage } from './components/landing/EnvironmentalLandingPage';
 import { LiveTelemetryView } from './components/dashboard/LiveTelemetryView';
 import { HeroSkeleton, CardGridSkeleton } from './components/common/SkeletonLoader';
-import { Check, AlertCircle, Smartphone } from 'lucide-react';
+import { Check, AlertCircle, Smartphone, Loader2 } from 'lucide-react';
+import { fetchCurrentUser, logoutSession, getDefaultTabForRole } from './services/authService';
 
 // ErrorBoundary para evitar pantallas vacías si falla un chunk o vista
 class SystemErrorBoundary extends React.Component<
@@ -154,9 +154,9 @@ export default function App() {
     });
   }, []);
 
-  // App entities
-  const [users] = useState<Usuario[]>(USUARIOS_INICIALES);
-  const [currentUser, setCurrentUser] = useState<Usuario>(USUARIOS_INICIALES[0]);
+  // App entities & real backend authentication state
+  const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
+  const [authChecking, setAuthChecking] = useState<boolean>(true);
   const [locations] = useState<Ubicacion[]>(UBICACIONES_INICIALES);
   const [selectedLocationId, setSelectedLocationId] = useState<string>(UBICACIONES_INICIALES[0].id_ubicacion);
 
@@ -171,9 +171,25 @@ export default function App() {
 
   // Modals
   const [showSimulator, setShowSimulator] = useState<boolean>(false);
-  const [showLogin, setShowLogin] = useState<boolean>(false);
   const [showPerformanceModal, setShowPerformanceModal] = useState<boolean>(false);
   const [selectedAlertForModal, setSelectedAlertForModal] = useState<Alerta | null>(null);
+
+  // Verificar sesión activa contra FastAPI (/api/auth/me) al iniciar
+  useEffect(() => {
+    let active = true;
+    fetchCurrentUser()
+      .then((user) => {
+        if (active && user) {
+          setCurrentUser(user);
+        }
+      })
+      .finally(() => {
+        if (active) setAuthChecking(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Streaming telemetry state (initialized synchronously so frame 1 is always complete)
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
@@ -201,6 +217,33 @@ export default function App() {
     setToastType(type);
     setTimeout(() => setToastMessage(null), 3800);
   }, []);
+
+  const handleLogout = useCallback(async () => {
+    await logoutSession();
+    setCurrentUser(null);
+    setViewMode('landing');
+    showToast('Sesión cerrada correctamente.');
+  }, [showToast]);
+
+  const handleAuthorizedTabChange = useCallback(
+    (tab: string) => {
+      if (!currentUser) return;
+      const rolePermissions: Record<string, string[]> = {
+        admin: ['dashboard', 'devices', 'alerts', 'analytics', 'ai', 'maintenance', 'simulator'],
+        cliente: ['dashboard', 'devices', 'alerts', 'analytics'],
+        tecnico: ['dashboard', 'devices', 'maintenance', 'simulator'],
+        supervisor: ['dashboard', 'devices', 'alerts', 'analytics', 'ai'],
+      };
+      const allowed = rolePermissions[currentUser.rol] || ['dashboard'];
+      if (!allowed.includes(tab)) {
+        showToast('No tiene permisos suficientes para acceder a este módulo.', 'alert');
+        setActiveTab(getDefaultTabForRole(currentUser.rol));
+        return;
+      }
+      setActiveTab(tab);
+    },
+    [currentUser, showToast]
+  );
 
   // Web Audio Beeper for alerts
   const playAlertSound = useCallback(() => {
@@ -373,7 +416,7 @@ export default function App() {
                 estado,
                 motivo_resolucion: motivo,
                 notas_resolucion: notas,
-                atendido_por: currentUser.nombre,
+                atendido_por: currentUser?.nombre || 'Sistema',
                 fecha_resolucion: new Date().toISOString(),
               }
             : a
@@ -383,7 +426,7 @@ export default function App() {
       });
       showToast('UI Optimista (0ms): Alerta resuelta sin esperar confirmación del servidor.');
     },
-    [currentUser.nombre, showToast]
+    [currentUser?.nombre, showToast]
   );
 
   // Optimistic UI Handler: Add Maintenance
@@ -474,19 +517,34 @@ export default function App() {
             onToggleSkeletonMode={() => setSkeletonMode(!skeletonMode)}
             onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
           />
+        ) : authChecking ? (
+          <div className="min-h-screen bg-obsidian-shell text-pure-white flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-neon-pulse" />
+            <p className="text-sm text-slate-text">Verificando sesión segura...</p>
+          </div>
+        ) : !currentUser ? (
+          <LoginModal
+            isOpen
+            fullPage
+            onBackToLanding={() => setViewMode('landing')}
+            onLoginSuccess={(u) => {
+              setCurrentUser(u);
+              setActiveTab(getDefaultTabForRole(u.rol));
+              showToast(`Sesión iniciada como ${u.nombre}.`);
+            }}
+          />
         ) : (
           <div className="min-h-screen bg-cream-paper text-bark flex flex-col transition-colors">
-            {/* Top Navigation Bar con acceso a volver a la Landing y Consola RUM */}
+            {/* Top Navigation Bar con sesión real y cierre de sesión */}
             <Navbar
               currentUser={currentUser}
-              allUsers={users}
-              onSelectUser={setCurrentUser}
+              onLogout={handleLogout}
               activeAlertCount={activeAlertsCount}
-              onOpenAlerts={() => setActiveTab('alerts')}
+              onOpenAlerts={() => handleAuthorizedTabChange('alerts')}
               onOpenSimulator={() => setShowSimulator(true)}
               onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={handleAuthorizedTabChange}
               isStreaming={isStreaming}
               onToggleStreaming={() => setIsStreaming(!isStreaming)}
               onBackToLanding={() => setViewMode('landing')}
@@ -497,7 +555,7 @@ export default function App() {
               {/* Left Sidebar */}
               <Sidebar
                 activeTab={activeTab}
-                onTabChange={setActiveTab}
+                onTabChange={handleAuthorizedTabChange}
                 userRole={currentUser.rol}
                 alertCount={activeAlertsCount}
                 devicesCount={devices.length}
@@ -545,7 +603,7 @@ export default function App() {
                         devices={devices}
                         sensors={sensors}
                         locations={locations}
-                        users={users}
+                        users={[currentUser]}
                         onAddDevice={handleAddDevice}
                         onUpdateSensorLimits={handleUpdateSensorLimits}
                         onToggleDeviceState={handleToggleDeviceOffline}
@@ -648,19 +706,6 @@ export default function App() {
                 onAddDLQ={handleAddDLQ}
                 onToggleDeviceOffline={handleToggleDeviceOffline}
                 activeFaults={telemetryEngineInstance.getActiveFaults()}
-              />
-            )}
-
-            {/* Login Modal */}
-            {showLogin && (
-              <LoginModal
-                isOpen={showLogin}
-                onClose={() => setShowLogin(false)}
-                users={users}
-                onLogin={(u) => {
-                  setCurrentUser(u);
-                  showToast(`Sesión iniciada con éxito como ${u.nombre} (${u.rol}).`);
-                }}
               />
             )}
           </div>

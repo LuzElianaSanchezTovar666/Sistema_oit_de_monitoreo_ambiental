@@ -1,20 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Bell,
   Radio,
   SlidersHorizontal,
-  ChevronDown,
   UserCheck,
   Shield,
   Wrench,
   Eye,
+  LogOut,
 } from 'lucide-react';
 import { Usuario, UserRole } from '../../types/iot';
 
 interface NavbarProps {
   currentUser: Usuario;
-  allUsers: Usuario[];
-  onSelectUser: (user: Usuario) => void;
+  onLogout: () => void;
   activeAlertCount: number;
   onOpenAlerts: () => void;
   onOpenSimulator: () => void;
@@ -28,8 +27,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
-  allUsers,
-  onSelectUser,
+  onLogout,
   activeAlertCount,
   onOpenAlerts,
   onOpenSimulator,
@@ -39,8 +37,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleStreaming,
   onBackToLanding,
 }) => {
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-
   const roleIcons: Record<UserRole, React.ReactNode> = {
     admin: <Shield className="w-3.5 h-3.5 text-neon-pulse" />,
     cliente: <UserCheck className="w-3.5 h-3.5 text-neon-pulse" />,
@@ -50,10 +46,20 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const roleLabels: Record<UserRole, string> = {
     admin: 'Administrador',
-    cliente: 'Operador / Cliente',
-    tecnico: 'Técnico Campo',
+    cliente: 'Operador',
+    tecnico: 'Técnico',
     supervisor: 'Supervisor',
   };
+
+  const navItems: Array<{ id: string; label: string; allowedRoles: UserRole[] }> = [
+    { id: 'dashboard', label: 'Monitoreo en Vivo', allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'] },
+    { id: 'devices', label: 'Dispositivos', allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'] },
+    { id: 'alerts', label: 'Alertas', allowedRoles: ['admin', 'cliente', 'supervisor'] },
+    { id: 'analytics', label: 'Analítica', allowedRoles: ['admin', 'cliente', 'supervisor'] },
+    { id: 'ai', label: 'Diagnóstico IA', allowedRoles: ['admin', 'supervisor'] },
+  ];
+
+  const visibleNavItems = navItems.filter((item) => item.allowedRoles.includes(currentUser.rol));
 
   return (
     <div className="sticky top-0 z-30">
@@ -65,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           }`}
         />
         <span className="truncate">
-          Consola SIMOA · Telemetría IoT MQTTS (TLS 1.3) &amp; Motor de Anomalías IA activo
+          Consola SIMOA · Sesión autenticada ({roleLabels[currentUser.rol]})
         </span>
       </div>
 
@@ -86,15 +92,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </div>
 
-        {/* Navigation Links — 56px pill tabs */}
+        {/* Navigation Links — 56px pill tabs filtered by RBAC */}
         <nav className="hidden lg:flex items-center gap-1.5">
-          {[
-            { id: 'dashboard', label: 'Monitoreo en Vivo' },
-            { id: 'devices', label: 'Dispositivos' },
-            { id: 'alerts', label: 'Alertas' },
-            { id: 'analytics', label: 'Analítica' },
-            { id: 'ai', label: 'Diagnóstico IA' },
-          ].map((item) => {
+          {visibleNavItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button
@@ -112,7 +112,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           })}
         </nav>
 
-        {/* Actions & Profile */}
+        {/* Actions & Authenticated Profile */}
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             onClick={onToggleStreaming}
@@ -127,90 +127,57 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="font-normal">{isStreaming ? 'En línea' : 'Pausado'}</span>
           </button>
 
-          <button
-            onClick={onOpenSimulator}
-            className="sauce-btn-primary flex items-center gap-2 px-4 py-2 text-[14px] cursor-pointer"
-            title="Abrir Simulador de Sensores"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-obsidian-shell" />
-            <span className="hidden md:inline">Simulador</span>
-          </button>
-
-          <button
-            onClick={onOpenAlerts}
-            className="relative p-2.5 text-pure-white hover:border-neon-pulse rounded-[56px] bg-deep-abyss border border-graphite-fill transition-colors cursor-pointer"
-            title="Ver alertas"
-          >
-            <Bell className="w-4 h-4" />
-            {activeAlertCount > 0 && (
-              <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-medium text-obsidian-shell bg-neon-pulse rounded-full font-mono tabular-nums leading-none">
-                {activeAlertCount}
-              </span>
-            )}
-          </button>
-
-          {/* User profile & Role switcher */}
-          <div className="relative">
+          {(['admin', 'tecnico'] as UserRole[]).includes(currentUser.rol) && (
             <button
-              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-[56px] bg-deep-abyss border border-graphite-fill hover:border-neon-pulse transition-colors text-left cursor-pointer"
+              onClick={onOpenSimulator}
+              className="sauce-btn-primary flex items-center gap-2 px-4 py-2 text-[14px] cursor-pointer"
+              title="Abrir Simulador de Sensores"
             >
-              <div className="w-7 h-7 rounded-full bg-neon-pulse flex items-center justify-center font-medium text-[12px] text-obsidian-shell">
-                {currentUser.nombre.charAt(0)}
-              </div>
-              <div className="hidden sm:flex flex-col">
-                <span className="text-[13px] font-medium text-pure-white whitespace-nowrap leading-tight">
-                  {currentUser.nombre}
-                </span>
-                <span className="text-[11px] text-slate-text capitalize flex items-center gap-1">
-                  {roleIcons[currentUser.rol]}
-                  {roleLabels[currentUser.rol]}
-                </span>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-text" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-obsidian-shell" />
+              <span className="hidden md:inline">Simulador</span>
             </button>
+          )}
 
-            {userDropdownOpen && (
-              <div
-                className="absolute right-0 mt-2 w-64 rounded-[20px] bg-deep-abyss border border-graphite-fill p-3 z-50 text-xs space-y-1"
-                onMouseLeave={() => setUserDropdownOpen(false)}
-              >
-                <div className="px-3 py-2 border-b border-graphite-fill">
-                  <p className="font-medium text-pure-white text-[13px]">{currentUser.nombre}</p>
-                  <p className="text-[11px] text-slate-text truncate">{currentUser.correo}</p>
-                  <p className="text-[11px] text-neon-pulse font-medium mt-0.5">{currentUser.empresa}</p>
-                </div>
+          {(['admin', 'cliente', 'supervisor'] as UserRole[]).includes(currentUser.rol) && (
+            <button
+              onClick={onOpenAlerts}
+              className="relative p-2.5 text-pure-white hover:border-neon-pulse rounded-[56px] bg-deep-abyss border border-graphite-fill transition-colors cursor-pointer"
+              title="Ver alertas"
+            >
+              <Bell className="w-4 h-4" />
+              {activeAlertCount > 0 && (
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-medium text-obsidian-shell bg-neon-pulse rounded-full font-mono tabular-nums leading-none">
+                  {activeAlertCount}
+                </span>
+              )}
+            </button>
+          )}
 
-                <div className="px-3 py-1.5 sauce-eyebrow text-slate-text">
-                  Cambiar Rol / Perfil
-                </div>
-
-                {allUsers.map((u) => (
-                  <button
-                    key={u.id_usuario}
-                    onClick={() => {
-                      onSelectUser(u);
-                      setUserDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-left hover:bg-obsidian-shell transition-colors cursor-pointer ${
-                      u.id_usuario === currentUser.id_usuario ? 'bg-obsidian-shell font-medium' : ''
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {roleIcons[u.rol]}
-                      <div>
-                        <div className="text-pure-white text-[13px]">{u.nombre}</div>
-                        <div className="text-[11px] text-slate-text">{roleLabels[u.rol]}</div>
-                      </div>
-                    </div>
-                    {u.id_usuario === currentUser.id_usuario && (
-                      <span className="w-2 h-2 rounded-full bg-neon-pulse" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
+          {/* Authenticated User Badge */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[56px] bg-deep-abyss border border-graphite-fill">
+            <div className="w-7 h-7 rounded-full bg-neon-pulse flex items-center justify-center font-medium text-[12px] text-obsidian-shell">
+              {currentUser.nombre.charAt(0)}
+            </div>
+            <div className="hidden sm:flex flex-col">
+              <span className="text-[13px] font-medium text-pure-white whitespace-nowrap leading-tight">
+                {currentUser.nombre}
+              </span>
+              <span className="text-[11px] text-slate-text flex items-center gap-1">
+                {roleIcons[currentUser.rol]}
+                {roleLabels[currentUser.rol]}
+              </span>
+            </div>
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={onLogout}
+            title="Cerrar sesión"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse hover:text-neon-pulse text-[13px] transition-colors cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Salir</span>
+          </button>
         </div>
       </header>
     </div>
