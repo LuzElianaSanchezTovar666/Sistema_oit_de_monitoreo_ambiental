@@ -33,6 +33,9 @@ class Settings:
         self.rate_limit_max_attempts: int = int(os.getenv("LOGIN_MAX_ATTEMPTS", "5"))
         self.rate_limit_window_seconds: int = int(os.getenv("LOGIN_WINDOW_SECONDS", "60"))
 
+        self.mqtt_broker_host: str = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
+        self.mqtt_broker_port: int = int(os.getenv("MQTT_BROKER_PORT", "1883"))
+
 
 @lru_cache
 def get_settings() -> Settings:
