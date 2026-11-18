@@ -54,6 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const navItems: Array<{ id: string; label: string; allowedRoles: UserRole[] }> = [
     { id: 'dashboard', label: 'Monitoreo en Vivo', allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'] },
     { id: 'devices', label: 'Dispositivos', allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'] },
+    { id: 'locations', label: 'Ubicaciones', allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'] },
     { id: 'alerts', label: 'Alertas', allowedRoles: ['admin', 'cliente', 'supervisor'] },
     { id: 'analytics', label: 'Analítica', allowedRoles: ['admin', 'cliente', 'supervisor'] },
     { id: 'ai', label: 'Diagnóstico IA', allowedRoles: ['admin', 'supervisor'] },

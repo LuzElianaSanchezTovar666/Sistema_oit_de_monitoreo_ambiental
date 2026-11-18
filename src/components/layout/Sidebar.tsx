@@ -2,6 +2,7 @@
 import {
   LayoutDashboard,
   Cpu,
+  MapPin,
   AlertTriangle,
   LineChart,
   Sparkles,
@@ -43,6 +44,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: devicesCount.toString(),
       badgeStyle: 'bg-obsidian-shell text-pure-white rounded-[10px]',
       allowedRoles: ['admin', 'tecnico', 'supervisor'],
+    },
+    {
+      id: 'locations',
+      label: 'Ubicaciones',
+      icon: <MapPin className="w-4 h-4" />,
+      badge: null,
+      allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'],
     },
     {
       id: 'alerts',

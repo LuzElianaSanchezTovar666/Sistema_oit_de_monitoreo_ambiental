@@ -41,6 +41,7 @@ import { LiveTelemetryView } from './components/dashboard/LiveTelemetryView';
 import { HeroSkeleton, CardGridSkeleton } from './components/common/SkeletonLoader';
 import { Check, AlertCircle, Smartphone, Loader2 } from 'lucide-react';
 import { fetchCurrentUser, logoutSession, getDefaultTabForRole } from './services/authService';
+import { fetchUbicaciones } from './services/locationService';
 
 // ErrorBoundary para evitar pantallas vacías si falla un chunk o vista
 class SystemErrorBoundary extends React.Component<
@@ -117,6 +118,11 @@ const PerformanceMonitorModal = React.lazy(() =>
     default: m.PerformanceMonitorModal,
   }))
 );
+const LocationCatalogView = React.lazy(() =>
+  import('./components/locations/LocationCatalogView').then((m) => ({
+    default: m.LocationCatalogView,
+  }))
+);
 
 export default function App() {
   useEffect(() => {
@@ -157,8 +163,32 @@ export default function App() {
   // App entities & real backend authentication state
   const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
   const [authChecking, setAuthChecking] = useState<boolean>(true);
-  const [locations] = useState<Ubicacion[]>(UBICACIONES_INICIALES);
+  const [locations, setLocations] = useState<Ubicacion[]>(UBICACIONES_INICIALES);
   const [selectedLocationId, setSelectedLocationId] = useState<string>(UBICACIONES_INICIALES[0].id_ubicacion);
+
+  const loadLocationsFromMySQL = useCallback(async () => {
+    try {
+      const res = await fetchUbicaciones({ estado: 'ACTIVA' });
+      if (res.items.length > 0) {
+        const mapped: Ubicacion[] = res.items.map((u) => ({
+          id_ubicacion: u.ubicacion_id,
+          nombre: u.nombre,
+          descripcion: u.descripcion || u.tipo,
+          codigo_area: u.codigo_area,
+          temp_optima_min: 18,
+          temp_optima_max: 25,
+          hum_optima_min: 40,
+          hum_optima_max: 70,
+        }));
+        setLocations(mapped);
+        setSelectedLocationId((prev) =>
+          mapped.some((m) => m.id_ubicacion === prev) ? prev : mapped[0].id_ubicacion
+        );
+      }
+    } catch {
+      // Si el usuario aún no está autenticado, se cargará al iniciar sesión
+    }
+  }, []);
 
   const [devices, setDevices] = useState<Dispositivo[]>(getStoredDispositivos);
   const [sensors, setSensors] = useState<Sensor[]>(getStoredSensores);
@@ -181,6 +211,7 @@ export default function App() {
       .then((user) => {
         if (active && user) {
           setCurrentUser(user);
+          loadLocationsFromMySQL();
         }
       })
       .finally(() => {
@@ -189,7 +220,7 @@ export default function App() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadLocationsFromMySQL]);
 
   // Streaming telemetry state (initialized synchronously so frame 1 is always complete)
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
@@ -229,10 +260,10 @@ export default function App() {
     (tab: string) => {
       if (!currentUser) return;
       const rolePermissions: Record<string, string[]> = {
-        admin: ['dashboard', 'devices', 'alerts', 'analytics', 'ai', 'maintenance', 'simulator'],
-        cliente: ['dashboard', 'devices', 'alerts', 'analytics'],
-        tecnico: ['dashboard', 'devices', 'maintenance', 'simulator'],
-        supervisor: ['dashboard', 'devices', 'alerts', 'analytics', 'ai'],
+        admin: ['dashboard', 'devices', 'locations', 'alerts', 'analytics', 'ai', 'maintenance', 'simulator'],
+        cliente: ['dashboard', 'devices', 'locations', 'alerts', 'analytics'],
+        tecnico: ['dashboard', 'devices', 'locations', 'maintenance', 'simulator'],
+        supervisor: ['dashboard', 'devices', 'locations', 'alerts', 'analytics', 'ai'],
       };
       const allowed = rolePermissions[currentUser.rol] || ['dashboard'];
       if (!allowed.includes(tab)) {
@@ -530,6 +561,7 @@ export default function App() {
             onLoginSuccess={(u) => {
               setCurrentUser(u);
               setActiveTab(getDefaultTabForRole(u.rol));
+              loadLocationsFromMySQL();
               showToast(`Sesión iniciada como ${u.nombre}.`);
             }}
           />
@@ -609,6 +641,14 @@ export default function App() {
                         onUpdateSensorLimits={handleUpdateSensorLimits}
                         onToggleDeviceState={handleToggleDeviceOffline}
                         onNotify={showToast}
+                      />
+                    )}
+
+                    {activeTab === 'locations' && (
+                      <LocationCatalogView
+                        currentUserRole={currentUser.rol}
+                        onNotify={showToast}
+                        onLocationsChanged={loadLocationsFromMySQL}
                       />
                     )}
 
