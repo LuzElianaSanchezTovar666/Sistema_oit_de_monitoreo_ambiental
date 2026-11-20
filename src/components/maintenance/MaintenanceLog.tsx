@@ -1,35 +1,46 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
   Wrench,
   Plus,
   CheckCircle2,
   Cpu,
 } from 'lucide-react';
-import { Mantenimiento, Dispositivo, Sensor, Usuario } from '../../types/iot';
+import { Mantenimiento, Usuario } from '../../types/iot';
+import { DeviceConnectivity } from '../../services/deviceService';
+import { fetchSensores, SensorDTO } from '../../services/sensorService';
+import { DeviceConnectivityPanel } from '../devices/DeviceConnectivity';
 
 interface MaintenanceLogProps {
   maintenances: Mantenimiento[];
-  devices: Dispositivo[];
-  sensors: Sensor[];
+  connectivity: DeviceConnectivity[] | null;
   currentUser: Usuario;
   onAddMaintenance: (entry: Mantenimiento) => void;
 }
 
 export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
   maintenances,
-  devices,
-  sensors,
+  connectivity,
   currentUser,
   onAddMaintenance,
 }) => {
   const [showModal, setShowModal] = useState(false);
-  const [selectedDeviceId, setSelectedDeviceId] = useState(devices[0]?.id_dispositivo || '');
+  const [selectedDeviceId, setSelectedDeviceId] = useState('');
+  const [sensors, setSensors] = useState<SensorDTO[]>([]);
+  const devices = connectivity ?? [];
+  useEffect(() => {
+    let active = true;
+    fetchSensores().then((result) => {
+      if (active) setSensors(result.items);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
   const [tipoMnt, setTipoMnt] = useState<Mantenimiento['tipo_mantenimiento']>('CALIBRACION');
   const [descripcion, setDescripcion] = useState('');
   const [costo, setCosto] = useState(85);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!devices.some((device) => device.id_dispositivo === selectedDeviceId)) return;
     const sens = sensors.find((s) => s.dispositivo_id === selectedDeviceId);
 
     const newMnt: Mantenimiento = {
@@ -66,13 +77,19 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setSelectedDeviceId(devices[0]?.id_dispositivo ?? '');
+            setShowModal(true);
+          }}
+          disabled={devices.length === 0}
           className="apple-blue-pill flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>Registrar Intervención Técnica</span>
         </button>
       </div>
+
+      <DeviceConnectivityPanel devices={connectivity} />
 
       {/* Grid de Estado de Sensores y Calibración — Feature Metric Tiles (28px radius, 16px padding, no shadow) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
@@ -87,7 +104,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[14px] text-bark flex items-center gap-1.5">
                     <Cpu className="w-4 h-4 text-canopy" />
-                    {s.tipo_sensor}
+                    {s.modelo}
                   </span>
                   <span className="px-2 py-0.5 rounded-[5px] text-[10px] font-mono font-semibold bg-canopy/15 text-canopy">
                     {s.estado}
@@ -133,7 +150,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                 <th className="px-5 py-3 text-center">Estado</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#afc4bf]/40 font-sans">
+            <tbody className="divide-y divide-stone-border/40 font-sans">
               {maintenances.map((mnt) => {
                 const dev = devices.find((d) => d.id_dispositivo === mnt.dispositivo_id);
                 return (
@@ -172,7 +189,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
 
       {/* Modal: Registrar Intervención */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-deep-abyss/65 backdrop-blur-md animate-fadeIn">
           <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
             <div className="flex items-center justify-between border-b border-sage-mist pb-3">
               <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
@@ -200,7 +217,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                   >
                     {devices.map((d) => (
                       <option key={d.id_dispositivo} value={d.id_dispositivo}>
-                        {d.nombre} ({d.mac_address})
+                        {d.nombre} ({d.codigo || d.id_dispositivo})
                       </option>
                     ))}
                   </select>
@@ -234,7 +251,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                   placeholder="ej. Se realizó calibración en 3 puntos con higrómetro de referencia certificado..."
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
-                  className="w-full px-4 py-3 rounded-[16px] border border-[#4A7C59] bg-cream-paper text-bark placeholder-[#4A7C59] focus:outline-none focus:border-canopy"
+                  className="w-full px-4 py-3 rounded-[16px] border border-graphite-fill bg-cream-paper text-bark placeholder-slate-text focus:outline-none focus:border-canopy"
                 />
               </div>
 

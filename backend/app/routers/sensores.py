@@ -1271,6 +1271,7 @@ def get_dashboard_telemetria(
             SELECT m.id_medicion, m.dispositivo_id, m.sensor_id,
                    COALESCE(m.ubicacion_id, d.ubicacion_id) AS ubicacion_id,
                    m.temperatura, m.humedad, m.presion, m.alerta_generada,
+                   m.score_anomalia_ia, m.es_fuera_de_umbral,
                    m.configuracion_id, m.variables_activas_snapshot, m.fecha_hora
             FROM mediciones m
             INNER JOIN dispositivos d ON d.id_dispositivo = m.dispositivo_id
@@ -1300,6 +1301,8 @@ def get_dashboard_telemetria(
                 "humedad": float(m["humedad"]) if m.get("humedad") is not None else None,
                 "presion": float(m["presion"]) if m.get("presion") is not None else None,
                 "alerta_generada": bool(m.get("alerta_generada")),
+                "score_anomalia_ia": float(m["score_anomalia_ia"]) if m.get("score_anomalia_ia") is not None else None,
+                "es_fuera_de_umbral": bool(m.get("es_fuera_de_umbral")),
                 "configuracion_id": m.get("configuracion_id"),
                 "variables_activas_snapshot": snap_parsed,
                 "fecha_hora": fh.isoformat() if hasattr(fh, "isoformat") else str(fh),

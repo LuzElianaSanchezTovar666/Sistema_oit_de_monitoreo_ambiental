@@ -709,7 +709,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggleVariable(cap.variable)}
-                          className="accent-[#3ddc91]"
+                          className="accent-neon-pulse"
                         />
                         <span>
                           {cap.variable} ({cap.unidad})
@@ -1339,7 +1339,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
                           setTempEnabled(e.target.checked);
                           setVarsError('');
                         }}
-                        className="w-4 h-4 accent-[#34D399]"
+                        className="w-4 h-4 accent-neon-pulse"
                       />
                     </label>
                   )}
@@ -1366,7 +1366,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
                           setHumEnabled(e.target.checked);
                           setVarsError('');
                         }}
-                        className="w-4 h-4 accent-[#34D399]"
+                        className="w-4 h-4 accent-neon-pulse"
                       />
                     </label>
                   )}
@@ -1393,7 +1393,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
                           setPresEnabled(e.target.checked);
                           setVarsError('');
                         }}
-                        className="w-4 h-4 accent-[#34D399]"
+                        className="w-4 h-4 accent-neon-pulse"
                       />
                     </label>
                   )}

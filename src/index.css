@@ -2,18 +2,18 @@
 
 :root {
   /* Sauce Labs Design System — Colors */
-  --color-obsidian-shell: #132322;
+  --color-obsidian-shell: #10213d;
   --color-pure-white: #ffffff;
-  --color-mint-frost: #edf7f5;
-  --color-deep-abyss: #0e1a19;
-  --color-charcoal: #070f0f;
-  --color-fog-border: #d0d3d3;
-  --color-stone-border: #b2b6b4;
-  --color-slate-text: #828786;
-  --color-graphite-fill: #424f4f;
+  --color-mint-frost: #eaf3ff;
+  --color-deep-abyss: #0a172e;
+  --color-charcoal: #070f20;
+  --color-fog-border: #ccdaed;
+  --color-stone-border: #9eb2ce;
+  --color-slate-text: #a6b8d2;
+  --color-graphite-fill: #354d70;
   --color-pure-black: #000000;
-  --color-neon-pulse: #3ddc91;
-  --color-mint-whisper: #97ddbc;
+  --color-neon-pulse: #76a9ff;
+  --color-mint-whisper: #b4d5ff;
   --color-signal-yellow: #ffcd48;
 
   /* Typography — Font Families */
@@ -85,39 +85,39 @@
   --shadow-md: rgba(0, 0, 0, 0.04) 1px 0px 9px 2px;
 
   /* Surfaces */
-  --surface-obsidian-canvas: #132322;
-  --surface-deep-card: #0e1a19;
-  --surface-mint-card: #edf7f5;
+  --surface-obsidian-canvas: #10213d;
+  --surface-deep-card: #0a172e;
+  --surface-mint-card: #eaf3ff;
   --surface-white-panel: #ffffff;
 }
 
 @theme {
   /* Colors */
-  --color-obsidian-shell: #132322;
+  --color-obsidian-shell: #10213d;
   --color-pure-white: #ffffff;
-  --color-mint-frost: #edf7f5;
-  --color-deep-abyss: #0e1a19;
-  --color-charcoal: #070f0f;
-  --color-fog-border: #d0d3d3;
-  --color-stone-border: #b2b6b4;
-  --color-slate-text: #828786;
-  --color-graphite-fill: #424f4f;
+  --color-mint-frost: #eaf3ff;
+  --color-deep-abyss: #0a172e;
+  --color-charcoal: #070f20;
+  --color-fog-border: #ccdaed;
+  --color-stone-border: #9eb2ce;
+  --color-slate-text: #a6b8d2;
+  --color-graphite-fill: #354d70;
   --color-pure-black: #000000;
-  --color-neon-pulse: #3ddc91;
-  --color-mint-whisper: #97ddbc;
+  --color-neon-pulse: #76a9ff;
+  --color-mint-whisper: #b4d5ff;
   --color-signal-yellow: #ffcd48;
 
   /* Legacy semantic aliases mapped to Sauce Labs dark/light tokens so all modules update cleanly */
-  --color-cream-paper: #132322;
-  --color-sheet-white: #0e1a19;
-  --color-canopy: #3ddc91;
+  --color-cream-paper: #10213d;
+  --color-sheet-white: #0a172e;
+  --color-canopy: #76a9ff;
   --color-bark: #ffffff;
   --color-ink: #ffffff;
-  --color-slate: #828786;
-  --color-sage-mist: #424f4f;
-  --color-pale-sage: #424f4f;
-  --color-muted-slate: #828786;
-  --color-mint-pulse: #3ddc91;
+  --color-slate: #a6b8d2;
+  --color-sage-mist: #354d70;
+  --color-pale-sage: #354d70;
+  --color-muted-slate: #a6b8d2;
+  --color-mint-pulse: #76a9ff;
   --color-orb-violet: #ffcd48;
 
   /* Typography */
@@ -170,14 +170,14 @@
   }
 
   select option {
-    background-color: #0e1a19;
+    background-color: var(--color-deep-abyss);
     color: #ffffff;
   }
 }
 
 /* ============================================================================
    SAUCE LABS CONSOLE DESIGN SYSTEM UTILITIES
-   Obsidian Shell (#132322) · Deep Abyss (#0e1a19) · Mint Frost (#edf7f5) · Neon Pulse (#3ddc91)
+   Obsidian Shell (#10213d) · Deep Abyss (#0a172e) · Mint Frost (#eaf3ff) · Neon Pulse (#76a9ff)
    ============================================================================ */
 
 .sauce-display {
@@ -334,8 +334,8 @@
 
 .apple-pill-input,
 .apple-pill-select {
-  background-color: #0e1a19;
-  border: 1px solid #424f4f;
+  background-color: var(--color-deep-abyss);
+  border: 1px solid var(--color-graphite-fill);
   color: #ffffff;
   border-radius: 10px;
   padding-left: 12px;

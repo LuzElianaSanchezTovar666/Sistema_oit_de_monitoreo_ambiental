@@ -6,19 +6,22 @@ from .config import get_settings
 from .database import run_migrations
 from .routers import alertas, auth, configuraciones, dispositivos, mediciones, mqtt, protected_simoa, sensores, ubicaciones
 from .services.alerts_service import alerts_service
+from .services.device_connectivity import connectivity_monitor
 from .services.mqtt_ingest import mqtt_service
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     run_migrations()
-    alerts_service.start()
-    mqtt_service.start(wait_connect_seconds=0.0)
     try:
+        connectivity_monitor.start()
+        alerts_service.start()
+        mqtt_service.start(wait_connect_seconds=0.0)
         yield
     finally:
         mqtt_service.stop()
         alerts_service.stop()
+        connectivity_monitor.stop()
 
 
 def create_app() -> FastAPI:

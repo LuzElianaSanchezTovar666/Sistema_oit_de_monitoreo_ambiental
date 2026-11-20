@@ -46,16 +46,16 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0x3ddc91, 1.1);
+      const dirLight = new THREE.DirectionalLight(0x76a9ff, 1.1);
       dirLight.position.set(10, 15, 12);
       scene.add(dirLight);
 
-      const tealLight = new THREE.PointLight(0xffcd48, 0.7, 40);
-      tealLight.position.set(-12, -8, 10);
-      scene.add(tealLight);
+      const cyanLight = new THREE.PointLight(0x53d5f4, 0.7, 40);
+      cyanLight.position.set(-12, -8, 10);
+      scene.add(cyanLight);
 
-      // Paleta Sauce Labs Console (Neon Pulse, Mint Whisper, Signal Yellow, Graphite, Pure White)
-      const ecoColors = [0x3ddc91, 0x97ddbc, 0xffcd48, 0x424f4f, 0xffffff];
+      // Paleta azul de SIMOA
+      const ecoColors = [0x76a9ff, 0xb4d5ff, 0x53d5f4, 0x354d70, 0xffffff];
 
       // 1. Figuras geométricas 3D dispersas (nodos, moléculas y anillos de sensores)
       interface FloatingShape {
@@ -167,7 +167,7 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       // 3. Anillo / Aura interactiva que sigue suavemente al cursor en 3D
       const cursorRingGeom = new THREE.TorusGeometry(1.3, 0.035, 12, 48);
       const cursorRingMat = new THREE.MeshBasicMaterial({
-        color: 0x3ddc91,
+        color: 0x76a9ff,
         transparent: true,
         opacity: 0.35,
       });
@@ -177,7 +177,7 @@ export const EnvironmentalThreeBackground: React.FC = () => {
 
       const cursorCoreGeom = new THREE.OctahedronGeometry(0.32, 0);
       const cursorCoreMat = new THREE.MeshBasicMaterial({
-        color: 0xffcd48,
+        color: 0x53d5f4,
         wireframe: true,
         transparent: true,
         opacity: 0.55,

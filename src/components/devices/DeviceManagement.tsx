@@ -21,16 +21,19 @@ import { useDebounce } from '../../hooks/useDebounce';
 import {
   createDispositivo,
   deactivateDispositivo,
+  DeviceConnectivity,
   DispositivoDTO,
   DispositivoEstado,
   DispositivoTipo,
   fetchDispositivoDetail,
   fetchDispositivos,
+  formatLastContact,
   INVALID_MAC_MESSAGE,
   isValidMacFormat,
   MqttCredentialsOnce,
   updateDispositivo,
 } from '../../services/deviceService';
+import { DeviceConnectivityBadge } from './DeviceConnectivity';
 import {
   assignDispositivoUbicacion,
   fetchHistorialUbicaciones,
@@ -50,37 +53,11 @@ interface DeviceManagementProps {
   onUpdateSensorLimits?: (sensorId: string, limits: Sensor['limites']) => void;
   onToggleDeviceState?: (deviceId: string) => void;
   onNotify?: (msg: string, type?: 'success' | 'alert') => void;
+  connectivity: DeviceConnectivity[] | null;
 }
 
-const ESTADO_BADGE: Record<DispositivoEstado, { label: string; cls: string }> = {
-  PENDIENTE: {
-    label: 'PENDIENTE',
-    cls: 'bg-signal-yellow/20 text-signal-yellow border border-signal-yellow/50',
-  },
-  ONLINE: {
-    label: 'ONLINE',
-    cls: 'bg-neon-pulse/20 text-neon-pulse border border-neon-pulse/50',
-  },
-  OFFLINE: {
-    label: 'OFFLINE',
-    cls: 'bg-[#DC2626]/20 text-[#FCA5A5] border border-[#DC2626]/50',
-  },
-  ADVERTENCIA: {
-    label: 'ADVERTENCIA',
-    cls: 'bg-signal-yellow/20 text-signal-yellow border border-signal-yellow/50',
-  },
-  ERROR: {
-    label: 'ERROR',
-    cls: 'bg-[#DC2626]/20 text-[#FCA5A5] border border-[#DC2626]/50',
-  },
-  INACTIVO: {
-    label: 'INACTIVO',
-    cls: 'bg-graphite-fill/40 text-slate-text border border-graphite-fill',
-  },
-};
-
 export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
-  ({ locations, currentUserRole = 'cliente', onNotify }) => {
+  ({ locations, currentUserRole = 'cliente', onNotify, connectivity }) => {
     const isAdmin = currentUserRole === 'admin';
 
     const [items, setItems] = useState<DispositivoDTO[]>([]);
@@ -140,7 +117,6 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
         const [res, ubiRes] = await Promise.all([
           fetchDispositivos({
             search: debouncedSearch,
-            estado: estadoFilter,
             tipo: tipoFilter,
           }),
           fetchUbicaciones({ estado: 'ACTIVA' }),
@@ -157,11 +133,15 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
       } finally {
         setLoading(false);
       }
-    }, [debouncedSearch, estadoFilter, tipoFilter, newUbicacion]);
+    }, [debouncedSearch, tipoFilter, newUbicacion]);
 
     useEffect(() => {
       loadInventory();
     }, [loadInventory]);
+
+    const statusById = new Map(connectivity?.map((device) => [device.id_dispositivo, device]));
+    const visibleItems = items.filter((device) => estadoFilter === 'ALL' || statusById.get(device.id_dispositivo)?.estado === estadoFilter);
+    const detailStatus = detailDevice ? statusById.get(detailDevice.id_dispositivo) : undefined;
 
     const handleCopy = (key: string, value: string) => {
       navigator.clipboard?.writeText(value);
@@ -434,7 +414,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
               <Loader2 className="w-5 h-5 animate-spin text-neon-pulse" />
               <span>Consultando dispositivos en MySQL...</span>
             </div>
-          ) : items.length === 0 ? (
+          ) : visibleItems.length === 0 ? (
             <div className="p-10 text-center space-y-2">
               <Cpu className="w-8 h-8 text-slate-text mx-auto" />
               <p className="text-sm text-pure-white font-medium">
@@ -461,8 +441,8 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-graphite-fill/40">
-                  {items.map((dev) => {
-                    const badge = ESTADO_BADGE[dev.estado] || ESTADO_BADGE.PENDIENTE;
+                  {visibleItems.map((dev) => {
+                    const live = statusById.get(dev.id_dispositivo);
                     return (
                       <tr key={dev.id_dispositivo} className="hover:bg-obsidian-shell/60 transition-colors">
                         <td className="py-3.5 px-4">
@@ -480,9 +460,10 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                         <td className="py-3.5 px-4 text-xs text-pure-white">{dev.tipo}</td>
                         <td className="py-3.5 px-4 text-xs text-slate-text">{dev.ubicacion}</td>
                         <td className="py-3.5 px-4">
-                          <span className={`px-2.5 py-1 rounded-[56px] text-[11px] font-mono font-medium ${badge.cls}`}>
-                            {badge.label}
-                          </span>
+                          <DeviceConnectivityBadge state={live?.estado} />
+                          <p className="mt-1 text-[11px] text-slate-text">Último contacto · {formatLastContact(live?.ultimo_ping ?? dev.ultimo_ping)}</p>
+                          {live?.estado === 'ADVERTENCIA' && <p className="text-xs text-signal-yellow">Retraso en la comunicación</p>}
+                          {live?.estado === 'OFFLINE' && <p className="text-xs text-red-300">Comunicación interrumpida</p>}
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="inline-flex items-center gap-2">
@@ -493,7 +474,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                               <Eye className="w-3.5 h-3.5" />
                               {isAdmin ? 'Detalle / Editar' : 'Ver detalle'}
                             </button>
-                            {isAdmin && dev.estado !== 'INACTIVO' && (
+                            {isAdmin && (live?.estado ?? dev.estado) !== 'INACTIVO' && (
                               <button
                                 onClick={() => setDeactivateTarget(dev)}
                                 className="px-3 py-1.5 rounded-[56px] bg-[#DC2626]/15 border border-[#DC2626]/40 text-[#FCA5A5] hover:bg-[#DC2626]/25 text-xs inline-flex items-center gap-1.5 cursor-pointer"
@@ -724,7 +705,8 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                   <div className="grid grid-cols-2 gap-3 p-3.5 rounded-[12px] bg-obsidian-shell border border-graphite-fill text-xs">
                     <div>
                       <span className="text-slate-text block">Estado</span>
-                      <span className="font-mono font-medium text-pure-white">{detailDevice.estado}</span>
+                      <DeviceConnectivityBadge state={detailStatus?.estado} />
+                      <p className="mt-1 text-slate-text">Último contacto · {formatLastContact(detailStatus?.ultimo_ping ?? detailDevice.ultimo_ping)}</p>
                     </div>
                     <div>
                       <span className="text-slate-text block">Historial de mediciones (RN-03)</span>

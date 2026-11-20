@@ -16,12 +16,12 @@ interface NavbarProps {
   onLogout: () => void;
   activeAlertCount: number;
   onOpenAlerts: () => void;
-  onOpenSimulator: () => void;
+  onOpenSimulator?: () => void;
   onOpenPerformanceMonitor?: () => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
   isStreaming: boolean;
-  onToggleStreaming: () => void;
+  onToggleStreaming?: () => void;
   onBackToLanding?: () => void;
 }
 
@@ -65,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <div className="sticky top-0 z-30">
-      {/* Announcement Bar — Neon Pulse (#3ddc91) */}
+      {/* Announcement Bar — Neon Pulse (#76a9ff) */}
       <div className="w-full bg-neon-pulse text-obsidian-shell px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-normal">
         <span
           className={`w-2 h-2 rounded-full shrink-0 ${
@@ -77,7 +77,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </span>
       </div>
 
-      {/* Top Navigation — Obsidian Shell (#132322), 72px height */}
+      {/* Top Navigation — Obsidian Shell (#10213d), 72px height */}
       <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-obsidian-shell border-b border-graphite-fill/50">
         {/* Brand Logo */}
         <div className="flex items-center gap-3 shrink-0">
@@ -116,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Actions & Authenticated Profile */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <button
+          {onToggleStreaming && <button
             onClick={onToggleStreaming}
             title={isStreaming ? 'Pausar transmisión en vivo' : 'Reanudar transmisión en vivo'}
             className="hidden sm:flex items-center gap-2 px-4 py-2 text-[13px] rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse transition-colors cursor-pointer"
@@ -127,9 +127,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             />
             <span className="font-normal">{isStreaming ? 'En línea' : 'Pausado'}</span>
-          </button>
+          </button>}
 
-          {(['admin', 'tecnico'] as UserRole[]).includes(currentUser.rol) && (
+          {onOpenSimulator && (['admin', 'tecnico'] as UserRole[]).includes(currentUser.rol) && (
             <button
               onClick={onOpenSimulator}
               className="sauce-btn-primary flex items-center gap-2 px-4 py-2 text-[14px] cursor-pointer"

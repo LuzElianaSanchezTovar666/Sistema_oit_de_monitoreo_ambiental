@@ -72,17 +72,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const containerClass = fullPage
-    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-[#0B3D2E] via-[#0F4C5C] to-[#0A2540]'
-    : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2540]/75 backdrop-blur-sm';
+    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-obsidian-shell via-[#153760] to-deep-abyss'
+    : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-deep-abyss/75 backdrop-blur-sm';
 
   return (
     <div className={containerClass}>
       <div className="w-full max-w-4xl bg-[#ffffff] text-[#0F172A] rounded-[24px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-[#CBD5E1]">
-        {/* Panel izquierdo — Identidad Tecnológica y Ambiental (Azul / Verde / Blanco) */}
-        <div className="md:col-span-5 bg-gradient-to-br from-[#0F5132] via-[#0D6E6E] to-[#0369A1] text-[#ffffff] p-7 sm:p-9 flex flex-col justify-between space-y-8">
+        {/* Panel izquierdo — Identidad de SIMOA */}
+        <div className="md:col-span-5 bg-gradient-to-br from-[#17376a] via-[#1e4f91] to-[#0369A1] text-[#ffffff] p-7 sm:p-9 flex flex-col justify-between space-y-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#ffffff]/15 text-[#ffffff] text-[11px] font-medium tracking-wide uppercase">
-              <Leaf className="w-3.5 h-3.5 text-[#86EFAC]" />
+              <Leaf className="w-3.5 h-3.5 text-[#b4d5ff]" />
               <span>Plataforma Segura IoT</span>
             </div>
 
@@ -99,10 +99,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </p>
           </div>
 
-          <div className="space-y-3 text-xs text-[#F0FDF4]">
+          <div className="space-y-3 text-xs text-[#eaf3ff]">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[10px] bg-[#ffffff]/15 flex items-center justify-center shrink-0">
-                <Cpu className="w-4 h-4 text-[#86EFAC]" />
+                <Cpu className="w-4 h-4 text-[#b4d5ff]" />
               </div>
               <span>Gestión de nodos ESP32 y sensores DHT22 / BME280</span>
             </div>
@@ -114,7 +114,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[10px] bg-[#ffffff]/15 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-4 h-4 text-[#86EFAC]" />
+                <ShieldCheck className="w-4 h-4 text-[#b4d5ff]" />
               </div>
               <span>Roles: Administrador, Operador, Técnico y Supervisor</span>
             </div>
@@ -135,7 +135,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="button"
                 onClick={onBackToLanding}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0369A1] hover:text-[#0F5132] cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0369A1] hover:text-obsidian-shell cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Volver al inicio
@@ -224,7 +224,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-5 rounded-[10px] bg-gradient-to-r from-[#0F5132] to-[#0284C7] hover:opacity-95 disabled:opacity-60 text-[#ffffff] text-sm font-medium flex items-center justify-center gap-2 transition-opacity cursor-pointer"
+              className="w-full py-3 px-5 rounded-[10px] bg-gradient-to-r from-[#17376a] to-[#0369A1] hover:opacity-95 disabled:opacity-60 text-[#ffffff] text-sm font-medium flex items-center justify-center gap-2 transition-opacity cursor-pointer"
             >
               {loading ? (
                 <>

@@ -1,26 +1,22 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  Cpu,
   BrainCircuit,
-  Wifi,
-  WifiOff,
   AlertOctagon,
-  Clock,
   CheckCircle2,
   AlertTriangle,
   Database,
 } from 'lucide-react';
-import { Ubicacion, Dispositivo, Sensor, Medicion, Alerta } from '../../types/iot';
+import { Ubicacion, Alerta } from '../../types/iot';
+import { DeviceConnectivity } from '../../services/deviceService';
+import { DeviceConnectivityPanel } from '../devices/DeviceConnectivity';
 import { TelemetryChart } from './TelemetryChart';
 import { TemperatureKpiCard } from './TemperatureKpiCard';
 import { HumidityKpiCard } from './HumidityKpiCard';
-import { buildEntityIndexes, selectColumns } from '../../services/performanceEngine';
 import { VirtualList } from '../common/VirtualList';
 import {
   DashboardMedicionDTO,
   DashboardUbicacionResumenDTO,
   fetchDashboardMedicionesPorUbicacion,
-  fetchDispositivosByUbicacion,
 } from '../../services/locationService';
 import {
   DashboardTelemetryItemDTO,
@@ -36,57 +32,21 @@ interface LiveTelemetryViewProps {
   locations: Ubicacion[];
   selectedLocationId: string;
   onSelectLocation: (id: string) => void;
-  devices: Dispositivo[];
-  sensors: Sensor[];
-  latestReadings: { [sensorId: string]: Medicion };
-  readingsHistory: { [sensorId: string]: Medicion[] };
+  connectivity: DeviceConnectivity[] | null;
   activeAlerts: Alerta[];
   onOpenAlertModal: (alert: Alerta) => void;
-  onOpenSimulator: () => void;
 }
 
 export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
   locations,
   selectedLocationId,
   onSelectLocation,
-  devices,
-  sensors,
-  latestReadings,
-  readingsHistory,
+  connectivity,
   activeAlerts,
   onOpenAlertModal,
-  onOpenSimulator,
 }) => {
-  // Índices en memoria O(1) — Cero consultas N+1
-  const entityIndexes = useMemo(
-    () => buildEntityIndexes(locations, devices, sensors),
-    [locations, devices, sensors]
-  );
-
-  const currentLocation = entityIndexes.locationById.get(selectedLocationId) || locations[0];
-  const currentDevice = currentLocation
-    ? entityIndexes.devicesByLocationId.get(currentLocation.id_ubicacion)?.[0]
-    : undefined;
-  const currentSensor = currentDevice
-    ? entityIndexes.sensorByDeviceId.get(currentDevice.id_dispositivo)
-    : undefined;
-
-  const reading = currentSensor ? latestReadings[currentSensor.id_sensor] : null;
-  const history = currentSensor ? readingsHistory[currentSensor.id_sensor] || [] : [];
-
-  // Proyección de solo las columnas necesarias (SELECT id_medicion, fecha_hora, temperatura, humedad, z_score_temp, score_anomalia_ia, valor_anomalo)
-  const projectedStreamRows = useMemo(() => {
-    const reversed = history.slice().reverse();
-    return selectColumns(reversed, [
-      'id_medicion',
-      'fecha_hora',
-      'temperatura',
-      'humedad',
-      'z_score_temp',
-      'score_anomalia_ia',
-      'valor_anomalo',
-    ]);
-  }, [history]);
+  const currentLocation = locations.find((location) => location.id_ubicacion === selectedLocationId) || locations[0];
+  const mysqlDevicesInLoc = connectivity?.filter((device) => device.ubicacion_id === currentLocation?.id_ubicacion);
 
   // Alerta pendiente sobre este espacio
   const locationAlert = useMemo(
@@ -97,13 +57,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
     [activeAlerts, currentLocation]
   );
 
-  const isOnline = currentDevice?.estado === 'ONLINE';
-
-  // RF-03 & RF-05: Datos reales en MySQL filtrados por ubicación y dispositivo + configuración de variables
-  const [selectedMysqlDeviceId, setSelectedMysqlDeviceId] = useState<string>('ALL');
-  const [mysqlDevicesInLoc, setMysqlDevicesInLoc] = useState<
-    Array<{ id_dispositivo: string; codigo: string; nombre: string; mac_address: string; tipo: string; estado: string }>
-  >([]);
+  const [selectedMysqlDeviceId, setSelectedMysqlDeviceId] = useState('ALL');
   const [mysqlMediciones, setMysqlMediciones] = useState<DashboardMedicionDTO[]>([]);
   const [mysqlResumen, setMysqlResumen] = useState<DashboardUbicacionResumenDTO[]>([]);
   const [mysqlSensorConfigs, setMysqlSensorConfigs] = useState<DashboardTelemetrySensorDTO[]>([]);
@@ -127,24 +81,17 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
     if (!locId) return;
 
     let active = true;
-    Promise.all([
-      fetchLocationTemperature(locId).catch(() => null),
-      fetchLocationHumidity(locId).catch(() => null),
-    ]).then(([tSnap, hSnap]) => {
+    const refreshSnapshots = async () => {
+      const [temperature, humidity] = await Promise.all([
+        fetchLocationTemperature(locId).catch(() => null),
+        fetchLocationHumidity(locId).catch(() => null),
+      ]);
       if (!active) return;
-      if (tSnap) {
-        setRf08Snapshot(tSnap);
-        setRf08Stale(!tSnap.datos_recientes);
-      } else {
-        setRf08Stale(true);
-      }
-      if (hSnap) {
-        setRf09Snapshot(hSnap);
-        setRf09Stale(!hSnap.datos_recientes);
-      } else {
-        setRf09Stale(true);
-      }
-    });
+      setRf08Snapshot(temperature);
+      setRf09Snapshot(humidity);
+      setRf08Stale(!temperature?.datos_recientes);
+      setRf09Stale(!humidity?.datos_recientes);
+    };
 
     let es: EventSource | null = null;
     if (typeof EventSource !== 'undefined') {
@@ -193,6 +140,8 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
       };
     }
 
+    void refreshSnapshots();
+    const snapshotTimer = window.setInterval(refreshSnapshots, 5000);
     const freshnessTimer = window.setInterval(() => {
       setRf08Snapshot((prev) => {
         if (!prev || !prev.fecha_hora_utc) {
@@ -219,6 +168,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
     return () => {
       active = false;
       window.clearInterval(freshnessTimer);
+      window.clearInterval(snapshotTimer);
       if (es) es.close();
     };
   }, [currentLocation?.id_ubicacion]);
@@ -232,17 +182,16 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
     const locId = currentLocation?.id_ubicacion;
     if (!locId) return;
 
-    Promise.all([
-      fetchDispositivosByUbicacion(locId).catch(() => null),
-      fetchDashboardMedicionesPorUbicacion(locId).catch(() => null),
-      fetchDashboardTelemetry({
-        ubicacion_id: locId,
-        dispositivo_id: selectedMysqlDeviceId !== 'ALL' ? selectedMysqlDeviceId : undefined,
-        limit: 60,
-      }).catch(() => null),
-    ]).then(([devRes, medRes, telRes]) => {
+    const refreshHistory = async () => {
+      const [medRes, telRes] = await Promise.all([
+        fetchDashboardMedicionesPorUbicacion(locId).catch(() => null),
+        fetchDashboardTelemetry({
+          ubicacion_id: locId,
+          dispositivo_id: selectedMysqlDeviceId !== 'ALL' ? selectedMysqlDeviceId : undefined,
+          limit: 60,
+        }).catch(() => null),
+      ]);
       if (!active) return;
-      if (devRes) setMysqlDevicesInLoc(devRes.items);
       if (medRes) {
         setMysqlMediciones(medRes.mediciones);
         setMysqlResumen(medRes.resumen_por_ubicacion);
@@ -251,10 +200,16 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
         setMysqlSensorConfigs(telRes.sensores);
         setMysqlTelemetry(telRes.mediciones);
       }
-    });
-
+    };
+    setMysqlMediciones([]);
+    setMysqlResumen([]);
+    setMysqlSensorConfigs([]);
+    setMysqlTelemetry([]);
+    void refreshHistory();
+    const timer = window.setInterval(refreshHistory, 10_000);
     return () => {
       active = false;
+      window.clearInterval(timer);
     };
   }, [currentLocation?.id_ubicacion, selectedMysqlDeviceId]);
 
@@ -267,41 +222,33 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
   const humEnabled = activeSensorConfig ? activeSensorConfig.humedad_habilitada : true;
   const presEnabled = activeSensorConfig ? activeSensorConfig.presion_habilitada : false;
 
-  const latestMysqlReading = mysqlTelemetry.length > 0 ? mysqlTelemetry[mysqlTelemetry.length - 1] : null;
-  const displayTemp: number | null = tempEnabled
-    ? (latestMysqlReading ? latestMysqlReading.temperatura : (reading ? reading.temperatura : null))
-    : null;
-  const displayHum: number | null = humEnabled
-    ? (latestMysqlReading ? latestMysqlReading.humedad : (reading ? reading.humedad : null))
-    : null;
-  const displayPres: number | null = presEnabled
-    ? (latestMysqlReading ? latestMysqlReading.presion : null)
-    : null;
-
-  const chartReadings = useMemo(() => {
-    if (mysqlTelemetry.length > 0) {
-      return mysqlTelemetry.map((m) => ({
-        id_medicion: String(m.id_medicion),
-        sensor_id: m.sensor_id || activeSensorConfig?.sensor_id || '',
-        dispositivo_id: m.dispositivo_id,
-        ubicacion_id: m.ubicacion_id || currentLocation?.id_ubicacion || '',
-        temperatura: tempEnabled ? m.temperatura : null,
-        humedad: humEnabled ? m.humedad : null,
-        z_score_temp: 0,
-        z_score_hum: 0,
-        score_anomalia_ia: 0,
-        valor_anomalo: m.alerta_generada,
-        es_fuera_de_umbral: m.alerta_generada,
-        fecha_hora: m.fecha_hora,
-        timestamp: new Date(m.fecha_hora).getTime(),
-      }));
-    }
-    return history.map((h) => ({
-      ...h,
-      temperatura: tempEnabled ? h.temperatura : null,
-      humedad: humEnabled ? h.humedad : null,
-    }));
-  }, [mysqlTelemetry, history, tempEnabled, humEnabled, activeSensorConfig?.sensor_id]);
+  const chartReadings = useMemo(() => mysqlTelemetry.map((m) => {
+    const timestamp = Date.parse(m.fecha_hora.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(m.fecha_hora)
+      ? m.fecha_hora : m.fecha_hora + 'Z');
+    return {
+      id_medicion: String(m.id_medicion),
+      sensor_id: m.sensor_id || '',
+      dispositivo_id: m.dispositivo_id,
+      ubicacion_id: m.ubicacion_id || '',
+      temperatura: m.temperatura,
+      humedad: m.humedad,
+      score_anomalia_ia: m.score_anomalia_ia ?? null,
+      valor_anomalo: (m.score_anomalia_ia ?? 0) >= 0.7,
+      es_fuera_de_umbral: m.es_fuera_de_umbral ?? m.alerta_generada,
+      timestamp,
+    };
+  }), [mysqlTelemetry]);
+  const recentRows = useMemo(() => chartReadings.slice().reverse(), [chartReadings]);
+  const isDeviceUnavailable = (deviceId?: string | null) => !connectivity || (
+    !!deviceId && !connectivity.some((device) =>
+      device.id_dispositivo === deviceId && ['ONLINE', 'ADVERTENCIA'].includes(device.estado)
+    )
+  );
+  const latestMysqlReading = mysqlTelemetry.at(-1);
+  const latestTimestamp = chartReadings.at(-1)?.timestamp;
+  const pressureAge = latestTimestamp ? Date.now() - latestTimestamp : Infinity;
+  const displayPres = latestMysqlReading && pressureAge >= 0 && pressureAge <= 30_000 &&
+    !isDeviceUnavailable(latestMysqlReading.dispositivo_id) ? latestMysqlReading.presion : null;
 
   return (
     <div className="space-y-[24px]">
@@ -321,7 +268,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           </p>
         </div>
 
-        {/* Pestañas de Ubicaciones en cápsula #afc4bf */}
+        {/* Pestañas de ubicaciones */}
         <div className="flex items-center gap-1.5 p-1.5 rounded-[8px] bg-cream-paper overflow-x-auto">
           {locations.map((loc) => {
             const isSelected = loc.id_ubicacion === currentLocation?.id_ubicacion;
@@ -378,7 +325,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
       )}
 
       {/* Filtro por Dispositivo MySQL en ubicación actual (RF-05) */}
-      {mysqlDevicesInLoc.length > 0 && (
+      {mysqlDevicesInLoc && mysqlDevicesInLoc.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 bg-sheet-white px-5 py-3 rounded-[16px]">
           <div className="text-xs text-slate">
             <span className="font-semibold text-bark">Dispositivo en MySQL:</span>{' '}
@@ -415,7 +362,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
             snapshot={rf08Snapshot}
             locationName={currentLocation?.nombre || ''}
             streamConnected={rf08StreamConnected}
-            isStale={rf08Stale}
+            isStale={rf08Stale || isDeviceUnavailable(rf08Snapshot?.dispositivo_id)}
           />
         )}
 
@@ -425,7 +372,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
             snapshot={rf09Snapshot}
             locationName={currentLocation?.nombre || ''}
             streamConnected={rf08StreamConnected}
-            isStale={rf09Stale}
+            isStale={rf09Stale || isDeviceUnavailable(rf09Snapshot?.dispositivo_id)}
           />
         )}
 
@@ -450,110 +397,32 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           </div>
         )}
 
-        {/* Tarjeta 3: Modelo de Anomalías IA (Isolation Forest) */}
-        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-semibold text-slate flex items-center gap-1.5">
-              <BrainCircuit className="w-4 h-4 text-canopy" />
-              Isolation Forest
-            </span>
-            <span
-              className={`text-[11px] font-mono px-2 py-0.5 rounded-[5px] font-semibold ${
-                reading?.valor_anomalo
-                  ? 'apple-badge-orange'
-                  : 'bg-canopy/15 text-canopy'
-              }`}
-            >
-              {reading?.valor_anomalo ? 'ANOMALÍA' : 'INFERENCIA OK'}
-            </span>
-          </div>
-
-          <div>
-            <div
-              className={`apple-metric-display tabular-nums ${
-                reading?.valor_anomalo ? 'text-[#DC2626]' : 'text-bark'
-              }`}
-            >
-              {reading ? reading.score_anomalia_ia.toFixed(2) : '0.00'}
-              <span className="text-[14px] font-normal text-slate ml-1.5">Score</span>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-slate mt-2 font-mono">
-              <span>Umbral Alerta: &gt;0.70</span>
-              <span>Latencia: 38ms</span>
-            </div>
-          </div>
-
-          <div className="w-full bg-cream-paper rounded-full h-1.5 overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 ${
-                (reading?.score_anomalia_ia || 0) > 0.7 ? 'bg-[#DC2626]' : 'bg-canopy'
-              }`}
-              style={{
-                width: `${Math.min(100, (reading?.score_anomalia_ia || 0) * 100)}%`,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Tarjeta 4: Enlace y Dispositivo IoT */}
-        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-semibold text-slate flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-bark" />
-              {currentDevice?.tipo || 'ESP32-WROOM'}
-            </span>
-            <span
-              className={`text-[11px] font-mono px-2 py-0.5 rounded-[5px] flex items-center gap-1 font-semibold ${
-                isOnline
-                  ? 'bg-canopy/15 text-canopy'
-                  : 'bg-cream-paper text-slate'
-              }`}
-            >
-              {isOnline ? <Wifi className="w-3 h-3 text-canopy" /> : <WifiOff className="w-3 h-3 text-slate" />}
-              {isOnline ? 'ONLINE' : 'OFFLINE'}
-            </span>
-          </div>
-
-          <div className="space-y-1 font-mono text-[11px]">
-            <div className="flex items-center justify-between text-bark">
-              <span className="text-slate font-sans">MAC:</span>
-              <span className="font-semibold">{currentDevice?.mac_address}</span>
-            </div>
-            <div className="flex items-center justify-between text-bark">
-              <span className="text-slate font-sans">IP / RSSI:</span>
-              <span>{currentDevice?.ip_address} · {currentDevice?.rssi_dbm} dBm</span>
-            </div>
-            <div className="flex items-center justify-between text-bark">
-              <span className="text-slate font-sans">Tópico:</span>
-              <span className="truncate max-w-[130px] text-canopy">{currentDevice?.mqtt_topic}</span>
-            </div>
-          </div>
-
-          <div className="pt-2 flex items-center justify-between text-[11px] text-slate border-t border-sage-mist/60">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3 h-3" /> Último ping
-            </span>
-            <span className="font-mono text-bark">
-              {reading ? new Date(reading.timestamp).toLocaleTimeString() : 'Hace instantes'}
-            </span>
-          </div>
+        <div className="bg-sheet-white rounded-[16px] p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold"><BrainCircuit className="h-4 w-4" /> Diagnóstico de la lectura</h3>
+          <p className="mt-2 text-xs text-slate">
+            {rf08Snapshot?.z_score_disponible && rf08Snapshot.z_score !== null && !rf08Stale &&
+              !isDeviceUnavailable(rf08Snapshot.dispositivo_id)
+              ? `Z-score de temperatura: ${rf08Snapshot.z_score.toFixed(2)}σ`
+              : 'Sin diagnóstico para una lectura actual.'}
+          </p>
         </div>
       </div>
 
       {/* Gráfico de Telemetría Dinámico */}
-      {(currentSensor || activeSensorConfig) && (
+      {activeSensorConfig && (
         <TelemetryChart
           readings={chartReadings}
           limites={{
-            temp_min: activeSensorConfig?.limites.temp_min ?? currentSensor?.limites.temp_min ?? 18,
-            temp_max: activeSensorConfig?.limites.temp_max ?? currentSensor?.limites.temp_max ?? 25,
-            temp_critica_max: currentSensor?.limites.temp_critica_max ?? ((activeSensorConfig?.limites.temp_max ?? 25) + 5),
-            hum_min: activeSensorConfig?.limites.hum_min ?? currentSensor?.limites.hum_min ?? 40,
-            hum_max: activeSensorConfig?.limites.hum_max ?? currentSensor?.limites.hum_max ?? 70,
-            hum_critica_max: currentSensor?.limites.hum_critica_max ?? ((activeSensorConfig?.limites.hum_max ?? 70) + 10),
+            temp_min: activeSensorConfig?.limites.temp_min ?? 18,
+            temp_max: activeSensorConfig?.limites.temp_max ?? 25,
+            temp_critica_max: ((activeSensorConfig?.limites.temp_max ?? 25) + 5),
+            hum_min: activeSensorConfig?.limites.hum_min ?? 40,
+            hum_max: activeSensorConfig?.limites.hum_max ?? 70,
+            hum_critica_max: ((activeSensorConfig?.limites.hum_max ?? 70) + 10),
           }}
-          sensorType={activeSensorConfig?.modelo || currentSensor?.tipo_sensor || 'DHT22'}
+          sensorType={activeSensorConfig?.modelo || 'DHT22'}
           locationName={currentLocation?.nombre || ''}
+          maxGapSeconds={mysqlDevicesInLoc?.[0]?.tolerancia_maxima_segundos ?? 60}
           enabledVariables={{
             temperatura: tempEnabled,
             humedad: humEnabled,
@@ -570,64 +439,56 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
               Lecturas recientes
             </h3>
             <span className="px-2 py-0.5 rounded-[5px] bg-cream-paper text-canopy text-[10px] font-mono flex items-center gap-1">
-              <Database className="w-3 h-3" /> 7 columnas proyectadas · idx_mediciones_sensor_fecha
+              <Database className="w-3 h-3" /> MySQL
             </span>
           </div>
-          <button
-            onClick={onOpenSimulator}
-            className="apple-inline-link text-[12px] font-semibold"
-          >
-            Inyectar prueba de campo →
-          </button>
         </div>
 
         {/* Cabecera fija para la lista virtualizada */}
-        <div className="grid grid-cols-7 bg-cream-paper text-slate font-mono text-[11px] uppercase tracking-wider border-b border-sage-mist/60 px-5 py-2.5">
+        <div className="grid grid-cols-6 bg-cream-paper text-slate font-mono text-[11px] uppercase tracking-wider border-b border-sage-mist/60 px-5 py-2.5">
           <div>ID Paquete</div>
           <div>Estampa de Tiempo</div>
           <div className="text-right">Temperatura</div>
           <div className="text-right">Humedad</div>
-          <div className="text-right">Z-Score</div>
           <div className="text-right">Score ML</div>
           <div className="text-center">Estado</div>
         </div>
 
         {/* VirtualList: solo renderiza las filas visibles en el viewport */}
         <VirtualList
-          items={projectedStreamRows}
+          items={recentRows}
           rowHeight={42}
           viewportHeight={252}
           keyExtractor={(m) => m.id_medicion}
           renderItem={(m) => (
             <div
-              className="grid grid-cols-7 items-center px-5 h-[42px] border-b border-sage-mist/30 hover:bg-cream-paper/50 transition-colors font-mono text-xs tabular-nums"
+              className="grid grid-cols-6 items-center px-5 h-[42px] border-b border-sage-mist/30 hover:bg-cream-paper/50 transition-colors font-mono text-xs tabular-nums"
             >
               <div className="text-slate truncate">{m.id_medicion.slice(-10)}</div>
               <div className="text-bark">
-                {new Date(m.fecha_hora).toLocaleTimeString()}
+                {new Date(m.timestamp).toLocaleTimeString()}
               </div>
               <div
                 className={`text-right font-semibold ${
-                  m.temperatura > (currentSensor?.limites.temp_max || 30)
+                  m.temperatura !== null && m.temperatura > (activeSensorConfig?.limites.temp_max ?? 30)
                     ? 'text-[#DC2626]'
                     : 'text-canopy'
                 }`}
               >
-                {m.temperatura.toFixed(2)} °C
+                {m.temperatura === null ? '—' : m.temperatura.toFixed(2) + ' °C'}
               </div>
               <div className="text-right text-bark">
-                {m.humedad.toFixed(1)} %RH
+                {m.humedad === null ? '—' : m.humedad.toFixed(1) + ' %RH'}
               </div>
-              <div className="text-right text-slate">{m.z_score_temp}σ</div>
-              <div className="text-right text-slate">{m.score_anomalia_ia}</div>
+              <div className="text-right text-slate">{m.score_anomalia_ia ?? '—'}</div>
               <div className="text-center">
-                {m.valor_anomalo ? (
+                {m.es_fuera_de_umbral ? (
                   <span className="inline-flex items-center gap-1 text-[11px] font-sans text-[#DC2626] font-semibold">
-                    <AlertTriangle className="w-3 h-3" /> Anómalo
+                    <AlertTriangle className="w-3 h-3" /> Alerta
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-[11px] font-sans text-canopy font-medium">
-                    <CheckCircle2 className="w-3 h-3" /> Nominal
+                    <CheckCircle2 className="w-3 h-3" /> Registrado
                   </span>
                 )}
               </div>
@@ -638,38 +499,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
 
       {/* RF-03: Dispositivos y Mediciones Históricas en MySQL por Ubicación */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-sheet-white rounded-[16px] p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-[15px] font-semibold text-bark">
-              Dispositivos asignados en MySQL ({currentLocation?.nombre})
-            </h3>
-            <span className="text-[11px] font-mono text-canopy">
-              {mysqlDevicesInLoc.length} nodo(s)
-            </span>
-          </div>
-          {mysqlDevicesInLoc.length === 0 ? (
-            <p className="text-xs text-slate">
-              No hay nodos registrados en MySQL para {currentLocation?.nombre}.
-            </p>
-          ) : (
-            <div className="space-y-2 text-xs">
-              {mysqlDevicesInLoc.map((d) => (
-                <div
-                  key={d.id_dispositivo}
-                  className="p-2.5 rounded-[10px] bg-cream-paper border border-sage-mist flex items-center justify-between"
-                >
-                  <div>
-                    <div className="font-medium text-bark">{d.nombre}</div>
-                    <div className="font-mono text-slate">
-                      {d.codigo} · {d.mac_address} · {d.tipo}
-                    </div>
-                  </div>
-                  <span className="font-mono text-canopy">{d.estado}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <DeviceConnectivityPanel devices={mysqlDevicesInLoc ?? null} />
 
         <div className="bg-sheet-white rounded-[16px] p-5 space-y-3">
           <div className="flex items-center justify-between">

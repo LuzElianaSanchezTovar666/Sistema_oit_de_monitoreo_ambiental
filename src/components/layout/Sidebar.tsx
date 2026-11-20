@@ -21,6 +21,7 @@ interface SidebarProps {
   userRole: UserRole;
   alertCount: number;
   devicesCount: number;
+  simulatorEnabled: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -29,6 +30,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   userRole,
   alertCount,
   devicesCount,
+  simulatorEnabled,
 }) => {
   const navItems = [
     {
@@ -99,7 +101,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
-  const visibleItems = navItems.filter((item) => item.allowedRoles.includes(userRole));
+  const visibleItems = navItems.filter((item) =>
+    item.allowedRoles.includes(userRole) && (item.id !== 'simulator' || simulatorEnabled)
+  );
 
   return (
     <aside className="w-64 shrink-0 bg-deep-abyss border-r border-graphite-fill/50 flex flex-col justify-between p-5 hidden md:flex">

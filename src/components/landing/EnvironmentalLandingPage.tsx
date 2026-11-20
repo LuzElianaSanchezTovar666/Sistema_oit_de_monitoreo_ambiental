@@ -113,7 +113,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       desc: 'Control de latidos PINGREQ, validación de dirección MAC y estado Online/Offline.',
     },
     {
-      icon: <LineChart className="w-5 h-5 text-signal-yellow" />,
+      icon: <LineChart className="w-5 h-5 text-sky-300" />,
       eyebrow: 'SERIES TEMPORALES',
       metric: '1 Hz',
       title: 'Históricos y gráficas dinámicas',
@@ -149,7 +149,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       {/* Fondo 3D Interactivo con Three.js (paleta Sauce Labs: Neon Pulse, Mint Whisper, Signal Yellow) */}
       <EnvironmentalThreeBackground />
 
-      {/* 1. ANNOUNCEMENT BANNER — Full-width Neon Pulse (#3ddc91) */}
+      {/* 1. ANNOUNCEMENT BANNER — Full-width Neon Pulse (#76a9ff) */}
       {showAnnouncement && (
         <div className="relative z-20 w-full bg-neon-pulse text-obsidian-shell px-6 py-2.5 text-center text-[14px] font-normal flex items-center justify-center gap-3">
           <span>
@@ -165,7 +165,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </div>
       )}
 
-      {/* 2. NAVIGATION BAR — Full-width Obsidian Shell (#132322) */}
+      {/* 2. NAVIGATION BAR — Full-width Obsidian Shell (#10213d) */}
       <header className="relative z-20 bg-obsidian-shell/95 backdrop-blur-sm">
         <div className="max-w-[1200px] mx-auto px-6 h-[76px] flex items-center justify-between gap-6">
           <a href="#inicio" className="flex items-center gap-3 shrink-0 focus:outline-none">
@@ -246,7 +246,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         )}
       </header>
 
-      {/* 3. HERO SECTION — Split composition on Obsidian Shell (#132322) */}
+      {/* 3. HERO SECTION — Split composition on Obsidian Shell (#10213d) */}
       <section id="inicio" className="relative z-10 pt-14 pb-20 px-6">
         {skeletonMode ? (
           <div className="max-w-[1200px] mx-auto">
@@ -292,48 +292,48 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                   aria-label="Ilustración isométrica de consola SIMOA"
                 >
                   {/* Isometric Base Console */}
-                  <polygon points="260,385 470,275 260,165 50,275" fill="#0e1a19" stroke="#424f4f" strokeWidth="1.5" />
-                  <polygon points="50,275 260,385 260,402 50,292" fill="#070f0f" />
-                  <polygon points="470,275 260,385 260,402 470,292" fill="#132322" stroke="#424f4f" strokeWidth="1" />
+                  <polygon points="260,385 470,275 260,165 50,275" fill="var(--color-deep-abyss)" stroke="var(--color-graphite-fill)" strokeWidth="1.5" />
+                  <polygon points="50,275 260,385 260,402 50,292" fill="var(--color-charcoal)" />
+                  <polygon points="470,275 260,385 260,402 470,292" fill="var(--color-obsidian-shell)" stroke="var(--color-graphite-fill)" strokeWidth="1" />
 
                   {/* Stacked Isometric Module 1 — Mint Frost */}
-                  <polygon points="260,315 410,235 260,155 110,235" fill="#edf7f5" />
-                  <polygon points="110,235 260,315 260,330 110,250" fill="#97ddbc" />
-                  <polygon points="410,235 260,315 260,330 410,250" fill="#828786" />
+                  <polygon points="260,315 410,235 260,155 110,235" fill="var(--color-mint-frost)" />
+                  <polygon points="110,235 260,315 260,330 110,250" fill="var(--color-mint-whisper)" />
+                  <polygon points="410,235 260,315 260,330 410,250" fill="#a6b8d2" />
 
                   {/* Stacked Isometric Module 2 — Signal Yellow */}
-                  <polygon points="260,245 390,176 260,107 130,176" fill="#ffcd48" />
-                  <polygon points="130,176 260,245 260,258 130,189" fill="#d9a92b" />
-                  <polygon points="390,176 260,245 260,258 390,189" fill="#b38818" />
+                  <polygon points="260,245 390,176 260,107 130,176" fill="#53d5f4" />
+                  <polygon points="130,176 260,245 260,258 130,189" fill="#2496bc" />
+                  <polygon points="390,176 260,245 260,258 390,189" fill="#166685" />
 
                   {/* Stacked Isometric Module 3 — Neon Pulse */}
-                  <polygon points="260,175 370,117 260,59 150,117" fill="#3ddc91" />
-                  <polygon points="150,117 260,175 260,188 150,130" fill="#28b572" />
-                  <polygon points="370,117 260,175 260,188 370,130" fill="#1c8f58" />
+                  <polygon points="260,175 370,117 260,59 150,117" fill="var(--color-neon-pulse)" />
+                  <polygon points="150,117 260,175 260,188 150,130" fill="#477bd4" />
+                  <polygon points="370,117 260,175 260,188 370,130" fill="#284e9c" />
 
                   {/* Thin Connector Lines & Floating Tags */}
-                  <line x1="150" y1="117" x2="75" y2="85" stroke="#97ddbc" strokeWidth="1.2" strokeDasharray="4 4" />
-                  <line x1="370" y1="117" x2="445" y2="85" stroke="#3ddc91" strokeWidth="1.2" strokeDasharray="4 4" />
-                  <line x1="390" y1="176" x2="455" y2="176" stroke="#ffcd48" strokeWidth="1.2" strokeDasharray="4 4" />
-                  <line x1="110" y1="235" x2="55" y2="220" stroke="#edf7f5" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="150" y1="117" x2="75" y2="85" stroke="var(--color-mint-whisper)" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="370" y1="117" x2="445" y2="85" stroke="var(--color-neon-pulse)" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="390" y1="176" x2="455" y2="176" stroke="#53d5f4" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="110" y1="235" x2="55" y2="220" stroke="var(--color-mint-frost)" strokeWidth="1.2" strokeDasharray="4 4" />
 
                   {/* Floating Labels */}
-                  <rect x="20" y="68" width="90" height="28" rx="14" fill="#0e1a19" stroke="#3ddc91" strokeWidth="1" />
+                  <rect x="20" y="68" width="90" height="28" rx="14" fill="var(--color-deep-abyss)" stroke="var(--color-neon-pulse)" strokeWidth="1" />
                   <text x="65" y="86" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="500">ESP32</text>
 
-                  <rect x="405" y="68" width="95" height="28" rx="14" fill="#0e1a19" stroke="#3ddc91" strokeWidth="1" />
-                  <text x="452" y="86" textAnchor="middle" fill="#3ddc91" fontSize="11" fontWeight="500">MQTTS</text>
+                  <rect x="405" y="68" width="95" height="28" rx="14" fill="var(--color-deep-abyss)" stroke="var(--color-neon-pulse)" strokeWidth="1" />
+                  <text x="452" y="86" textAnchor="middle" fill="var(--color-neon-pulse)" fontSize="11" fontWeight="500">MQTTS</text>
 
-                  <rect x="415" y="162" width="90" height="28" rx="14" fill="#0e1a19" stroke="#ffcd48" strokeWidth="1" />
-                  <text x="460" y="180" textAnchor="middle" fill="#ffcd48" fontSize="11" fontWeight="500">IA 3σ</text>
+                  <rect x="415" y="162" width="90" height="28" rx="14" fill="var(--color-deep-abyss)" stroke="#53d5f4" strokeWidth="1" />
+                  <text x="460" y="180" textAnchor="middle" fill="#53d5f4" fontSize="11" fontWeight="500">IA 3σ</text>
 
-                  <rect x="12" y="206" width="88" height="28" rx="14" fill="#0e1a19" stroke="#97ddbc" strokeWidth="1" />
-                  <text x="56" y="224" textAnchor="middle" fill="#edf7f5" fontSize="11" fontWeight="500">ALERTAS</text>
+                  <rect x="12" y="206" width="88" height="28" rx="14" fill="var(--color-deep-abyss)" stroke="var(--color-mint-whisper)" strokeWidth="1" />
+                  <text x="56" y="224" textAnchor="middle" fill="var(--color-mint-frost)" fontSize="11" fontWeight="500">ALERTAS</text>
                 </svg>
               </div>
             </div>
 
-            {/* 4. STAT BLOCK ROW — 4 columns directly on #132322, no container */}
+            {/* 4. STAT BLOCK ROW — 4 columns directly on #10213d, no container */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 pt-4">
               {[
                 { num: '±0.2°C', label: 'PRECISIÓN DE SONDAS CALIBRADAS' },
@@ -348,7 +348,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               ))}
             </div>
 
-            {/* 5. LOGO BAR — Dark #0e1a19 rounded-[60px] tiles */}
+            {/* 5. LOGO BAR — Dark #0a172e rounded-[60px] tiles */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
               {[
                 'ESP32-WROOM',
@@ -371,7 +371,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         )}
       </section>
 
-      {/* 6. LIGHT CONTENT CARD (#edf7f5 Mint Frost, 60px radius) — Tab Pill Navigation + Product Preview */}
+      {/* 6. LIGHT CONTENT CARD (#eaf3ff Mint Frost, 60px radius) — Tab Pill Navigation + Product Preview */}
       <section id="modulos" className="relative z-10 py-16 px-6">
         <div className="max-w-[1200px] mx-auto sauce-card-mint p-8 sm:p-12 space-y-10">
           <div className="max-w-[740px] mx-auto text-center space-y-4">
@@ -393,7 +393,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 setActiveFeatureTab((prev) => (prev - 1 + featureTabs.length) % featureTabs.length)
               }
               aria-label="Módulo anterior"
-              className="p-2.5 rounded-[56px] text-slate-text hover:text-obsidian-shell cursor-pointer hidden sm:inline-flex"
+              className="p-2.5 rounded-[56px] text-graphite-fill hover:text-obsidian-shell cursor-pointer hidden sm:inline-flex"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -407,7 +407,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                   className={`px-6 py-3 rounded-[56px] text-[16px] font-normal transition-colors cursor-pointer ${
                     isActive
                       ? 'bg-neon-pulse text-obsidian-shell font-medium'
-                      : 'bg-transparent text-slate-text hover:text-obsidian-shell'
+                      : 'bg-transparent text-graphite-fill hover:text-obsidian-shell'
                   }`}
                 >
                   {tab.label}
@@ -418,13 +418,13 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             <button
               onClick={() => setActiveFeatureTab((prev) => (prev + 1) % featureTabs.length)}
               aria-label="Siguiente módulo"
-              className="p-2.5 rounded-[56px] text-slate-text hover:text-obsidian-shell cursor-pointer hidden sm:inline-flex"
+              className="p-2.5 rounded-[56px] text-graphite-fill hover:text-obsidian-shell cursor-pointer hidden sm:inline-flex"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Embedded Product Screenshot Panel (#0e1a19 chrome + #ffffff screen) */}
+          {/* Embedded Product Screenshot Panel (#0a172e chrome + #ffffff screen) */}
           <div className="rounded-[20px] bg-deep-abyss p-3 sm:p-4">
             <div className="flex items-center gap-2 px-2 pb-3">
               <span className="w-2.5 h-2.5 rounded-full bg-graphite-fill" />
@@ -438,7 +438,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             <div className="rounded-[12px] bg-pure-white text-obsidian-shell p-6 sm:p-8 space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-fog-border pb-4">
                 <div>
-                  <span className="sauce-eyebrow text-slate-text">{currentFeature.eyebrow}</span>
+                  <span className="sauce-eyebrow text-graphite-fill">{currentFeature.eyebrow}</span>
                   <h3 className="text-[20px] font-medium text-obsidian-shell mt-1">
                     {currentFeature.label} · Vista de Consola
                   </h3>
@@ -456,7 +456,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       key={m.label}
                       className="p-5 rounded-[20px] bg-mint-frost border border-fog-border space-y-2"
                     >
-                      <div className="sauce-eyebrow text-slate-text">{m.label}</div>
+                      <div className="sauce-eyebrow text-graphite-fill">{m.label}</div>
                       <div className="text-[32px] font-medium text-obsidian-shell tabular-nums">
                         {m.value}
                       </div>
@@ -470,7 +470,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </div>
       </section>
 
-      {/* 7. DARK CAPABILITIES & ARCHITECTURE BAND (#132322 + #0e1a19 20px cards) */}
+      {/* 7. DARK CAPABILITIES & ARCHITECTURE BAND (#10213d + #0a172e 20px cards) */}
       <section id="capacidades" className="relative z-10 py-20 px-6">
         <div className="max-w-[1200px] mx-auto space-y-12">
           <div id="arquitectura" className="max-w-[680px] space-y-4">
@@ -502,7 +502,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </div>
       </section>
 
-      {/* 8. LIGHT CONTACT CARD (#edf7f5 Mint Frost, 60px radius) */}
+      {/* 8. LIGHT CONTACT CARD (#eaf3ff Mint Frost, 60px radius) */}
       <section id="contacto" className="relative z-10 py-16 px-6">
         <div className="max-w-[1200px] mx-auto sauce-card-mint p-8 sm:p-12 grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
           <div className="space-y-5">
@@ -603,7 +603,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </div>
       </section>
 
-      {/* 9. FOOTER — Deep Abyss (#0e1a19) */}
+      {/* 9. FOOTER — Deep Abyss (#0a172e) */}
       <footer className="relative z-10 bg-deep-abyss text-pure-white py-20 px-6 mt-12">
         <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="space-y-4 md:col-span-2">

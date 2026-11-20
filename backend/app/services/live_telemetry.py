@@ -7,6 +7,7 @@ import threading
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from ..database import db_cursor
+from ..config import get_settings
 from ..routers.sensores import MODEL_CAPABILITIES
 
 logger = logging.getLogger("simoa.rf08")
@@ -14,6 +15,18 @@ logger = logging.getLogger("simoa.rf08")
 FRESHNESS_MAX_SECONDS = int(os.getenv("RF08_FRESHNESS_MAX_SECONDS", "30"))
 ZSCORE_WINDOW_SIZE = int(os.getenv("RF08_ZSCORE_WINDOW_SIZE", "30"))
 ZSCORE_MIN_SAMPLES = int(os.getenv("RF08_ZSCORE_MIN_SAMPLES", "5"))
+
+
+def _sensor_operational_for_snapshot(sensor: dict) -> bool:
+    if sensor["sensor_estado"] != "ACTIVO" or sensor["dispositivo_estado"] in ("INACTIVO", "OFFLINE"):
+        return False
+    return not get_settings().rf15_mqtt_acl_enforced or sensor["dispositivo_estado"] in ("ONLINE", "ADVERTENCIA")
+
+
+def _is_current_reading(sensor: dict, reading_at: datetime, now: datetime, max_age: int) -> bool:
+    since = sensor.get("lecturas_desde_utc")
+    age = (now - reading_at).total_seconds()
+    return 0 <= age <= max_age and (since is None or reading_at >= since)
 
 
 def compute_variable_zscore(
@@ -85,6 +98,7 @@ def select_variable_sensor_for_location(
         """
         SELECT s.id_sensor, s.dispositivo_id, s.identificador, s.modelo, s.estado AS sensor_estado,
                d.nombre AS dispositivo_nombre, d.codigo AS dispositivo_codigo, d.estado AS dispositivo_estado,
+               d.lecturas_desde_utc,
                c.temperatura_habilitada, c.humedad_habilitada,
                l.temp_min, l.temp_max, l.hum_min, l.hum_max
         FROM sensores s
@@ -93,7 +107,8 @@ def select_variable_sensor_for_location(
         LEFT JOIN umbrales_alerta l ON l.sensor_id = s.id_sensor
         WHERE d.ubicacion_id = %s
           AND d.estado <> 'INACTIVO'
-        ORDER BY (s.estado = 'ACTIVO') DESC, s.fecha_creacion DESC, s.id_sensor ASC
+        ORDER BY (s.estado = 'ACTIVO') DESC,
+                 (d.estado IN ('ONLINE', 'ADVERTENCIA')) DESC, s.fecha_creacion DESC, s.id_sensor ASC
         """,
         (ubicacion_id,),
     )
@@ -156,7 +171,7 @@ def get_location_temperature_snapshot(
         temp_min = float(sensor["temp_min"]) if sensor.get("temp_min") is not None else None
         temp_max = float(sensor["temp_max"]) if sensor.get("temp_max") is not None else None
         sensor_id = sensor["id_sensor"]
-        sensor_operativo = sensor["sensor_estado"] == "ACTIVO" and sensor["dispositivo_estado"] not in ("INACTIVO", "OFFLINE")
+        sensor_operativo = _sensor_operational_for_snapshot(sensor)
 
         cursor.execute(
             """
@@ -176,8 +191,7 @@ def get_location_temperature_snapshot(
 
     is_fresh = False
     if latest_dt is not None and sensor_operativo:
-        age_seconds = (now_utc - latest_dt).total_seconds()
-        is_fresh = age_seconds <= freshness_max_seconds
+        is_fresh = _is_current_reading(sensor, latest_dt, now_utc, freshness_max_seconds)
 
     temp_actual: Optional[float] = round(float(latest["temperatura"]), 2) if (latest and is_fresh) else None
     fecha_utc_iso: Optional[str] = (
@@ -263,7 +277,7 @@ def get_location_humidity_snapshot(
         hum_min = float(sensor["hum_min"]) if sensor.get("hum_min") is not None else None
         hum_max = float(sensor["hum_max"]) if sensor.get("hum_max") is not None else None
         sensor_id = sensor["id_sensor"]
-        sensor_operativo = sensor["sensor_estado"] == "ACTIVO" and sensor["dispositivo_estado"] not in ("INACTIVO", "OFFLINE")
+        sensor_operativo = _sensor_operational_for_snapshot(sensor)
 
         cursor.execute(
             """
@@ -283,8 +297,7 @@ def get_location_humidity_snapshot(
 
     is_fresh = False
     if latest_dt is not None and sensor_operativo:
-        age_seconds = (now_utc - latest_dt).total_seconds()
-        is_fresh = age_seconds <= freshness_max_seconds
+        is_fresh = _is_current_reading(sensor, latest_dt, now_utc, freshness_max_seconds)
 
     hum_actual: Optional[float] = round(float(latest["humedad"]), 2) if (latest and is_fresh) else None
     fecha_utc_iso: Optional[str] = (

@@ -68,10 +68,11 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
         return { x, y, val: e.val, point: e.point };
       });
 
-      const d =
-        pts.length >= 2
-          ? pts.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' ')
-          : '';
+      const field = isHumidity ? 'segmento_humedad' : 'segmento_temperatura';
+      const d = pts.map((point, index) => {
+        const pen = index === 0 || point.point[field] !== pts[index - 1].point[field] ? 'M' : 'L';
+        return `${pen} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`;
+      }).join(' ');
 
       let limX = pad.left;
       if (!limitMeta.vigencia_completa && limitMeta.vigente_desde_utc && lastMs > firstMs) {
@@ -359,7 +360,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                         ? `${activeCoord.point.temperatura.toFixed(2)} °C`
                         : '—'}
                     </span>
-                    <span className="text-[#0284C7]">
+                    <span className="text-[#53d5f4]">
                       Humedad:{' '}
                       {activeCoord.point.humedad !== null
                         ? `${activeCoord.point.humedad.toFixed(1)} %RH`
@@ -469,7 +470,7 @@ export const TrendChartPanel: React.FC<TrendChartPanelProps> = React.memo(
             title="Tendencia de Temperatura (°C)"
             unit="°C"
             isHumidity={false}
-            strokeColor="#104336"
+            strokeColor="var(--color-neon-pulse)"
             points={series}
             limitMeta={tempLimits}
             anomaliasDisponibles={Boolean(trendData?.anomalias_ia_disponibles)}
@@ -480,11 +481,11 @@ export const TrendChartPanel: React.FC<TrendChartPanelProps> = React.memo(
             title="Tendencia de Humedad Relativa (%RH)"
             unit="%RH"
             isHumidity={true}
-            strokeColor="#0284C7"
+            strokeColor="#53d5f4"
             points={series}
             limitMeta={humLimits}
             anomaliasDisponibles={Boolean(trendData?.anomalias_ia_disponibles)}
-            icon={<Droplets className="w-4 h-4 text-[#0284C7]" />}
+            icon={<Droplets className="w-4 h-4 text-[#53d5f4]" />}
           />
         </div>
       </div>

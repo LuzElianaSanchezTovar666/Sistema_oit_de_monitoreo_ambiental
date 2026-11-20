@@ -9,7 +9,9 @@ from fastapi.responses import StreamingResponse
 import pymysql
 
 from ..database import db_cursor
+from ..config import get_settings
 from ..dependencies import require_roles
+from ..services.device_connectivity import inventory_snapshot
 from ..services.live_telemetry import (
     FRESHNESS_MAX_SECONDS,
     get_location_humidity_snapshot,
@@ -20,6 +22,7 @@ from ..services.measurement_persistence import measurement_persister
 
 router = APIRouter(prefix="/api/mediciones", tags=["Mediciones Persistentes UTC (RF-07)"])
 logger = logging.getLogger("simoa.mediciones")
+SSE_HEADERS = {"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"}
 
 
 def _parse_historical_bound(raw: Optional[str], tz_offset_minutes: int, is_end: bool) -> Optional[Tuple[datetime, bool]]:
@@ -529,6 +532,19 @@ def get_tendencias_mediciones(
         )
 
     total_original = len(raw_rows)
+    # Identificar huecos en la serie original antes de reducirla para visualización.
+    for variable in ("temperatura", "humedad"):
+        segment = 0
+        previous = None
+        maximum = get_settings().rf15_max_silence_seconds
+        for row in raw_rows:
+            if row.get(variable) is None:
+                continue
+            recorded = row["fecha_hora"]
+            if previous is not None and (recorded - previous).total_seconds() > maximum:
+                segment += 1
+            row[f"segmento_{variable}"] = segment
+            previous = recorded
     reduced_rows = _downsample_preserving_extremes(raw_rows, max_points)
     was_reduced = len(reduced_rows) < total_original
 
@@ -556,6 +572,8 @@ def get_tendencias_mediciones(
                 "ubicacion_id": r.get("ubicacion_id"),
                 "temperatura": float(r["temperatura"]) if r.get("temperatura") is not None else None,
                 "humedad": float(r["humedad"]) if r.get("humedad") is not None else None,
+                "segmento_temperatura": r.get("segmento_temperatura"),
+                "segmento_humedad": r.get("segmento_humedad"),
                 "es_fuera_de_umbral": es_fuera,
                 "estado_evaluacion": (
                     "No evaluable"
@@ -680,15 +698,47 @@ def get_ubicacion_humedad_actual(
     return snapshot
 
 
+async def _connectivity_events(request: Request):
+    previous = None
+    unavailable = False
+    scans_without_event = 0
+    interval = get_settings().rf15_scan_seconds
+    while not await request.is_disconnected():
+        try:
+            rows = await asyncio.to_thread(inventory_snapshot)
+            # El tiempo en silencio se deriva del último contacto y no es un cambio de estado.
+            signature = [{key: value for key, value in row.items() if key != "silencio_segundos"} for row in rows]
+            if unavailable or signature != previous:
+                yield f"event: conectividad\ndata: {json.dumps(rows, ensure_ascii=False)}\n\n"
+                previous = signature
+                unavailable = False
+                scans_without_event = 0
+        except pymysql.MySQLError:
+            if not unavailable:
+                yield "event: conectividad_no_disponible\ndata: {}\n\n"
+                unavailable = True
+                scans_without_event = 0
+        scans_without_event += 1
+        if scans_without_event * interval >= 15:
+            yield "event: heartbeat\ndata: {}\n\n"
+            scans_without_event = 0
+        await asyncio.sleep(interval)
+
+
 @router.get("/stream/temperatura")
 async def stream_ubicacion_temperatura(
     request: Request,
-    ubicacion_id: str = Query(..., min_length=1, max_length=64),
+    ubicacion_id: Optional[str] = Query(default=None, min_length=1, max_length=64),
+    conectividad: bool = Query(default=False),
     _current_user: Dict[str, Any] = Depends(
         require_roles("Administrador", "Operador", "Técnico", "Supervisor")
     ),
 ) -> StreamingResponse:
     """RF-08 & RF-09: Canal SSE único autenticado en tiempo real conectado post-COMMIT de RF-07."""
+    if conectividad:
+        return StreamingResponse(_connectivity_events(request), media_type="text/event-stream", headers=SSE_HEADERS)
+    if not ubicacion_id:
+        raise HTTPException(status_code=422, detail="Se requiere una ubicación para consultar telemetría.")
     initial = get_location_temperature_snapshot(ubicacion_id)
     if initial is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ubicación no encontrada.")
@@ -729,9 +779,5 @@ async def stream_ubicacion_temperatura(
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
+        headers=SSE_HEADERS,
     )

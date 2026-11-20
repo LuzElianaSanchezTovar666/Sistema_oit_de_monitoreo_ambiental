@@ -546,7 +546,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
 
         {/* Modal Detalle, Gestión y Bitácora Auditable (RN-16) */}
         {selectedAlertForModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-deep-abyss/65 backdrop-blur-md">
             <div className="bg-sheet-white border border-sage-mist rounded-[18px] w-full max-w-2xl p-6 space-y-5 max-h-[92vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-sage-mist pb-3">
                 <div>

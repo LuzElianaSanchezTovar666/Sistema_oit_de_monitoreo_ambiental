@@ -14,6 +14,7 @@ from typing import Any, Deque, Dict, List, Optional, Tuple
 import pymysql
 
 from ..database import db_cursor
+from .device_connectivity import lock_device, record_contact
 
 logger = logging.getLogger("simoa.rf07")
 
@@ -266,6 +267,9 @@ class MeasurementPersistenceService:
             "variables_activas_snapshot": json.dumps(sorted(magnitudes.keys()), ensure_ascii=False),
             "clave_idempotencia": idem_key,
             "fecha_hora": captured_utc.isoformat(),
+            "recepcion_confiable": (
+                event.received_at if getattr(event, "connectivity_evidence", False) else None
+            ),
         }
 
     def _insert_atomic_mysql(self, rec: Dict[str, Any]) -> Tuple[Optional[int], bool, Optional[bool]]:
@@ -276,6 +280,11 @@ class MeasurementPersistenceService:
         fecha_dt = datetime.fromisoformat(rec["fecha_hora"])
 
         with db_cursor() as cursor:
+            receipt = rec.get("recepcion_confiable")
+            device = lock_device(cursor, rec["dispositivo_id"]) if receipt else None
+            if receipt and (not device or not device["activo_administrativamente"]):
+                return None, False, None
+
             cursor.execute(
                 """
                 SELECT temp_min, temp_max, hum_min, hum_max, presion_min, presion_max
@@ -332,6 +341,10 @@ class MeasurementPersistenceService:
                     ),
                 )
                 med_id = int(cursor.lastrowid)
+                if receipt:
+                    record_contact(
+                        cursor, device, captured=fecha_dt, received=_to_utc_naive(receipt), reason="TELEMETRIA"
+                    )
                 elapsed_ms = (time.perf_counter() - t0) * 1000.0
                 with self._lock:
                     self._insert_times_ms.append(elapsed_ms)
@@ -363,6 +376,8 @@ class MeasurementPersistenceService:
         for attempt in range(self._max_inline_retries + 1):
             try:
                 med_id, is_dup, _out = self._insert_atomic_mysql(rec)
+                if med_id is None:
+                    return False, None, is_dup
                 with self._lock:
                     if is_dup:
                         self._stats["duplicate_ignored_count"] += 1
@@ -399,8 +414,10 @@ class MeasurementPersistenceService:
         batch = self._buffer.peek_batch(limit=50)
         for row_id, _key, rec, _retries in batch:
             try:
-                _med_id, is_dup, _out = self._insert_atomic_mysql(rec)
+                med_id, is_dup, _out = self._insert_atomic_mysql(rec)
                 self._buffer.delete_row(row_id)
+                if med_id is None:
+                    continue
                 recovered += 1
                 with self._lock:
                     if is_dup:

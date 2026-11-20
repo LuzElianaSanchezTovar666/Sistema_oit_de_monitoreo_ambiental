@@ -42,6 +42,7 @@ import { HeroSkeleton, CardGridSkeleton } from './components/common/SkeletonLoad
 import { Check, AlertCircle, Smartphone, Loader2, AlertTriangle, AlertOctagon, Volume2, VolumeX, X } from 'lucide-react';
 import { fetchCurrentUser, logoutSession, getDefaultTabForRole } from './services/authService';
 import { fetchUbicaciones } from './services/locationService';
+import { DeviceConnectivity, watchDeviceConnectivity } from './services/deviceService';
 import {
   BackendAlertaDTO,
   fetchAlertas,
@@ -49,6 +50,8 @@ import {
   mapBackendAlertaToUi,
   mergeAlertsDeduplicated,
 } from './services/alertService';
+
+const FIELD_SIMULATOR_ENABLED = import.meta.env.DEV && import.meta.env.VITE_ENABLE_FIELD_SIMULATOR === 'true';
 
 // ErrorBoundary para evitar pantallas vacías si falla un chunk o vista
 class SystemErrorBoundary extends React.Component<
@@ -202,9 +205,14 @@ export default function App() {
     }
   }, []);
 
-  const [devices, setDevices] = useState<Dispositivo[]>(getStoredDispositivos);
-  const [sensors, setSensors] = useState<Sensor[]>(getStoredSensores);
-  const [alerts, setAlerts] = useState<LiveAlertRecord[]>(getStoredAlertas);
+  const [devices, setDevices] = useState<Dispositivo[]>(() => FIELD_SIMULATOR_ENABLED ? getStoredDispositivos() : []);
+  const [sensors, setSensors] = useState<Sensor[]>(() => FIELD_SIMULATOR_ENABLED ? getStoredSensores() : []);
+  const [connectivity, setConnectivity] = useState<DeviceConnectivity[] | null>(null);
+  useEffect(() => {
+    setConnectivity(null);
+    if (currentUser) return watchDeviceConnectivity(setConnectivity);
+  }, [currentUser]);
+  const [alerts, setAlerts] = useState<LiveAlertRecord[]>(() => FIELD_SIMULATOR_ENABLED ? getStoredAlertas() : []);
   const [liveAlertBanner, setLiveAlertBanner] = useState<LiveAlertRecord | null>(null);
   const [alertSoundEnabled, setAlertSoundEnabled] = useState<boolean>(true);
   const notifiedAlertIdsRef = useRef<Set<string>>(new Set());
@@ -240,19 +248,8 @@ export default function App() {
   // Streaming telemetry state (initialized synchronously so frame 1 is always complete)
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
   const [readingsHistory, setReadingsHistory] = useState<{ [sensorId: string]: Medicion[] }>(() =>
-    telemetryEngineInstance.generateInitialHistory(getStoredDispositivos(), getStoredSensores())
+    FIELD_SIMULATOR_ENABLED ? telemetryEngineInstance.generateInitialHistory(getStoredDispositivos(), getStoredSensores()) : {}
   );
-  const [latestReadings, setLatestReadings] = useState<{ [sensorId: string]: Medicion }>(() => {
-    const sList = getStoredSensores();
-    const latest: { [sensorId: string]: Medicion } = {};
-    sList.forEach((s) => {
-      const history = telemetryEngineInstance.getHistory(s.id_sensor);
-      if (history.length > 0) {
-        latest[s.id_sensor] = history[history.length - 1];
-      }
-    });
-    return latest;
-  });
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -321,9 +318,9 @@ export default function App() {
         async () => {
           const [loadedDevices, loadedSensors, loadedAlerts, loadedMaint, loadedDlq] =
             await Promise.all([
-              Promise.resolve(getStoredDispositivos()),
-              Promise.resolve(getStoredSensores()),
-              Promise.resolve(getStoredAlertas()),
+              Promise.resolve(FIELD_SIMULATOR_ENABLED ? getStoredDispositivos() : []),
+              Promise.resolve(FIELD_SIMULATOR_ENABLED ? getStoredSensores() : []),
+              Promise.resolve(FIELD_SIMULATOR_ENABLED ? getStoredAlertas() : []),
               Promise.resolve(getStoredMantenimientos()),
               Promise.resolve(getStoredDLQ()),
             ]);
@@ -436,10 +433,10 @@ export default function App() {
 
   // Interval for real-time telemetry streaming (2.5 seconds)
   useEffect(() => {
-    if (!isStreaming) return;
+    if (!FIELD_SIMULATOR_ENABLED || !isStreaming) return;
 
     const interval = setInterval(() => {
-      const newReadings = telemetryEngineInstance.tick(devices, sensors, (newAlert) => {
+      telemetryEngineInstance.tick(devices, sensors, (newAlert) => {
         setAlerts((prev) => {
           const updated = [newAlert, ...prev];
           saveStoredAlertas(updated);
@@ -449,8 +446,6 @@ export default function App() {
         playAlertSound();
         showToast(`¡Alerta detectada!: ${newAlert.mensaje}`, 'alert');
       });
-
-      setLatestReadings((prev) => ({ ...prev, ...newReadings }));
 
       setReadingsHistory((prev) => {
         const updated = { ...prev };
@@ -593,7 +588,7 @@ export default function App() {
           </span>
           <button
             onClick={() => networkSimulator.setViewport('desktop')}
-            className="px-2.5 py-0.5 rounded-[8px] bg-sheet-white/25 hover:bg-[#0A2E17]/55 text-[10px]"
+            className="px-2.5 py-0.5 rounded-[8px] bg-sheet-white/25 hover:bg-deep-abyss/55 text-[10px]"
           >
             Salir a Desktop
           </button>
@@ -647,12 +642,12 @@ export default function App() {
               onLogout={handleLogout}
               activeAlertCount={activeAlertsCount}
               onOpenAlerts={() => handleAuthorizedTabChange('alerts')}
-              onOpenSimulator={() => setShowSimulator(true)}
+              onOpenSimulator={FIELD_SIMULATOR_ENABLED ? () => setShowSimulator(true) : undefined}
               onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
               activeTab={activeTab}
               onTabChange={handleAuthorizedTabChange}
               isStreaming={isStreaming}
-              onToggleStreaming={() => setIsStreaming(!isStreaming)}
+              onToggleStreaming={FIELD_SIMULATOR_ENABLED ? () => setIsStreaming(!isStreaming) : undefined}
               onBackToLanding={() => setViewMode('landing')}
             />
 
@@ -664,7 +659,8 @@ export default function App() {
                 onTabChange={handleAuthorizedTabChange}
                 userRole={currentUser.rol}
                 alertCount={activeAlertsCount}
-                devicesCount={devices.length}
+                devicesCount={connectivity?.length ?? 0}
+                simulatorEnabled={FIELD_SIMULATOR_ENABLED}
               />
 
               {/* Content Viewport */}
@@ -694,13 +690,9 @@ export default function App() {
                         locations={locations}
                         selectedLocationId={selectedLocationId}
                         onSelectLocation={setSelectedLocationId}
-                        devices={devices}
-                        sensors={sensors}
-                        latestReadings={latestReadings}
-                        readingsHistory={readingsHistory}
+                        connectivity={connectivity}
                         activeAlerts={alerts}
                         onOpenAlertModal={setSelectedAlertForModal}
-                        onOpenSimulator={() => setShowSimulator(true)}
                       />
                     )}
 
@@ -715,6 +707,7 @@ export default function App() {
                         onUpdateSensorLimits={handleUpdateSensorLimits}
                         onToggleDeviceState={handleToggleDeviceOffline}
                         onNotify={showToast}
+                        connectivity={connectivity}
                       />
                     )}
 
@@ -770,14 +763,13 @@ export default function App() {
                     {activeTab === 'maintenance' && (
                       <MaintenanceLog
                         maintenances={maintenances}
-                        devices={devices}
-                        sensors={sensors}
+                        connectivity={connectivity}
                         currentUser={currentUser}
                         onAddMaintenance={handleAddMaintenance}
                       />
                     )}
 
-                    {activeTab === 'simulator' && (
+                    {FIELD_SIMULATOR_ENABLED && activeTab === 'simulator' && (
                       <div className="space-y-6">
                         <div className="bg-sheet-white p-8 rounded-[16px] space-y-4">
                           <span className="apple-badge-orange inline-block">ENTORNO DE PRUEBAS E2E</span>
@@ -811,7 +803,7 @@ export default function App() {
             </div>
 
             {/* Edge Simulator Modal */}
-            {showSimulator && (
+            {FIELD_SIMULATOR_ENABLED && showSimulator && (
               <FieldSimulatorModal
                 isOpen={showSimulator}
                 onClose={() => setShowSimulator(false)}

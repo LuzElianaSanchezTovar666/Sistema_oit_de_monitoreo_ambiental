@@ -38,6 +38,7 @@ class Settings:
         self.mqtt_broker_port: int = int(os.getenv("MQTT_BROKER_PORT", "1883"))
         self.mqtt_username: str = os.getenv("MQTT_USERNAME", "")
         self.mqtt_password: str = os.getenv("MQTT_PASSWORD", "")
+        self.mqtt_tls_ca_file = os.getenv("MQTT_TLS_CA_FILE", "")
         self.mqtt_client_id: str = os.getenv("MQTT_CLIENT_ID", "simoa-backend-ingest")
         self.mqtt_qos: int = int(os.getenv("MQTT_QOS", "1"))
         self.mqtt_keepalive_seconds: int = int(os.getenv("MQTT_KEEPALIVE_SECONDS", "60"))
@@ -46,6 +47,18 @@ class Settings:
         self.mqtt_reconnect_max_delay: int = int(os.getenv("MQTT_RECONNECT_MAX_DELAY", "60"))
         self.mqtt_queue_maxsize: int = int(os.getenv("MQTT_QUEUE_MAXSIZE", "2000"))
         self.mqtt_cache_ttl_seconds: int = int(os.getenv("MQTT_CACHE_TTL_SECONDS", "15"))
+
+        # Solo habilitar con autenticación de nodos y ACL de publicación por dispositivo.
+        self.rf15_mqtt_acl_enforced = os.getenv("RF15_MQTT_ACL_ENFORCED", "false").lower() == "true"
+        self.rf15_normal_seconds = int(os.getenv("RF15_NORMAL_SECONDS", "10"))
+        self.rf15_max_silence_seconds = int(os.getenv("RF15_MAX_SILENCE_SECONDS", "60"))
+        self.rf15_scan_seconds = float(os.getenv("RF15_SCAN_SECONDS", "2.5"))
+        self.rf15_evidence_max_age_seconds = int(os.getenv("RF15_EVIDENCE_MAX_AGE_SECONDS", "10"))
+        if not (
+            0 < self.rf15_scan_seconds <= self.rf15_normal_seconds < self.rf15_max_silence_seconds
+            and 0 < self.rf15_evidence_max_age_seconds <= self.rf15_max_silence_seconds
+        ):
+            raise ValueError("Ventanas de conectividad RF-15 inválidas.")
 
 
 @lru_cache

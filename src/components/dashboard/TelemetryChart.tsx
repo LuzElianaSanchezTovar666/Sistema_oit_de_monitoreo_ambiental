@@ -2,9 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Medicion, LimiteAmbiental } from '../../types/iot';
 import { AlertCircle } from 'lucide-react';
 
-export interface TelemetryChartReading extends Omit<Medicion, 'temperatura' | 'humedad'> {
+export interface TelemetryChartReading extends Pick<Medicion, 'timestamp' | 'id_medicion' | 'valor_anomalo' | 'es_fuera_de_umbral'> {
   temperatura: number | null;
   humedad: number | null;
+  score_anomalia_ia: number | null;
 }
 
 interface TelemetryChartProps {
@@ -12,6 +13,7 @@ interface TelemetryChartProps {
   limites: LimiteAmbiental;
   sensorType: string;
   locationName: string;
+  maxGapSeconds: number;
   enabledVariables?: {
     temperatura: boolean;
     humedad: boolean;
@@ -24,6 +26,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   limites,
   sensorType,
   locationName,
+  maxGapSeconds,
   enabledVariables = { temperatura: true, humedad: true },
 }) => {
   const tempEnabled = enabledVariables.temperatura;
@@ -48,8 +51,9 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   // Filtrar lecturas según la ventana de tiempo seleccionada
   const filteredReadings = useMemo(() => {
     if (!readings || readings.length === 0) return [];
-    const count = timeWindow === '1h' ? 12 : timeWindow === '4h' ? 48 : readings.length;
-    return readings.slice(-count);
+    const end = readings[readings.length - 1].timestamp;
+    const duration = Number.parseInt(timeWindow, 10) * 3_600_000;
+    return readings.filter((reading) => reading.timestamp >= end - duration);
   }, [readings, timeWindow]);
 
   // Dimensiones del canvas SVG
@@ -58,6 +62,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
   const padding = { top: 25, right: 30, bottom: 35, left: 50 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
+  const firstTimestamp = filteredReadings[0]?.timestamp ?? 0;
+  const timeSpan = Math.max(1, (filteredReadings[filteredReadings.length - 1]?.timestamp ?? 0) - firstTimestamp);
 
   // Cálculos de escalas para Temperatura
   const { minTemp, maxTemp, tempPoints, humPoints } = useMemo(() => {
@@ -78,50 +84,58 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
     const maxH = 100;
 
     const tPoints = filteredReadings
-      .map((r, i) => {
+      .map((r) => {
         if (typeof r.temperatura !== 'number' || !Number.isFinite(r.temperatura)) return null;
-        const x = padding.left + (i / Math.max(1, filteredReadings.length - 1)) * chartWidth;
+        const x = padding.left + ((r.timestamp - firstTimestamp) / timeSpan) * chartWidth;
         const y = padding.top + chartHeight - ((r.temperatura - minT) / Math.max(1, maxT - minT)) * chartHeight;
         return { x, y, reading: r };
       })
       .filter((pt): pt is NonNullable<typeof pt> => pt !== null);
 
     const hPoints = filteredReadings
-      .map((r, i) => {
+      .map((r) => {
         if (typeof r.humedad !== 'number' || !Number.isFinite(r.humedad)) return null;
-        const x = padding.left + (i / Math.max(1, filteredReadings.length - 1)) * chartWidth;
+        const x = padding.left + ((r.timestamp - firstTimestamp) / timeSpan) * chartWidth;
         const y = padding.top + chartHeight - ((r.humedad - minH) / (maxH - minH)) * chartHeight;
         return { x, y, reading: r };
       })
       .filter((pt): pt is NonNullable<typeof pt> => pt !== null);
 
     return { minTemp: minT, maxTemp: maxT, tempPoints: tPoints, humPoints: hPoints };
-  }, [filteredReadings, limites, chartWidth, chartHeight, padding.left, padding.top]);
+  }, [filteredReadings, limites, chartWidth, chartHeight, padding.left, padding.top, firstTimestamp, timeSpan]);
 
-  // Líneas SVG en formato Path
-  const tempPath = useMemo(() => {
-    if (tempPoints.length === 0) return '';
-    return tempPoints.reduce((acc, curr, idx) => `${acc} ${idx === 0 ? 'M' : 'L'} ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`, '');
-  }, [tempPoints]);
-
-  const tempAreaPath = useMemo(() => {
-    if (tempPoints.length === 0) return '';
-    const firstX = tempPoints[0].x;
-    const lastX = tempPoints[tempPoints.length - 1].x;
-    const bottomY = padding.top + chartHeight;
-    return `${tempPath} L ${lastX.toFixed(1)} ${bottomY} L ${firstX.toFixed(1)} ${bottomY} Z`;
-  }, [tempPath, tempPoints, padding.top, chartHeight]);
-
-  const humPath = useMemo(() => {
-    if (humPoints.length === 0) return '';
-    return humPoints.reduce((acc, curr, idx) => `${acc} ${idx === 0 ? 'M' : 'L'} ${curr.x.toFixed(1)} ${curr.y.toFixed(1)}`, '');
-  }, [humPoints]);
+  const seriesPaths = (points: typeof tempPoints) => {
+    const segments: (typeof points)[] = [];
+    for (const point of points) {
+      const current = segments.at(-1);
+      const previous = current?.at(-1);
+      if (!current || !previous || point.reading.timestamp - previous.reading.timestamp > maxGapSeconds * 1000) {
+        segments.push([point]);
+      } else {
+        current.push(point);
+      }
+    }
+    return segments.map((segment) => ({
+      line: segment.map(({ x, y }, index) => `${index === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`).join(' '),
+      firstX: segment[0].x,
+      lastX: segment[segment.length - 1].x,
+    }));
+  };
+  const temperaturePaths = seriesPaths(tempPoints);
+  const tempPath = temperaturePaths.map((segment) => segment.line).join(' ');
+  const bottom = padding.top + chartHeight;
+  const tempAreaPath = temperaturePaths.map(({ line, firstX, lastX }) =>
+    `${line} L ${lastX.toFixed(1)} ${bottom} L ${firstX.toFixed(1)} ${bottom} Z`
+  ).join(' ');
+  const humPath = seriesPaths(humPoints).map((segment) => segment.line).join(' ');
 
   // Líneas de referencia para límites operacionales de temperatura
   const tempMaxY = padding.top + chartHeight - ((limites.temp_max - minTemp) / Math.max(1, maxTemp - minTemp)) * chartHeight;
   const tempMinY = padding.top + chartHeight - ((limites.temp_min - minTemp) / Math.max(1, maxTemp - minTemp)) * chartHeight;
 
   const activePoint = hoverIndex !== null && filteredReadings[hoverIndex] ? filteredReadings[hoverIndex] : null;
+  const activeTemp = activePoint && tempPoints.find((point) => point.reading === activePoint);
+  const activeChartPoint = activeTemp || (activePoint && humPoints.find((point) => point.reading === activePoint));
 
   return (
     <div className="w-full bg-sheet-white rounded-[16px] p-6 space-y-4">
@@ -133,12 +147,12 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             <span className="text-xs text-slate font-normal">· {locationName} ({sensorType})</span>
           </h3>
           <p className="text-[12px] text-slate mt-0.5">
-            Streaming en vivo con detección de anomalías Isolation Forest
+            Lecturas registradas en MySQL
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Selector de Métrica en cápsula #f3f1ec según variables habilitadas en RF-05 */}
+          {/* Selector de métricas habilitadas en RF-05 */}
           <div className="flex items-center p-1 bg-cream-paper rounded-[8px] text-[12px]">
             {tempEnabled && (
               <button
@@ -157,7 +171,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 onClick={() => setMetricMode('hum')}
                 className={`px-3 py-1 rounded-[8px] transition-colors ${
                   metricMode === 'hum'
-                    ? 'bg-cream-paper text-[#0284C7] font-semibold'
+                    ? 'bg-cream-paper text-[#53d5f4] font-semibold'
                     : 'text-slate hover:text-bark'
                 }`}
               >
@@ -197,7 +211,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         </div>
       </div>
 
-      {/* Canvas del Gráfico SVG en Verde Niebla Botánica (#f3f1ec, 28px radius) */}
+      {/* Gráfico de telemetría */}
       <div className="relative w-full overflow-hidden bg-cream-paper border border-sage-mist rounded-[16px] p-2">
         <svg
           viewBox={`0 0 ${width} ${height}`}
@@ -208,18 +222,18 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             const mouseX = ((e.clientX - rect.left) / rect.width) * width;
             if (mouseX >= padding.left && mouseX <= width - padding.right) {
               const fraction = (mouseX - padding.left) / chartWidth;
-              const idx = Math.min(
-                filteredReadings.length - 1,
-                Math.max(0, Math.round(fraction * (filteredReadings.length - 1)))
-              );
-              setHoverIndex(idx);
+              const timestamp = firstTimestamp + fraction * timeSpan;
+              const idx = filteredReadings.reduce((nearest, reading, index) =>
+                Math.abs(reading.timestamp - timestamp) < Math.abs(filteredReadings[nearest].timestamp - timestamp)
+                  ? index : nearest, 0);
+              setHoverIndex(filteredReadings.length && Math.abs(filteredReadings[idx].timestamp - timestamp) <= maxGapSeconds * 500 ? idx : null);
             }
           }}
         >
           <defs>
             <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#104336" stopOpacity="0.24" />
-              <stop offset="100%" stopColor="#104336" stopOpacity="0.02" />
+              <stop offset="0%" stopColor="var(--color-neon-pulse)" stopOpacity="0.24" />
+              <stop offset="100%" stopColor="var(--color-neon-pulse)" stopOpacity="0.02" />
             </linearGradient>
           </defs>
 
@@ -234,7 +248,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                   y1={y}
                   x2={width - padding.right}
                   y2={y}
-                  stroke="#afc4bf"
+                  stroke="var(--color-stone-border)"
                   strokeOpacity="0.6"
                   strokeDasharray="3 3"
                 />
@@ -242,7 +256,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                   x={padding.left - 8}
                   y={y + 3}
                   textAnchor="end"
-                  className="fill-[#535e5d] text-[10px] font-mono tabular-nums"
+                  className="fill-slate-text text-[10px] font-mono tabular-nums"
                 >
                   {val.toFixed(1)}°
                 </text>
@@ -293,14 +307,14 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             </>
           )}
 
-          {/* Área sombreada y línea de Temperatura (Vital Green #104336) */}
+          {/* Área sombreada y línea de temperatura */}
           {(metricMode === 'temp' || metricMode === 'dual') && (
             <>
               <path d={tempAreaPath} fill="url(#tempGradient)" />
               <path
                 d={tempPath}
                 fill="none"
-                stroke="#104336"
+                stroke="var(--color-neon-pulse)"
                 strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -308,12 +322,12 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             </>
           )}
 
-          {/* Línea de Humedad (Eco Water Teal #0284C7) */}
+          {/* Línea de humedad */}
           {(metricMode === 'hum' || metricMode === 'dual') && (
             <path
               d={humPath}
               fill="none"
-              stroke="#0284C7"
+              stroke="#53d5f4"
               strokeWidth="2.2"
               strokeDasharray={metricMode === 'dual' ? '2 2' : undefined}
               strokeLinecap="round"
@@ -339,22 +353,22 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           })}
 
           {/* Línea de cursor interactivo */}
-          {hoverIndex !== null && tempPoints[hoverIndex] && (
+          {activeChartPoint && (
             <g>
               <line
-                x1={tempPoints[hoverIndex].x}
+                x1={activeChartPoint.x}
                 y1={padding.top}
-                x2={tempPoints[hoverIndex].x}
+                x2={activeChartPoint.x}
                 y2={padding.top + chartHeight}
-                stroke="#535e5d"
+                stroke="var(--color-slate-text)"
                 strokeWidth="1"
                 strokeDasharray="2 2"
               />
               <circle
-                cx={tempPoints[hoverIndex].x}
-                cy={tempPoints[hoverIndex].y}
+                cx={activeChartPoint.x}
+                cy={activeChartPoint.y}
                 r="4.5"
-                fill="#104336"
+                fill="var(--color-neon-pulse)"
                 stroke="#ffffff"
                 strokeWidth="2"
               />
@@ -362,17 +376,17 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           )}
         </svg>
 
-        {/* Tooltip flotante — Control Charcoal (#afc4bf) */}
-        {activePoint && hoverIndex !== null && (tempPoints[hoverIndex] || humPoints[hoverIndex]) && (
+        {/* Tooltip flotante */}
+        {activePoint && activeChartPoint && (
           <div
             className="absolute top-3 pointer-events-none z-10 px-4 py-2.5 rounded-[16px] bg-cream-paper/95 text-bark text-xs space-y-1 font-mono"
             style={{
-              left: `${Math.min(75, Math.max(10, (((tempPoints[hoverIndex] || humPoints[hoverIndex])?.x ?? padding.left) / width) * 100))}%`,
+              left: `${Math.min(75, Math.max(10, (activeChartPoint.x / width) * 100))}%`,
               transform: 'translateX(-50%)',
             }}
           >
             <div className="text-[11px] text-slate font-sans">
-              {new Date(activePoint.fecha_hora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              {new Date(activePoint.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </div>
             <div className="flex items-center gap-3">
               {tempEnabled && activePoint.temperatura !== null && (
@@ -386,11 +400,9 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-slate">
-              <span>Z: {activePoint.z_score_temp}σ</span>
-              <span>·</span>
-              <span>Score IA: {activePoint.score_anomalia_ia}</span>
-            </div>
+            {activePoint.score_anomalia_ia !== null && (
+              <p className="text-[10px] text-slate">Score IA: {activePoint.score_anomalia_ia}</p>
+            )}
             {activePoint.valor_anomalo && (
               <div className="flex items-center gap-1 text-[10px] text-[#DC2626] font-sans font-semibold pt-0.5">
                 <AlertCircle className="w-3 h-3" />
@@ -412,7 +424,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           )}
           {humEnabled && (
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-1 bg-[#0284C7] rounded-full" />
+              <span className="w-3 h-1 bg-[#53d5f4] rounded-full" />
               <span>Humedad (%RH)</span>
             </div>
           )}
@@ -422,7 +434,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           </div>
         </div>
         <div className="font-mono text-[11px]">
-          Frecuencia: <span className="font-semibold text-bark">1 muestra / 2.5 seg</span>
+          Intervalo nominal: <span className="font-semibold text-bark">2,5–5 s</span>
         </div>
       </div>
     </div>

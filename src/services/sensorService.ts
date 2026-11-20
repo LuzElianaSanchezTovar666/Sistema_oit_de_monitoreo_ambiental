@@ -278,6 +278,8 @@ export interface DashboardTelemetryItemDTO {
   humedad: number | null;
   presion: number | null;
   alerta_generada: boolean;
+  score_anomalia_ia?: number | null;
+  es_fuera_de_umbral?: boolean;
   configuracion_id?: string | null;
   variables_activas_snapshot?: string[] | null;
   fecha_hora: string;
@@ -467,6 +469,7 @@ export async function fetchLocationTemperature(
     {
       method: 'GET',
       credentials: 'include',
+      cache: 'no-store',
     }
   );
   const data = await res.json().catch(() => ({}));
@@ -523,6 +526,7 @@ export async function fetchLocationHumidity(
     {
       method: 'GET',
       credentials: 'include',
+      cache: 'no-store',
     }
   );
   const data = await res.json().catch(() => ({}));
@@ -637,6 +641,8 @@ export async function fetchHistoricalMeasurements(
 // ============================================================
 
 export interface TrendPointDTO {
+  segmento_temperatura?: number | null;
+  segmento_humedad?: number | null;
   id_medicion: number;
   sensor_id: string | null;
   sensor_identificador?: string | null;

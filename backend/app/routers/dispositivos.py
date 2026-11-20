@@ -12,6 +12,7 @@ from ..config import get_settings
 from ..database import db_cursor
 from ..dependencies import require_roles
 from ..security import hash_password
+from ..services.device_connectivity import deactivate_device, lock_device, serialize_connectivity, utc_now
 
 router = APIRouter(prefix="/api/dispositivos", tags=["Dispositivos IoT (RF-02 y RF-03)"])
 
@@ -145,7 +146,7 @@ def _serialize_device(row: Dict[str, Any]) -> Dict[str, Any]:
         "ubicacion_id": row.get("ubicacion_id") or "",
         "ubicacion": row.get("ubicacion_nombre") or row.get("ubicacion") or row.get("ubicacion_id") or "",
         "codigo_area": row.get("codigo_area") or "",
-        "estado": row["estado"],
+        **serialize_connectivity(row, utc_now()),
         "observacion_tecnica": row.get("observacion_tecnica"),
         "mqtt_client_id": row.get("mqtt_client_id"),
         "mqtt_topic": row.get("mqtt_topic"),
@@ -160,7 +161,8 @@ _DEVICE_SELECT = """
     SELECT
       d.id_dispositivo, d.id_usuario, d.codigo, d.nombre, d.mac_address, d.tipo,
       d.ubicacion_id, d.ubicacion, u.nombre AS ubicacion_nombre, u.codigo_area,
-      d.estado, d.firmware_version, d.observacion_tecnica,
+      d.estado, d.firmware_version, d.observacion_tecnica, d.activo_administrativamente,
+      d.estado_conectividad, d.ultimo_ping, d.fecha_cambio_conectividad,
       d.mqtt_client_id, d.mqtt_topic, d.mqtt_username, d.fecha_registro, d.fecha_actualizacion,
       COUNT(m.id_medicion) AS historial_mediciones_count
     FROM dispositivos d
@@ -559,20 +561,14 @@ def deactivate_dispositivo(
     _current_user: Dict[str, Any] = Depends(require_roles("Administrador")),
 ) -> Dict[str, Any]:
     with db_cursor() as cursor:
-        cursor.execute(
-            "SELECT id_dispositivo FROM dispositivos WHERE id_dispositivo = %s LIMIT 1",
-            (id_dispositivo,),
-        )
-        if cursor.fetchone() is None:
+        row = lock_device(cursor, id_dispositivo)
+        if row is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Dispositivo no encontrado.",
             )
 
-        cursor.execute(
-            "UPDATE dispositivos SET estado = 'INACTIVO' WHERE id_dispositivo = %s",
-            (id_dispositivo,),
-        )
+        deactivate_device(cursor, row)
 
         cursor.execute(
             f"{_DEVICE_SELECT} WHERE d.id_dispositivo = %s GROUP BY d.id_dispositivo LIMIT 1",
@@ -593,11 +589,8 @@ def delete_dispositivo_rn03(
 ) -> Dict[str, Any]:
     """RN-03: Impide la eliminación física cuando existe historial de mediciones."""
     with db_cursor() as cursor:
-        cursor.execute(
-            "SELECT id_dispositivo FROM dispositivos WHERE id_dispositivo = %s LIMIT 1",
-            (id_dispositivo,),
-        )
-        if cursor.fetchone() is None:
+        device = lock_device(cursor, id_dispositivo)
+        if device is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Dispositivo no encontrado.",
@@ -619,10 +612,7 @@ def delete_dispositivo_rn03(
                 ),
             )
 
-        cursor.execute(
-            "UPDATE dispositivos SET estado = 'INACTIVO' WHERE id_dispositivo = %s",
-            (id_dispositivo,),
-        )
+        deactivate_device(cursor, device)
 
     return {
         "message": "Dispositivo desactivado lógicamente (INACTIVO) para preservar trazabilidad.",

@@ -73,7 +73,7 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-deep-abyss/65 backdrop-blur-md animate-fadeIn">
       <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-sage-mist shrink-0">

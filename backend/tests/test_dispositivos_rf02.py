@@ -41,6 +41,10 @@ def setup_rf02_mysql():
     emails = [u[1] for u in RF02_TEST_USERS]
     with db_cursor() as cursor:
         cursor.execute(
+            "DELETE h FROM historial_conectividad_dispositivos h JOIN dispositivos d ON h.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
+            (TEST_MACS,),
+        )
+        cursor.execute(
             "DELETE h FROM historial_ubicaciones h INNER JOIN dispositivos d ON h.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
             (TEST_MACS,),
         )
@@ -61,6 +65,10 @@ def setup_rf02_mysql():
             )
     yield
     with db_cursor() as cursor:
+        cursor.execute(
+            "DELETE h FROM historial_conectividad_dispositivos h JOIN dispositivos d ON h.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
+            (TEST_MACS,),
+        )
         cursor.execute(
             "DELETE h FROM historial_ubicaciones h INNER JOIN dispositivos d ON h.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
             (TEST_MACS,),

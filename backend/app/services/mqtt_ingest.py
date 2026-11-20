@@ -16,13 +16,15 @@ import pymysql
 from ..config import get_settings
 from ..database import db_cursor
 from ..routers.sensores import MODEL_CAPABILITIES, STANDARD_UNITS
+from .device_connectivity import lock_device, record_contact, utc_now
 from .live_telemetry import live_temperature_broadcaster
 from .measurement_persistence import measurement_persister
 
 logger = logging.getLogger("simoa.mqtt")
 
 TOPIC_WILDCARD = "simoa/dispositivos/+/telemetria"
-RESERVED_PAYLOAD_KEYS = {"codigo", "timestamp", "sensor_id", "identificador", "unidades"}
+HEARTBEAT_WILDCARD = "simoa/dispositivos/+/heartbeat"
+RESERVED_PAYLOAD_KEYS = {"codigo", "timestamp", "sensor_id", "identificador", "unidades", "mqtt_client_id"}
 SENSITIVE_KEYS = ("password", "pass", "token", "secret", "authorization", "clave")
 MAX_DLQ_ROWS = 5000
 
@@ -46,6 +48,8 @@ class CachedDevice:
     estado: str
     ubicacion_id: Optional[str]
     sensors: List[CachedSensor] = field(default_factory=list)
+    mqtt_client_id: Optional[str] = None
+    mqtt_topic: Optional[str] = None
 
 
 @dataclass
@@ -65,6 +69,14 @@ class NormalizedTelemetryEvent:
     magnitudes: Dict[str, float]
     unidades: Dict[str, str]
     route_targets: Tuple[str, ...] = ("RF-07", "RF-13")
+    connectivity_evidence: bool = False
+
+
+@dataclass
+class Heartbeat:
+    device_id: str
+    captured: datetime
+    received: datetime
 
 
 @dataclass
@@ -97,7 +109,7 @@ def _sanitize_payload_preview(raw_bytes: bytes) -> str:
 
 def _extract_topic_code(topic: str) -> Optional[str]:
     parts = topic.split("/")
-    if len(parts) != 4 or parts[0] != "simoa" or parts[1] != "dispositivos" or parts[3] != "telemetria":
+    if len(parts) != 4 or parts[0] != "simoa" or parts[1] != "dispositivos" or parts[3] not in ("telemetria", "heartbeat"):
         return None
     code = parts[2].strip()
     return code if code else None
@@ -107,11 +119,10 @@ def _parse_timestamp(raw_ts: Any) -> Optional[datetime]:
     if raw_ts is None or isinstance(raw_ts, bool):
         return None
     if isinstance(raw_ts, (int, float)):
-        if not math.isfinite(raw_ts) or raw_ts <= 0:
-            return None
-        # Soportar epoch en segundos o milisegundos
-        ts_sec = raw_ts / 1000.0 if raw_ts > 1e12 else float(raw_ts)
         try:
+            if not math.isfinite(raw_ts) or raw_ts <= 0:
+                return None
+            ts_sec = raw_ts / 1000.0 if raw_ts > 1e12 else float(raw_ts)
             return datetime.fromtimestamp(ts_sec, tz=timezone.utc).replace(tzinfo=None)
         except (OSError, OverflowError, ValueError):
             return None
@@ -164,7 +175,7 @@ class MetadataCache:
         with db_cursor() as cursor:
             cursor.execute(
                 """
-                SELECT id_dispositivo, codigo, nombre, estado, ubicacion_id
+                SELECT id_dispositivo, codigo, nombre, estado, ubicacion_id, mqtt_client_id, mqtt_topic
                 FROM dispositivos
                 WHERE codigo IS NOT NULL AND codigo <> ''
                 """
@@ -176,6 +187,8 @@ class MetadataCache:
                     nombre=row["nombre"],
                     estado=row["estado"],
                     ubicacion_id=row.get("ubicacion_id"),
+                    mqtt_client_id=row.get("mqtt_client_id"),
+                    mqtt_topic=row.get("mqtt_topic"),
                 )
                 devices_by_id[dev.id_dispositivo] = dev
                 devices_by_code[dev.codigo] = dev
@@ -243,7 +256,7 @@ class MqttIngestionService:
         self._client: Optional[mqtt.Client] = None
         self._cache = MetadataCache(ttl_seconds=settings.mqtt_cache_ttl_seconds)
 
-        self.telemetry_queue: queue.Queue[NormalizedTelemetryEvent] = queue.Queue(
+        self.telemetry_queue: queue.Queue[NormalizedTelemetryEvent | Heartbeat] = queue.Queue(
             maxsize=max(10, settings.mqtt_queue_maxsize)
         )
         self.dlq_queue: queue.Queue[RejectedMqttRecord] = queue.Queue(maxsize=2000)
@@ -350,6 +363,8 @@ class MqttIngestionService:
             )
             if settings.mqtt_username:
                 client.username_pw_set(settings.mqtt_username, settings.mqtt_password or None)
+            if settings.mqtt_tls_ca_file:
+                client.tls_set(ca_certs=settings.mqtt_tls_ca_file)
 
             client.reconnect_delay_set(
                 min_delay=max(1, settings.mqtt_reconnect_min_delay),
@@ -436,7 +451,10 @@ class MqttIngestionService:
                 self._stats["last_error"] = f"MQTT connect rejected: {reason_code}"
 
         if is_ok:
-            res, _mid = client.subscribe(TOPIC_WILDCARD, qos=settings.mqtt_qos)
+            topics = [(TOPIC_WILDCARD, settings.mqtt_qos)]
+            if settings.rf15_mqtt_acl_enforced:
+                topics.append((HEARTBEAT_WILDCARD, settings.mqtt_qos))
+            res, _mid = client.subscribe(topics)
             with self._lock:
                 self._subscribed = res == mqtt.MQTT_ERR_SUCCESS
             logger.info("SIMOA MQTT conectado y suscrito a %s (QoS=%s)", TOPIC_WILDCARD, settings.mqtt_qos)
@@ -469,6 +487,7 @@ class MqttIngestionService:
 
     def _on_message(self, _client: mqtt.Client, _userdata: Any, msg: mqtt.MQTTMessage) -> None:
         t_start = time.perf_counter()
+        received = utc_now()
         topic = msg.topic or ""
         raw_bytes = msg.payload or b""
         topic_code = _extract_topic_code(topic)
@@ -503,7 +522,11 @@ class MqttIngestionService:
             return
 
         # 3. Dispositivo existente y activo (RF-02, RN-07)
-        device = self._cache.get_device(topic_code)
+        try:
+            device = self._cache.get_device(topic_code)
+        except (pymysql.err.OperationalError, pymysql.err.InterfaceError) as exc:
+            logger.warning("Validación MQTT aplazada por MySQL (%s).", type(exc).__name__)
+            return
         if device is None:
             self._enqueue_rejection(
                 topic,
@@ -536,12 +559,39 @@ class MqttIngestionService:
             )
             return
 
+        trusted = get_settings().rf15_mqtt_acl_enforced and bool(device.mqtt_client_id) and (
+            device.mqtt_topic == f"simoa/dispositivos/{topic_code}/telemetria"
+        )
+        retained = bool(getattr(msg, "retain", False))
+        if topic.endswith("/heartbeat"):
+            if not trusted or retained or set(payload) != {"codigo", "timestamp", "mqtt_client_id"} or (
+                payload["mqtt_client_id"] != device.mqtt_client_id
+            ):
+                self._enqueue_rejection(
+                    topic, topic_code, "HEARTBEAT_INVALIDO",
+                    "El latido debe ser no retenido e identificar el cliente MQTT registrado.", raw_bytes,
+                )
+                return
+            try:
+                self.telemetry_queue.put_nowait(Heartbeat(device.id_dispositivo, captured_dt, received))
+            except queue.Full:
+                self._enqueue_rejection(topic, topic_code, "COLA_SATURADA", "Cola MQTT saturada.", raw_bytes)
+            return
+
+        if "mqtt_client_id" in payload and payload["mqtt_client_id"] != device.mqtt_client_id:
+            self._enqueue_rejection(topic, topic_code, "CLIENTE_INCONSISTENTE", "Client ID MQTT inconsistente.", raw_bytes)
+            return
+
         # 5. Valores numéricos válidos y extensibles (sin asumir solo temperatura y humedad)
         magnitudes: Dict[str, float] = {}
         for key, value in payload.items():
             if key in RESERVED_PAYLOAD_KEYS:
                 continue
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+            try:
+                num_val = float(value) if type(value) in (int, float) else math.nan
+            except OverflowError:
+                num_val = math.nan
+            if not math.isfinite(num_val):
                 self._enqueue_rejection(
                     topic,
                     topic_code,
@@ -550,7 +600,6 @@ class MqttIngestionService:
                     raw_bytes,
                 )
                 return
-            num_val = float(value)
             if key == "humedad" and (num_val < 0.0 or num_val > 100.0):
                 logger.warning(
                     "Anomalía de sensor en %s (%s): humedad físicamente inválida (%s %%RH); descartada sin alerta ambiental.",
@@ -662,10 +711,11 @@ class MqttIngestionService:
             sensor_modelo=selected_sensor.modelo,
             configuracion_id=selected_sensor.configuracion_id,
             captured_at=captured_dt.isoformat(),
-            received_at=datetime.now(timezone.utc).isoformat(),
+            received_at=received.replace(tzinfo=timezone.utc).isoformat(),
             processing_ms=elapsed_ms,
             magnitudes=magnitudes,
             unidades={k: enabled_vars[k] for k in magnitudes},
+            connectivity_evidence=trusted and not retained,
         )
 
         try:
@@ -692,6 +742,16 @@ class MqttIngestionService:
                 continue
 
             try:
+                if isinstance(event, Heartbeat):
+                    try:
+                        with db_cursor() as cursor:
+                            device = lock_device(cursor, event.device_id)
+                            record_contact(
+                                cursor, device, captured=event.captured, received=event.received, reason="HEARTBEAT"
+                            )
+                    except pymysql.MySQLError as exc:
+                        logger.warning("No se pudo registrar el latido MQTT (%s).", type(exc).__name__)
+                    continue
                 # RF-07: Persistir en MySQL dentro de transacción atómica ANTES de liberar a suscriptores en vivo
                 persisted_ok = False
                 med_id = None

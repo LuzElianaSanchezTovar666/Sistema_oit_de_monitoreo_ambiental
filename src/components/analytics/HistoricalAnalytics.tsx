@@ -442,7 +442,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
                   type="checkbox"
                   checked={liveFollow}
                   onChange={(e) => setLiveFollow(e.target.checked)}
-                  className="accent-[#104336]"
+                  className="accent-canopy"
                 />
                 <span>Seguimiento en vivo (SSE)</span>
               </label>

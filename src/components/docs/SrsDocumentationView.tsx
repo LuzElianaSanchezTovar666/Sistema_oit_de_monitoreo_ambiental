@@ -528,7 +528,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Filtrar RF01..RF18 o módulo..."
-                  className="apple-pill-input w-full pl-10 pr-4 py-2 text-xs text-bark placeholder-[#4A7C59]"
+                  className="apple-pill-input w-full pl-10 pr-4 py-2 text-xs text-bark placeholder-slate-text"
                 />
               </div>
             </div>

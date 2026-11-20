@@ -7,8 +7,22 @@ export type DispositivoEstado =
   | 'ERROR'
   | 'INACTIVO';
 
-export interface DispositivoDTO {
+export interface DeviceConnectivity {
   id_dispositivo: string;
+  codigo: string | null;
+  nombre: string;
+  ubicacion_id: string | null;
+  ubicacion: string;
+  estado: DispositivoEstado;
+  activo_administrativamente?: boolean;
+  estado_conectividad?: Exclude<DispositivoEstado, 'ERROR' | 'INACTIVO'>;
+  ultimo_ping?: string | null;
+  fecha_cambio_conectividad?: string | null;
+  silencio_segundos?: number | null;
+  tolerancia_maxima_segundos?: number;
+}
+
+export interface DispositivoDTO extends DeviceConnectivity {
   id_usuario?: number | null;
   codigo: string;
   nombre: string;
@@ -100,12 +114,69 @@ export async function fetchDispositivos(params?: {
   const res = await fetch(`/api/dispositivos${qs ? `?${qs}` : ''}`, {
     method: 'GET',
     credentials: 'include',
+    cache: 'no-store',
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.detail || 'Error al consultar el inventario de dispositivos.');
   }
   return data as DispositivosListResponse;
+}
+
+export function watchDeviceConnectivity(onSnapshot: (items: DeviceConnectivity[] | null) => void): () => void {
+  const stream = typeof EventSource === 'undefined'
+    ? null
+    : new EventSource('/api/mediciones/stream/temperatura?conectividad=true', { withCredentials: true });
+  let active = true;
+  let streamHealthy = false;
+  let loading = false;
+  let lastEvent = Date.now();
+  const poll = async () => {
+    if (streamHealthy && Date.now() - lastEvent > 25_000) {
+      streamHealthy = false;
+      onSnapshot(null);
+    }
+    if (streamHealthy || loading) return;
+    loading = true;
+    try {
+      const inventory = await fetchDispositivos();
+      if (active && !streamHealthy) onSnapshot(inventory.items);
+    } catch {
+      if (active && !streamHealthy) onSnapshot(null);
+    } finally {
+      loading = false;
+    }
+  };
+  const unavailable = () => {
+    streamHealthy = false;
+    onSnapshot(null);
+    void poll();
+  };
+  stream?.addEventListener('conectividad', (event) => {
+    try {
+      const items = JSON.parse((event as MessageEvent).data) as DeviceConnectivity[];
+      if (!Array.isArray(items) || !active) return;
+      streamHealthy = true;
+      lastEvent = Date.now();
+      onSnapshot(items);
+    } catch {
+      unavailable();
+    }
+  });
+  stream?.addEventListener('conectividad_no_disponible', unavailable);
+  stream?.addEventListener('heartbeat', () => { lastEvent = Date.now(); });
+  if (stream) stream.onerror = unavailable;
+  void poll();
+  const interval = window.setInterval(poll, 5_000);
+  return () => {
+    active = false;
+    window.clearInterval(interval);
+    stream?.close();
+  };
+}
+
+export function formatLastContact(value?: string | null): string {
+  return value ? new Date(value).toLocaleString('es-CO') : 'Sin contacto registrado';
 }
 
 export async function fetchDispositivoDetail(id: string): Promise<{
