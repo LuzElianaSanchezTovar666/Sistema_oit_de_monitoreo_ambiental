@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   areSensorDatesCoherent,
+  computeThermalGaugeGeometry,
+  evaluateThermalStatus,
   MODEL_CAPABILITIES,
   validateSensorVariablesSelection,
 } from '../src/services/sensorService';
@@ -36,4 +38,25 @@ test('validateSensorVariablesSelection exige al menos una variable con mensaje e
   assert.equal(validateSensorVariablesSelection('DHT22', false, true, false), null);
   assert.equal(validateSensorVariablesSelection('BME280', false, false, true), null);
   assert.notEqual(validateSensorVariablesSelection('SHT31', true, false, true), null);
+});
+
+test('evaluateThermalStatus y computeThermalGaugeGeometry evalúan límites exactos y ausencia RF-08', () => {
+  assert.equal(evaluateThermalStatus(20.0, 18.0, 25.0), 'NOMINAL');
+  assert.equal(evaluateThermalStatus(18.0, 18.0, 25.0), 'NOMINAL');
+  assert.equal(evaluateThermalStatus(25.0, 18.0, 25.0), 'NOMINAL');
+  assert.equal(evaluateThermalStatus(17.9, 18.0, 25.0), 'FUERA DE RANGO');
+  assert.equal(evaluateThermalStatus(25.1, 18.0, 25.0), 'FUERA DE RANGO');
+  assert.equal(evaluateThermalStatus(22.0, null, null), 'SIN_CONFIGURACION');
+  assert.equal(evaluateThermalStatus(null, 18.0, 25.0), 'ESPERANDO_DATOS');
+
+  const gaugeLow = computeThermalGaugeGeometry(10.0, 18.0, 25.0);
+  assert.equal(gaugeLow.hasScale, true);
+  assert.equal(gaugeLow.markerPct, 0);
+
+  const gaugeHigh = computeThermalGaugeGeometry(40.0, 18.0, 25.0);
+  assert.equal(gaugeHigh.markerPct, 100);
+
+  const gaugeNoCfg = computeThermalGaugeGeometry(22.0, null, null);
+  assert.equal(gaugeNoCfg.hasScale, false);
+  assert.equal(gaugeNoCfg.markerPct, null);
 });

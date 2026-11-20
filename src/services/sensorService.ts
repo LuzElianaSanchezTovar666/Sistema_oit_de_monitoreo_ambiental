@@ -362,3 +362,105 @@ export async function fetchDashboardTelemetry(filters?: {
   }
   return data;
 }
+
+// ============================================================
+// RF-08: Visualización en Tiempo Real de la Temperatura Actual (°C)
+// ============================================================
+
+export type ThermalStateRF08 = 'NOMINAL' | 'FUERA DE RANGO' | 'SIN_CONFIGURACION' | 'ESPERANDO_DATOS';
+
+export interface LocationTemperatureSnapshotDTO {
+  ubicacion_id: string;
+  ubicacion_nombre: string;
+  codigo_area: string;
+  sensor_id: string | null;
+  sensor_identificador: string | null;
+  sensor_modelo: string | null;
+  sensor_estado: string | null;
+  dispositivo_id: string | null;
+  temperatura_actual: number | null;
+  unidad: '°C';
+  temp_min: number | null;
+  temp_max: number | null;
+  estado_termico: ThermalStateRF08;
+  estado_operativo: string;
+  datos_recientes: boolean;
+  antiguedad_max_segundos: number;
+  z_score: number | null;
+  z_score_disponible: boolean;
+  z_score_motivo: string;
+  z_score_muestras: number;
+  fecha_hora_utc: string | null;
+}
+
+export function evaluateThermalStatus(
+  temperatura: number | null,
+  tempMin: number | null,
+  tempMax: number | null
+): ThermalStateRF08 {
+  if (temperatura === null || !Number.isFinite(temperatura)) return 'ESPERANDO_DATOS';
+  if (tempMin === null || tempMax === null) return 'SIN_CONFIGURACION';
+  return temperatura >= tempMin && temperatura <= tempMax ? 'NOMINAL' : 'FUERA DE RANGO';
+}
+
+export interface ThermalGaugeGeometry {
+  hasScale: boolean;
+  scaleMin: number;
+  scaleMax: number;
+  nominalStartPct: number;
+  nominalWidthPct: number;
+  markerPct: number | null;
+}
+
+export function computeThermalGaugeGeometry(
+  temperatura: number | null,
+  tempMin: number | null,
+  tempMax: number | null
+): ThermalGaugeGeometry {
+  if (tempMin === null || tempMax === null || tempMax <= tempMin) {
+    return {
+      hasScale: false,
+      scaleMin: 0,
+      scaleMax: 0,
+      nominalStartPct: 0,
+      nominalWidthPct: 0,
+      markerPct: null,
+    };
+  }
+  const margin = Math.max(2, (tempMax - tempMin) * 0.25);
+  const scaleMin = tempMin - margin;
+  const scaleMax = tempMax + margin;
+  const span = scaleMax - scaleMin;
+  const nominalStartPct = ((tempMin - scaleMin) / span) * 100;
+  const nominalWidthPct = ((tempMax - tempMin) / span) * 100;
+  const markerPct =
+    temperatura !== null && Number.isFinite(temperatura)
+      ? Math.min(100, Math.max(0, ((temperatura - scaleMin) / span) * 100))
+      : null;
+
+  return {
+    hasScale: true,
+    scaleMin,
+    scaleMax,
+    nominalStartPct,
+    nominalWidthPct,
+    markerPct,
+  };
+}
+
+export async function fetchLocationTemperature(
+  ubicacionId: string
+): Promise<LocationTemperatureSnapshotDTO> {
+  const res = await fetch(
+    `/api/mediciones/ubicacion/${encodeURIComponent(ubicacionId)}/temperatura-actual`,
+    {
+      method: 'GET',
+      credentials: 'include',
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar la temperatura actual de la ubicación.');
+  }
+  return data;
+}

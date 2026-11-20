@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  Thermometer,
   Droplets,
   Cpu,
   BrainCircuit,
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Ubicacion, Dispositivo, Sensor, Medicion, Alerta } from '../../types/iot';
 import { TelemetryChart } from './TelemetryChart';
+import { TemperatureKpiCard } from './TemperatureKpiCard';
 import { buildEntityIndexes, selectColumns } from '../../services/performanceEngine';
 import { VirtualList } from '../common/VirtualList';
 import {
@@ -26,6 +26,8 @@ import {
   DashboardTelemetryItemDTO,
   DashboardTelemetrySensorDTO,
   fetchDashboardTelemetry,
+  fetchLocationTemperature,
+  LocationTemperatureSnapshotDTO,
 } from '../../services/sensorService';
 
 interface LiveTelemetryViewProps {
@@ -104,6 +106,79 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
   const [mysqlResumen, setMysqlResumen] = useState<DashboardUbicacionResumenDTO[]>([]);
   const [mysqlSensorConfigs, setMysqlSensorConfigs] = useState<DashboardTelemetrySensorDTO[]>([]);
   const [mysqlTelemetry, setMysqlTelemetry] = useState<DashboardTelemetryItemDTO[]>([]);
+
+  // RF-08: Estado en tiempo real de temperatura actual (°C) vía SSE post-COMMIT de RF-07
+  const [rf08Snapshot, setRf08Snapshot] = useState<LocationTemperatureSnapshotDTO | null>(null);
+  const [rf08StreamConnected, setRf08StreamConnected] = useState<boolean>(false);
+  const [rf08Stale, setRf08Stale] = useState<boolean>(false);
+
+  useEffect(() => {
+    const locId = currentLocation?.id_ubicacion;
+    // Limpiar inmediatamente lecturas de la ubicación anterior al cambiar de recinto
+    setRf08Snapshot(null);
+    setRf08StreamConnected(false);
+    setRf08Stale(false);
+    if (!locId) return;
+
+    let active = true;
+    fetchLocationTemperature(locId)
+      .then((snap) => {
+        if (!active) return;
+        setRf08Snapshot(snap);
+        setRf08Stale(!snap.datos_recientes);
+      })
+      .catch(() => {
+        if (!active) return;
+        setRf08Stale(true);
+      });
+
+    let es: EventSource | null = null;
+    if (typeof EventSource !== 'undefined') {
+      es = new EventSource(
+        `/api/mediciones/stream/temperatura?ubicacion_id=${encodeURIComponent(locId)}`,
+        { withCredentials: true }
+      );
+      const handleEvent = (ev: MessageEvent) => {
+        if (!active) return;
+        try {
+          const data: LocationTemperatureSnapshotDTO = JSON.parse(ev.data);
+          if (data.ubicacion_id !== locId) return;
+          setRf08Snapshot(data);
+          setRf08StreamConnected(true);
+          setRf08Stale(!data.datos_recientes);
+        } catch {
+          // Ignorar payload corrupto sin romper UI
+        }
+      };
+      es.addEventListener('snapshot', handleEvent as EventListener);
+      es.addEventListener('temperatura', handleEvent as EventListener);
+      es.onopen = () => {
+        if (active) setRf08StreamConnected(true);
+      };
+      es.onerror = () => {
+        if (active) setRf08StreamConnected(false);
+      };
+    }
+
+    const freshnessTimer = window.setInterval(() => {
+      setRf08Snapshot((prev) => {
+        if (!prev || !prev.fecha_hora_utc) {
+          setRf08Stale(true);
+          return prev;
+        }
+        const ageMs = Date.now() - new Date(prev.fecha_hora_utc).getTime();
+        const maxMs = (prev.antiguedad_max_segundos || 30) * 1000;
+        setRf08Stale(ageMs > maxMs);
+        return prev;
+      });
+    }, 5000);
+
+    return () => {
+      active = false;
+      window.clearInterval(freshnessTimer);
+      if (es) es.close();
+    };
+  }, [currentLocation?.id_ubicacion]);
 
   useEffect(() => {
     setSelectedMysqlDeviceId('ALL');
@@ -291,56 +366,14 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
 
       {/* Grid de Métricas Principales en Tiempo Real — Feature Metric Tiles (28px radius, 16px padding, no shadow) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
-        {/* Tarjeta 1: Temperatura (solo si está habilitada en RF-05) */}
+        {/* Tarjeta 1: Temperatura Actual °C (RF-08, solo si está habilitada en RF-05) */}
         {tempEnabled && (
-        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-semibold text-slate flex items-center gap-1.5">
-              <Thermometer className="w-4 h-4 text-canopy" />
-              Temperatura
-            </span>
-            <span
-              className={`text-[11px] font-mono px-2 py-0.5 rounded-[5px] font-semibold ${
-                reading?.es_fuera_de_umbral
-                  ? 'bg-[#DC2626]/20 text-[#DC2626]'
-                  : 'bg-canopy/15 text-canopy'
-              }`}
-            >
-              {reading?.es_fuera_de_umbral ? 'FUERA DE RANGO' : 'NOMINAL'}
-            </span>
-          </div>
-
-          <div>
-            <div
-              className={`apple-metric-display tabular-nums ${
-                reading?.es_fuera_de_umbral ? 'text-[#DC2626]' : 'text-canopy'
-              }`}
-            >
-              {displayTemp !== null ? `${displayTemp.toFixed(1)}` : '--'}
-              <span className="text-[20px] font-normal text-slate ml-1">°C</span>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-slate mt-2 font-mono">
-              <span>
-                Óptimo: {activeSensorConfig?.limites.temp_min ?? currentSensor?.limites.temp_min}° -{' '}
-                {activeSensorConfig?.limites.temp_max ?? currentSensor?.limites.temp_max}°C
-              </span>
-              <span>Z: {reading ? reading.z_score_temp : '--'}σ</span>
-            </div>
-          </div>
-
-          <div className="w-full bg-cream-paper rounded-full h-1.5 overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 ${
-                reading?.es_fuera_de_umbral ? 'bg-[#DC2626]' : 'bg-canopy'
-              }`}
-              style={{
-                width: displayTemp !== null
-                  ? `${Math.min(100, Math.max(10, ((displayTemp - (currentSensor?.limites.temp_min || 0)) / ((currentSensor?.limites.temp_max || 10) - (currentSensor?.limites.temp_min || 0))) * 100))}%`
-                  : '0%',
-              }}
-            />
-          </div>
-        </div>
+          <TemperatureKpiCard
+            snapshot={rf08Snapshot}
+            locationName={currentLocation?.nombre || ''}
+            streamConnected={rf08StreamConnected}
+            isStale={rf08Stale}
+          />
         )}
 
         {/* Tarjeta 2: Humedad Relativa (solo si está habilitada en RF-05) */}

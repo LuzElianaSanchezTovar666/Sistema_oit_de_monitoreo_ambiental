@@ -1,9 +1,17 @@
+import asyncio
 from datetime import datetime, timezone
+import json
 from typing import Any, Dict, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import StreamingResponse
 
 from ..database import db_cursor
 from ..dependencies import require_roles
+from ..services.live_telemetry import (
+    FRESHNESS_MAX_SECONDS,
+    get_location_temperature_snapshot,
+    live_temperature_broadcaster,
+)
 from ..services.measurement_persistence import measurement_persister
 
 router = APIRouter(prefix="/api/mediciones", tags=["Mediciones Persistentes UTC (RF-07)"])
@@ -148,3 +156,65 @@ def get_medicion_by_id(
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medición no encontrada.")
 
     return {"medicion": _serialize_medicion(row), "zona_horaria": "UTC"}
+
+
+@router.get("/ubicacion/{ubicacion_id}/temperatura-actual")
+def get_ubicacion_temperatura_actual(
+    ubicacion_id: str,
+    freshness_seconds: int = Query(default=FRESHNESS_MAX_SECONDS, ge=5, le=300),
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> Dict[str, Any]:
+    """RF-08: Consulta la temperatura actual (°C), límites reales y Z-Score estadístico de la ubicación."""
+    snapshot = get_location_temperature_snapshot(ubicacion_id, freshness_max_seconds=freshness_seconds)
+    if snapshot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ubicación no encontrada.")
+    return snapshot
+
+
+@router.get("/stream/temperatura")
+async def stream_ubicacion_temperatura(
+    request: Request,
+    ubicacion_id: str = Query(..., min_length=1, max_length=64),
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> StreamingResponse:
+    """RF-08: Canal SSE autenticado en tiempo real conectado post-COMMIT de RF-07."""
+    initial = get_location_temperature_snapshot(ubicacion_id)
+    if initial is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ubicación no encontrada.")
+
+    sensor_id = initial.get("sensor_id")
+    loop = asyncio.get_running_loop()
+    sub_queue = live_temperature_broadcaster.subscribe(sensor_id, loop) if sensor_id else None
+
+    async def event_generator():
+        try:
+            yield f"event: snapshot\ndata: {json.dumps(initial, ensure_ascii=False)}\n\n"
+            while True:
+                if await request.is_disconnected():
+                    break
+                if sub_queue is None:
+                    await asyncio.sleep(10.0)
+                    yield f"event: heartbeat\ndata: {json.dumps({'ubicacion_id': ubicacion_id})}\n\n"
+                    continue
+                try:
+                    payload = await asyncio.wait_for(sub_queue.get(), timeout=15.0)
+                    yield f"event: temperatura\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+                except asyncio.TimeoutError:
+                    yield f"event: heartbeat\ndata: {json.dumps({'ubicacion_id': ubicacion_id})}\n\n"
+        finally:
+            if sensor_id and sub_queue is not None:
+                live_temperature_broadcaster.unsubscribe(sensor_id, loop, sub_queue)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

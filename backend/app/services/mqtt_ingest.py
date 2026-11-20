@@ -11,10 +11,12 @@ from typing import Any, Callable, Deque, Dict, List, Optional, Tuple
 import uuid
 
 import paho.mqtt.client as mqtt
+import pymysql
 
 from ..config import get_settings
 from ..database import db_cursor
 from ..routers.sensores import MODEL_CAPABILITIES, STANDARD_UNITS
+from .live_telemetry import live_temperature_broadcaster
 from .measurement_persistence import measurement_persister
 
 logger = logging.getLogger("simoa.mqtt")
@@ -251,7 +253,9 @@ class MqttIngestionService:
         self._dlq_thread: Optional[threading.Thread] = None
 
         self._rf07_handlers: List[Callable[[NormalizedTelemetryEvent], None]] = []
-        self._rf13_handlers: List[Callable[[NormalizedTelemetryEvent], None]] = []
+        self._rf13_handlers: List[Callable[[NormalizedTelemetryEvent], None]] = [
+            live_temperature_broadcaster.publish_from_rf07_event
+        ]
         self._recent_routed: Deque[NormalizedTelemetryEvent] = deque(maxlen=200)
         self._processing_times_ms: Deque[float] = deque(maxlen=1000)
 
@@ -699,6 +703,7 @@ class MqttIngestionService:
                 self.telemetry_queue.task_done()
 
     def _dlq_worker_loop(self) -> None:
+        dlq_ops = 0
         while not self._stop_event.is_set() or not self.dlq_queue.empty():
             try:
                 rec = self.dlq_queue.get(timeout=0.2)
@@ -706,38 +711,47 @@ class MqttIngestionService:
                 continue
 
             try:
-                with db_cursor() as cursor:
-                    cursor.execute(
-                        """
-                        INSERT INTO mqtt_mensajes_rechazados (
-                          topico, codigo_dispositivo, motivo, detalle, payload_resumido, fecha_hora
-                        )
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                        """,
-                        (
-                            rec.topico,
-                            rec.codigo_dispositivo,
-                            rec.motivo,
-                            rec.detalle,
-                            rec.payload_resumido,
-                            rec.fecha_hora,
-                        ),
-                    )
-                    # Retención acotada para evitar crecimiento ilimitado de DLQ
-                    cursor.execute(
-                        """
-                        DELETE FROM mqtt_mensajes_rechazados
-                        WHERE id_rechazo <= (
-                          SELECT cutoff FROM (
-                            SELECT id_rechazo AS cutoff
-                            FROM mqtt_mensajes_rechazados
-                            ORDER BY id_rechazo DESC
-                            LIMIT 1 OFFSET %s
-                          ) AS t
-                        )
-                        """,
-                        (MAX_DLQ_ROWS,),
-                    )
+                for attempt in range(3):
+                    try:
+                        with db_cursor() as cursor:
+                            cursor.execute(
+                                """
+                                INSERT INTO mqtt_mensajes_rechazados (
+                                  topico, codigo_dispositivo, motivo, detalle, payload_resumido, fecha_hora
+                                )
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                                """,
+                                (
+                                    rec.topico,
+                                    rec.codigo_dispositivo,
+                                    rec.motivo,
+                                    rec.detalle,
+                                    rec.payload_resumido,
+                                    rec.fecha_hora,
+                                ),
+                            )
+                            dlq_ops += 1
+                            if dlq_ops % 50 == 0:
+                                cursor.execute(
+                                    """
+                                    DELETE FROM mqtt_mensajes_rechazados
+                                    WHERE id_rechazo <= (
+                                      SELECT cutoff FROM (
+                                        SELECT id_rechazo AS cutoff
+                                        FROM mqtt_mensajes_rechazados
+                                        ORDER BY id_rechazo DESC
+                                        LIMIT 1 OFFSET %s
+                                      ) AS t
+                                    )
+                                    """,
+                                    (MAX_DLQ_ROWS,),
+                                )
+                        break
+                    except pymysql.err.OperationalError as exc:
+                        if exc.args and exc.args[0] == 1213 and attempt < 2:
+                            time.sleep(0.05)
+                            continue
+                        raise
             except Exception as exc:
                 logger.error("Error persistiendo rechazo MQTT en DLQ: %s", exc)
             finally:
