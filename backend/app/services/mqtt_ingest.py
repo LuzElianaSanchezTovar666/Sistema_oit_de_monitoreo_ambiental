@@ -15,6 +15,7 @@ import paho.mqtt.client as mqtt
 from ..config import get_settings
 from ..database import db_cursor
 from ..routers.sensores import MODEL_CAPABILITIES, STANDARD_UNITS
+from .measurement_persistence import measurement_persister
 
 logger = logging.getLogger("simoa.mqtt")
 
@@ -360,6 +361,7 @@ class MqttIngestionService:
             self._dlq_thread = threading.Thread(
                 target=self._dlq_worker_loop, name="simoa-mqtt-dlq", daemon=True
             )
+            measurement_persister.start()
             self._telemetry_thread.start()
             self._dlq_thread.start()
 
@@ -407,6 +409,7 @@ class MqttIngestionService:
             self._telemetry_thread.join(timeout=2.0)
         if self._dlq_thread is not None:
             self._dlq_thread.join(timeout=2.0)
+        measurement_persister.stop()
 
         with self._lock:
             self._connected = False
@@ -669,9 +672,12 @@ class MqttIngestionService:
                 continue
 
             try:
-                with self._lock:
-                    self._recent_routed.append(event)
-                    self._stats["routed_count"] += 1
+                # RF-07: Persistir en MySQL dentro de transacción atómica ANTES de liberar a suscriptores en vivo
+                persisted_ok = False
+                try:
+                    persisted_ok, _med_id, _is_dup = measurement_persister.persist_event(event)
+                except Exception as exc:
+                    logger.error("Error RF-07 persistiendo evento %s: %s", event.event_id, exc)
 
                 for handler in self._rf07_handlers:
                     try:
@@ -679,11 +685,16 @@ class MqttIngestionService:
                     except Exception as exc:
                         logger.error("Error en handler RF-07 (%s): %s", event.event_id, exc)
 
-                for handler in self._rf13_handlers:
-                    try:
-                        handler(event)
-                    except Exception as exc:
-                        logger.error("Error en handler RF-13 (%s): %s", event.event_id, exc)
+                if persisted_ok:
+                    with self._lock:
+                        self._recent_routed.append(event)
+                        self._stats["routed_count"] += 1
+
+                    for handler in self._rf13_handlers:
+                        try:
+                            handler(event)
+                        except Exception as exc:
+                            logger.error("Error en handler RF-13 (%s): %s", event.event_id, exc)
             finally:
                 self.telemetry_queue.task_done()
 
