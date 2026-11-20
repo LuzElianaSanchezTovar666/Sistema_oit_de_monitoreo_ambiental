@@ -21,18 +21,24 @@ import {
   changeSensorEstado,
   createSensor,
   fetchSensorConfigHistory,
-  fetchSensorConfiguracion,
   fetchSensores,
   fetchSensorVariables,
+  fetchThresholdConfig,
+  fetchThresholdHistory,
   MODEL_CAPABILITIES,
+  MODEL_TEMP_RANGES,
+  saveThresholdConfig,
   SensorConfigHistoryItemDTO,
   SensorConfiguracionDTO,
   SensorDTO,
   SensorEstado,
   SensorModelo,
   SensorVariablesConfigDTO,
+  ThresholdFormValues,
+  ThresholdHistoryItemDTO,
   updateSensor,
   updateSensorVariables,
+  validateThresholdsClient,
   validateSensorVariablesSelection,
   VariableNombre,
 } from '../../services/sensorService';
@@ -85,10 +91,31 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
   const [nuevoEstado, setNuevoEstado] = useState<SensorEstado>('ACTIVO');
   const [changingEstado, setChangingEstado] = useState(false);
 
-  // Modal Configuración de Límites Predeterminados
+  // Modal RF-12: Configuración de Límites y Umbrales Ambientales
   const [cfgModalSensor, setCfgModalSensor] = useState<SensorDTO | null>(null);
   const [cfgData, setCfgData] = useState<SensorConfiguracionDTO | null>(null);
+  const [cfgHistory, setCfgHistory] = useState<ThresholdHistoryItemDTO[]>([]);
   const [loadingCfg, setLoadingCfg] = useState(false);
+  const [savingCfg, setSavingCfg] = useState(false);
+  const [cfgError, setCfgError] = useState('');
+  const [cfgConflict, setCfgConflict] = useState(false);
+  const [cfgSuccess, setCfgSuccess] = useState('');
+  const [showCfgHistory, setShowCfgHistory] = useState(false);
+  const [cfgUbicacionId, setCfgUbicacionId] = useState('');
+  const [cfgDispositivoId, setCfgDispositivoId] = useState('');
+  const [cfgForm, setCfgForm] = useState<ThresholdFormValues>({
+    temp_min: '',
+    temp_max: '',
+    temp_critico_min: '',
+    temp_critico_max: '',
+    hum_min: '',
+    hum_max: '',
+    hum_critico_min: '',
+    hum_critico_max: '',
+    presion_min: '',
+    presion_max: '',
+    motivo: '',
+  });
 
   // Modal RF-05: Configuración de Variables Monitoreadas
   const [varsModalSensor, setVarsModalSensor] = useState<SensorDTO | null>(null);
@@ -242,16 +269,101 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
     }
   };
 
-  const openConfigModal = async (s: SensorDTO) => {
+  const populateThresholdForm = (cfg: SensorConfiguracionDTO | null) => {
+    setCfgForm({
+      temp_min: cfg?.temp_min !== null && cfg?.temp_min !== undefined ? String(cfg.temp_min) : '',
+      temp_max: cfg?.temp_max !== null && cfg?.temp_max !== undefined ? String(cfg.temp_max) : '',
+      temp_critico_min:
+        cfg?.temp_critico_min !== null && cfg?.temp_critico_min !== undefined
+          ? String(cfg.temp_critico_min)
+          : '',
+      temp_critico_max:
+        cfg?.temp_critico_max !== null && cfg?.temp_critico_max !== undefined
+          ? String(cfg.temp_critico_max)
+          : '',
+      hum_min: cfg?.hum_min !== null && cfg?.hum_min !== undefined ? String(cfg.hum_min) : '',
+      hum_max: cfg?.hum_max !== null && cfg?.hum_max !== undefined ? String(cfg.hum_max) : '',
+      hum_critico_min:
+        cfg?.hum_critico_min !== null && cfg?.hum_critico_min !== undefined
+          ? String(cfg.hum_critico_min)
+          : '',
+      hum_critico_max:
+        cfg?.hum_critico_max !== null && cfg?.hum_critico_max !== undefined
+          ? String(cfg.hum_critico_max)
+          : '',
+      presion_min: cfg?.presion_min !== null && cfg?.presion_min !== undefined ? String(cfg.presion_min) : '',
+      presion_max: cfg?.presion_max !== null && cfg?.presion_max !== undefined ? String(cfg.presion_max) : '',
+      motivo: '',
+    });
+  };
+
+  const loadThresholdForSensor = async (s: SensorDTO) => {
     setCfgModalSensor(s);
+    setCfgUbicacionId(s.ubicacion_id || '');
+    setCfgDispositivoId(s.dispositivo_id || '');
+    setCfgError('');
+    setCfgConflict(false);
+    setCfgSuccess('');
     setLoadingCfg(true);
     try {
-      const res = await fetchSensorConfiguracion(s.id_sensor);
+      const [res, histRes] = await Promise.all([
+        fetchThresholdConfig(s.id_sensor),
+        fetchThresholdHistory(s.id_sensor),
+      ]);
       setCfgData(res.configuracion);
+      setCfgHistory(histRes.historial || []);
+      populateThresholdForm(res.configuracion);
     } catch (err: any) {
+      setCfgError(err?.message || 'Error al consultar configuración de umbrales.');
       onNotify?.(err?.message || 'Error al consultar configuración.', 'alert');
     } finally {
       setLoadingCfg(false);
+    }
+  };
+
+  const openConfigModal = async (s: SensorDTO) => {
+    setShowCfgHistory(false);
+    await loadThresholdForSensor(s);
+  };
+
+  const handleSaveThresholds = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cfgModalSensor || !isAdmin) return;
+    setCfgError('');
+    setCfgConflict(false);
+    setCfgSuccess('');
+
+    const measuredVars: VariableNombre[] = cfgModalSensor.variables_medidas.map((v) => v.variable);
+    const validation = validateThresholdsClient(cfgModalSensor.modelo, measuredVars, cfgForm);
+    if (!validation.valid) {
+      setCfgError(validation.error);
+      return;
+    }
+
+    setSavingCfg(true);
+    try {
+      const res = await saveThresholdConfig(cfgModalSensor.id_sensor, {
+        ...validation.payload,
+        expected_version: cfgData?.version ?? null,
+      });
+      setCfgData(res.configuracion);
+      populateThresholdForm(res.configuracion);
+      const histRes = await fetchThresholdHistory(cfgModalSensor.id_sensor);
+      setCfgHistory(histRes.historial || []);
+      setCfgSuccess(res.message || 'Umbrales ambientales guardados y aplicados inmediatamente.');
+      onNotify?.('Umbrales ambientales actualizados en MySQL y motor de reglas.', 'success');
+      window.dispatchEvent(
+        new CustomEvent('simoa:thresholds-updated', {
+          detail: { sensor_id: cfgModalSensor.id_sensor, ubicacion_id: cfgModalSensor.ubicacion_id },
+        })
+      );
+    } catch (err: any) {
+      if (err?.status === 409) {
+        setCfgConflict(true);
+      }
+      setCfgError(err?.message || 'Error al guardar los umbrales ambientales.');
+    } finally {
+      setSavingCfg(false);
     }
   };
 
@@ -331,7 +443,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={loadData}
             className="px-4 py-2.5 rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse text-xs font-medium inline-flex items-center gap-2 cursor-pointer"
@@ -339,6 +451,16 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             Actualizar
           </button>
+
+          {items.length > 0 && (
+            <button
+              onClick={() => openConfigModal(items[0])}
+              className="px-4 py-2.5 rounded-[56px] bg-deep-abyss border border-neon-pulse/60 text-neon-pulse hover:bg-neon-pulse/10 text-xs font-medium inline-flex items-center gap-2 cursor-pointer"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              Configurar Umbrales (RF-12)
+            </button>
+          )}
 
           {isAdmin && (
             <button
@@ -725,52 +847,406 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
         </div>
       )}
 
-      {/* Modal Límites Predeterminados Configurables */}
+      {/* Modal RF-12: Configuración de Límites y Umbrales Ambientales */}
       {cfgModalSensor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
-          <div className="bg-deep-abyss border border-graphite-fill rounded-[20px] w-full max-w-md p-6 space-y-4 text-pure-white">
+          <div className="bg-deep-abyss border border-graphite-fill rounded-[20px] w-full max-w-2xl p-6 space-y-4 text-pure-white max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div>
-                <p className="sauce-eyebrow text-neon-pulse">{cfgModalSensor.modelo}</p>
-                <h3 className="text-lg font-medium">Límites ambientales ({cfgModalSensor.identificador})</h3>
+                <p className="sauce-eyebrow text-neon-pulse">
+                  RF-12 · LÍMITES Y UMBRALES AMBIENTALES · {cfgModalSensor.modelo}
+                </p>
+                <h3 className="text-lg font-medium">
+                  Configuración de umbrales ({cfgModalSensor.identificador})
+                </h3>
               </div>
-              <button onClick={() => setCfgModalSensor(null)} className="text-slate-text hover:text-pure-white cursor-pointer">
+              <button
+                onClick={() => setCfgModalSensor(null)}
+                className="text-slate-text hover:text-pure-white cursor-pointer"
+              >
                 <X className="w-4 h-4" />
               </button>
+            </div>
+
+            {/* Selector en cascada Ubicación -> Dispositivo -> Sensor */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-obsidian-shell border border-graphite-fill rounded-[12px] p-3">
+              <div>
+                <label className="block text-[11px] text-slate-text mb-1">Ubicación</label>
+                <select
+                  aria-label="Seleccionar ubicación RF-12"
+                  value={cfgUbicacionId}
+                  onChange={(e) => {
+                    const uid = e.target.value;
+                    setCfgUbicacionId(uid);
+                    const matchingSensors = items.filter((x) => !uid || x.ubicacion_id === uid);
+                    if (matchingSensors.length > 0) {
+                      void loadThresholdForSensor(matchingSensors[0]);
+                    }
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white"
+                >
+                  <option value="">Todas las ubicaciones</option>
+                  {Array.from(
+                    new Map<string, string>(
+                      items
+                        .filter((s): s is SensorDTO & { ubicacion_id: string } => Boolean(s.ubicacion_id))
+                        .map((s) => [s.ubicacion_id, s.ubicacion_nombre || s.ubicacion_id])
+                    ).entries()
+                  ).map(([uid, uname]) => (
+                    <option key={uid} value={uid}>
+                      {uname}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] text-slate-text mb-1">Dispositivo</label>
+                <select
+                  aria-label="Seleccionar dispositivo RF-12"
+                  value={cfgDispositivoId}
+                  onChange={(e) => {
+                    const did = e.target.value;
+                    setCfgDispositivoId(did);
+                    const matching = items.filter(
+                      (x) => (!cfgUbicacionId || x.ubicacion_id === cfgUbicacionId) && (!did || x.dispositivo_id === did)
+                    );
+                    if (matching.length > 0) {
+                      void loadThresholdForSensor(matching[0]);
+                    }
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white"
+                >
+                  {Array.from(
+                    new Map<string, string>(
+                      items
+                        .filter((s) => !cfgUbicacionId || s.ubicacion_id === cfgUbicacionId)
+                        .map((s) => [s.dispositivo_id, s.dispositivo_nombre || s.dispositivo_id])
+                    ).entries()
+                  ).map(([did, dname]) => (
+                    <option key={did} value={did}>
+                      {dname}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] text-slate-text mb-1">Sensor</label>
+                <select
+                  aria-label="Seleccionar sensor RF-12"
+                  value={cfgModalSensor.id_sensor}
+                  onChange={(e) => {
+                    const target = items.find((x) => x.id_sensor === e.target.value);
+                    if (target) {
+                      void loadThresholdForSensor(target);
+                    }
+                  }}
+                  className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white"
+                >
+                  {items
+                    .filter(
+                      (s) =>
+                        (!cfgUbicacionId || s.ubicacion_id === cfgUbicacionId) &&
+                        (!cfgDispositivoId || s.dispositivo_id === cfgDispositivoId)
+                    )
+                    .map((s) => (
+                      <option key={s.id_sensor} value={s.id_sensor}>
+                        {s.identificador} ({s.modelo})
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
 
             {loadingCfg ? (
               <div className="py-6 flex justify-center">
                 <Loader2 className="w-5 h-5 animate-spin text-neon-pulse" />
               </div>
-            ) : cfgData ? (
-              <div className="space-y-2.5 text-xs">
-                {cfgData.es_predeterminado && (
-                  <p className="text-signal-yellow bg-signal-yellow/10 p-2.5 rounded-[10px]">
-                    Valores predeterminados configurables (ajustables posteriormente mediante RF-05 y RF-12).
+            ) : (
+              <form onSubmit={handleSaveThresholds} className="space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs bg-obsidian-shell border border-graphite-fill rounded-[10px] px-3 py-2">
+                  <div>
+                    <span className="text-slate-text">Precedencia:</span>{' '}
+                    <span className="font-mono text-neon-pulse">Sensor</span> ·{' '}
+                    <span className="text-slate-text">Versión:</span>{' '}
+                    <span className="font-mono text-pure-white">{cfgData?.version ?? 'Sin configurar'}</span>
+                  </div>
+                  {cfgData?.actualizado_por && (
+                    <div className="text-slate-text">
+                      Actualizado por <span className="text-pure-white">{cfgData.actualizado_por}</span>
+                    </div>
+                  )}
+                </div>
+
+                {!cfgData && (
+                  <p className="text-xs text-signal-yellow bg-signal-yellow/10 p-2.5 rounded-[10px]">
+                    Este sensor aún no tiene umbrales registrados. Ingresa los límites reales sin valores ficticios.
                   </p>
                 )}
-                {cfgData.temp_min !== null && (
-                  <div className="p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill flex justify-between">
-                    <span>Temperatura (°C)</span>
-                    <span className="font-mono text-neon-pulse">{cfgData.temp_min} °C – {cfgData.temp_max} °C</span>
+
+                {cfgError && (
+                  <div className="p-3 rounded-[10px] bg-crimson-danger/15 border border-crimson-danger/40 text-xs text-crimson-danger flex items-center justify-between gap-2">
+                    <span>{cfgError}</span>
+                    {cfgConflict && (
+                      <button
+                        type="button"
+                        onClick={() => void loadThresholdForSensor(cfgModalSensor)}
+                        className="px-2.5 py-1 rounded-[8px] bg-crimson-danger text-pure-white font-medium cursor-pointer shrink-0"
+                      >
+                        Recargar vigente
+                      </button>
+                    )}
                   </div>
                 )}
-                {cfgData.hum_min !== null && (
-                  <div className="p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill flex justify-between">
-                    <span>Humedad relativa (%RH)</span>
-                    <span className="font-mono text-neon-pulse">{cfgData.hum_min} %RH – {cfgData.hum_max} %RH</span>
+
+                {cfgSuccess && (
+                  <div className="p-3 rounded-[10px] bg-emerald-ok/15 border border-emerald-ok/40 text-xs text-emerald-ok">
+                    {cfgSuccess}
                   </div>
                 )}
-                {cfgData.presion_min !== null && (
-                  <div className="p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill flex justify-between">
-                    <span>Presión atmosférica (hPa)</span>
-                    <span className="font-mono text-neon-pulse">{cfgData.presion_min} hPa – {cfgData.presion_max} hPa</span>
+
+                {/* Temperatura */}
+                {cfgModalSensor.variables_medidas.some((v) => v.variable === 'temperatura') && (
+                  <div className="p-3.5 rounded-[14px] bg-obsidian-shell border border-graphite-fill space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-pure-white">Temperatura (°C)</span>
+                      <span className="text-[11px] font-mono text-slate-text">
+                        Rango {cfgModalSensor.modelo}:{' '}
+                        {MODEL_TEMP_RANGES[cfgModalSensor.modelo]?.min ?? -40} °C a{' '}
+                        {MODEL_TEMP_RANGES[cfgModalSensor.modelo]?.max ?? 85} °C
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Crítico inferior</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.temp_critico_min}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, temp_critico_min: e.target.value }))}
+                          placeholder="Ej. 12.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Mín. operacional</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.temp_min}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, temp_min: e.target.value }))}
+                          placeholder="Ej. 18.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Máx. operacional</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.temp_max}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, temp_max: e.target.value }))}
+                          placeholder="Ej. 25.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Crítico superior</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.temp_critico_max}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, temp_critico_max: e.target.value }))}
+                          placeholder="Ej. 30.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-text">Sin configuración registrada.</p>
+
+                {/* Humedad relativa */}
+                {cfgModalSensor.variables_medidas.some((v) => v.variable === 'humedad') && (
+                  <div className="p-3.5 rounded-[14px] bg-obsidian-shell border border-graphite-fill space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-pure-white">Humedad relativa (%RH)</span>
+                      <span className="text-[11px] font-mono text-slate-text">Rango físico: 0 % a 100 %</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Crítico inferior</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.hum_critico_min}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, hum_critico_min: e.target.value }))}
+                          placeholder="Ej. 25.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Mín. operacional</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.hum_min}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, hum_min: e.target.value }))}
+                          placeholder="Ej. 40.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Máx. operacional</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.hum_max}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, hum_max: e.target.value }))}
+                          placeholder="Ej. 70.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Crítico superior</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.hum_critico_max}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, hum_critico_max: e.target.value }))}
+                          placeholder="Ej. 85.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Presión atmosférica (solo si el sensor la mide) */}
+                {cfgModalSensor.variables_medidas.some((v) => v.variable === 'presion') && (
+                  <div className="p-3.5 rounded-[14px] bg-obsidian-shell border border-graphite-fill space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-pure-white">Presión atmosférica (hPa)</span>
+                      <span className="text-[11px] font-mono text-slate-text">Opcional · 300 a 1100 hPa</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Mín. operacional</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.presion_min}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, presion_min: e.target.value }))}
+                          placeholder="Ej. 980.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] text-slate-text mb-1">Máx. operacional</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          disabled={!isAdmin}
+                          value={cfgForm.presion_max}
+                          onChange={(e) => setCfgForm((f) => ({ ...f, presion_max: e.target.value }))}
+                          placeholder="Ej. 1030.0"
+                          className="w-full px-2.5 py-1.5 rounded-[8px] bg-deep-abyss border border-graphite-fill text-xs text-pure-white disabled:opacity-60"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {isAdmin && (
+                  <div>
+                    <label className="block text-[11px] text-slate-text mb-1">Motivo del cambio (trazabilidad)</label>
+                    <input
+                      type="text"
+                      maxLength={255}
+                      value={cfgForm.motivo || ''}
+                      onChange={(e) => setCfgForm((f) => ({ ...f, motivo: e.target.value }))}
+                      placeholder="Ej. Ajuste estacional de sala limpia"
+                      className="w-full px-3 py-1.5 rounded-[8px] bg-obsidian-shell border border-graphite-fill text-xs text-pure-white"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowCfgHistory((prev) => !prev)}
+                    className="px-3 py-1.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill text-xs text-slate-text hover:text-pure-white inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <History className="w-3.5 h-3.5" />
+                    {showCfgHistory ? 'Ocultar historial' : `Historial (${cfgHistory.length})`}
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCfgModalSensor(null)}
+                      className="px-4 py-2 rounded-[56px] bg-obsidian-shell border border-graphite-fill text-xs text-pure-white cursor-pointer"
+                    >
+                      Cerrar
+                    </button>
+                    {isAdmin && (
+                      <button
+                        type="submit"
+                        disabled={savingCfg}
+                        className="sauce-btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
+                      >
+                        {savingCfg && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                        Guardar umbrales
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {showCfgHistory && (
+                  <div className="border-t border-graphite-fill pt-3 space-y-2 max-h-44 overflow-y-auto">
+                    {cfgHistory.length === 0 ? (
+                      <p className="text-xs text-slate-text">Sin cambios registrados en historial.</p>
+                    ) : (
+                      cfgHistory.map((h) => (
+                        <div
+                          key={h.id_historial}
+                          className="p-2.5 rounded-[10px] bg-obsidian-shell border border-graphite-fill text-[11px] flex flex-col gap-1"
+                        >
+                          <div className="flex items-center justify-between text-pure-white">
+                            <span className="font-mono text-neon-pulse">v{h.version}</span>
+                            <span className="text-slate-text">
+                              {h.actualizado_por} ·{' '}
+                              {h.vigente_desde ? new Date(h.vigente_desde).toLocaleString() : '—'}
+                            </span>
+                          </div>
+                          <div className="text-slate-text font-mono">
+                            {h.temp_min !== null && (
+                              <span>
+                                T: [{h.temp_critico_min ?? '—'} &lt; {h.temp_min}..{h.temp_max} &lt;{' '}
+                                {h.temp_critico_max ?? '—'}] °C{' '}
+                              </span>
+                            )}
+                            {h.hum_min !== null && (
+                              <span>
+                                H: [{h.hum_critico_min ?? '—'} &lt; {h.hum_min}..{h.hum_max} &lt;{' '}
+                                {h.hum_critico_max ?? '—'}] %RH
+                              </span>
+                            )}
+                          </div>
+                          {h.motivo && <div className="text-slate-text italic">{h.motivo}</div>}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </form>
             )}
           </div>
         </div>

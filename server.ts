@@ -134,6 +134,8 @@ app.get('/api/v1/devices', (req: Request, res: Response) => {
     : sliced;
 
   const responsePayload = {
+    demoWarning:
+      'Entorno de demostración local: las direcciones MAC, IP y señal WiFi se exponen sin autenticación. No usar en producción.',
     page,
     limit,
     total: enriched.length,
@@ -143,6 +145,7 @@ app.get('/api/v1/devices', (req: Request, res: Response) => {
 
   setInRedis(cacheKey, 30, responsePayload);
   res.setHeader('X-Redis-Cache', 'MISS');
+  res.setHeader('X-Demo-Environment', 'local-demo-only-not-for-production');
   return res.json(responsePayload);
 });
 
@@ -178,7 +181,8 @@ app.use(
 const PORT = Number(process.env.PORT || 3001);
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    console.log(`SIMOA High-Performance BFF Server listening on http://localhost:${PORT}`);
+    console.log(`SIMOA Demo BFF Server listening on http://localhost:${PORT}`);
+    console.warn('[AVISO] Servidor solo para demostración local: expone datos de red de dispositivos (MAC/IP/WiFi) sin autenticación. No usar en producción.');
   });
 }
 

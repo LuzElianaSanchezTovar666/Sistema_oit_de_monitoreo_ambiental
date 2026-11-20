@@ -9,8 +9,10 @@ import {
   getTrendInsufficientMessage,
   INSUFFICIENT_TREND_MESSAGE,
   MODEL_CAPABILITIES,
+  RF12_MIN_MAX_ERROR,
   validateHistoricalDateRange,
   validateSensorVariablesSelection,
+  validateThresholdsClient,
 } from '../src/services/sensorService';
 
 test('MODEL_CAPABILITIES define variables y unidades exactas por modelo RF-04', () => {
@@ -100,4 +102,57 @@ test('RF-11: getTrendInsufficientMessage y computeTrendAxisBounds respetan lími
   const tempBounds = computeTrendAxisBounds([20.0, 22.0], 18.0, 25.0, false);
   assert.ok(tempBounds.min <= 18.0);
   assert.ok(tempBounds.max >= 25.0);
+});
+
+test('RF-12: validateThresholdsClient valida min<max, criticidad, humedad 0-100 y rango de modelo', () => {
+  const baseForm = {
+    temp_critico_min: '10',
+    temp_min: '18',
+    temp_max: '25',
+    temp_critico_max: '32',
+    hum_critico_min: '25',
+    hum_min: '40',
+    hum_max: '70',
+    hum_critico_max: '85',
+    presion_min: '',
+    presion_max: '',
+  };
+
+  const ok = validateThresholdsClient('DHT22', ['temperatura', 'humedad'], baseForm);
+  assert.equal(ok.valid, true);
+
+  const minEqMax = validateThresholdsClient('DHT22', ['temperatura', 'humedad'], {
+    ...baseForm,
+    temp_min: '25',
+    temp_max: '25',
+  });
+  assert.equal(minEqMax.valid, false);
+  if (!minEqMax.valid) {
+    assert.equal(minEqMax.error, RF12_MIN_MAX_ERROR);
+  }
+
+  const badCritOrder = validateThresholdsClient('DHT22', ['temperatura'], {
+    ...baseForm,
+    temp_critico_min: '19',
+  });
+  assert.equal(badCritOrder.valid, false);
+
+  const badHumidity = validateThresholdsClient('DHT22', ['humedad'], {
+    ...baseForm,
+    hum_critico_max: '105',
+  });
+  assert.equal(badHumidity.valid, false);
+
+  const badModelTemp = validateThresholdsClient('DHT22', ['temperatura'], {
+    ...baseForm,
+    temp_critico_max: '95',
+  });
+  assert.equal(badModelTemp.valid, false);
+
+  // SHT31 soporta hasta 125 °C
+  const okSht31 = validateThresholdsClient('SHT31', ['temperatura'], {
+    ...baseForm,
+    temp_critico_max: '95',
+  });
+  assert.equal(okSht31.valid, true);
 });

@@ -406,6 +406,44 @@ class LiveTemperatureBroadcaster:
             except RuntimeError:
                 pass
 
+    def publish_threshold_update(self, sensor_id: str, ubicacion_id: str) -> None:
+        """Notifica a clientes SSE (RF-08, RF-09, RF-11) cuando cambian los umbrales en RF-12."""
+        if not sensor_id or not ubicacion_id:
+            return
+        with self._lock:
+            targets = list(self._subscribers.get(sensor_id, ()))
+        if not targets:
+            return
+
+        try:
+            temp_snap = get_location_temperature_snapshot(ubicacion_id)
+            hum_snap = get_location_humidity_snapshot(ubicacion_id)
+            payload: Optional[Dict[str, Any]] = None
+            if temp_snap is not None:
+                payload = dict(temp_snap)
+                if hum_snap is not None:
+                    payload["humedad_snapshot"] = hum_snap
+            elif hum_snap is not None:
+                payload = {
+                    "ubicacion_id": ubicacion_id,
+                    "sensor_id": sensor_id,
+                    "humedad_snapshot": hum_snap,
+                }
+            if payload is not None:
+                payload["thresholds_updated"] = True
+        except Exception as exc:
+            logger.error("Error notificando actualización de umbrales RF-12: %s", exc)
+            return
+
+        if payload is None:
+            return
+
+        for loop, q in targets:
+            try:
+                loop.call_soon_threadsafe(self._safe_put, q, payload)
+            except RuntimeError:
+                pass
+
     @staticmethod
     def _safe_put(q: asyncio.Queue, item: Dict[str, Any]) -> None:
         if q.full():
