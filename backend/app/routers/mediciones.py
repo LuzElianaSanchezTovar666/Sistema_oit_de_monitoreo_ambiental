@@ -9,6 +9,7 @@ from ..database import db_cursor
 from ..dependencies import require_roles
 from ..services.live_telemetry import (
     FRESHNESS_MAX_SECONDS,
+    get_location_humidity_snapshot,
     get_location_temperature_snapshot,
     live_temperature_broadcaster,
 )
@@ -173,6 +174,21 @@ def get_ubicacion_temperatura_actual(
     return snapshot
 
 
+@router.get("/ubicacion/{ubicacion_id}/humedad-actual")
+def get_ubicacion_humedad_actual(
+    ubicacion_id: str,
+    freshness_seconds: int = Query(default=FRESHNESS_MAX_SECONDS, ge=5, le=300),
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> Dict[str, Any]:
+    """RF-09: Consulta la humedad relativa actual (%RH), banda óptima real y Z-Score higrométrico de la ubicación."""
+    snapshot = get_location_humidity_snapshot(ubicacion_id, freshness_max_seconds=freshness_seconds)
+    if snapshot is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ubicación no encontrada.")
+    return snapshot
+
+
 @router.get("/stream/temperatura")
 async def stream_ubicacion_temperatura(
     request: Request,
@@ -181,18 +197,25 @@ async def stream_ubicacion_temperatura(
         require_roles("Administrador", "Operador", "Técnico", "Supervisor")
     ),
 ) -> StreamingResponse:
-    """RF-08: Canal SSE autenticado en tiempo real conectado post-COMMIT de RF-07."""
+    """RF-08 & RF-09: Canal SSE único autenticado en tiempo real conectado post-COMMIT de RF-07."""
     initial = get_location_temperature_snapshot(ubicacion_id)
     if initial is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ubicación no encontrada.")
 
-    sensor_id = initial.get("sensor_id")
+    hum_initial = get_location_humidity_snapshot(ubicacion_id)
+    initial_bundle = {**initial, "humedad_snapshot": hum_initial}
+
+    sensor_ids = {
+        sid
+        for sid in (initial.get("sensor_id"), hum_initial.get("sensor_id") if hum_initial else None)
+        if sid
+    }
     loop = asyncio.get_running_loop()
-    sub_queue = live_temperature_broadcaster.subscribe(sensor_id, loop) if sensor_id else None
+    sub_queue = live_temperature_broadcaster.subscribe_queue(sensor_ids, loop) if sensor_ids else None
 
     async def event_generator():
         try:
-            yield f"event: snapshot\ndata: {json.dumps(initial, ensure_ascii=False)}\n\n"
+            yield f"event: snapshot\ndata: {json.dumps(initial_bundle, ensure_ascii=False)}\n\n"
             while True:
                 if await request.is_disconnected():
                     break
@@ -202,12 +225,15 @@ async def stream_ubicacion_temperatura(
                     continue
                 try:
                     payload = await asyncio.wait_for(sub_queue.get(), timeout=15.0)
-                    yield f"event: temperatura\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+                    if "temperatura_actual" in payload:
+                        yield f"event: temperatura\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n"
+                    if payload.get("humedad_snapshot") is not None:
+                        yield f"event: humedad\ndata: {json.dumps(payload['humedad_snapshot'], ensure_ascii=False)}\n\n"
                 except asyncio.TimeoutError:
                     yield f"event: heartbeat\ndata: {json.dumps({'ubicacion_id': ubicacion_id})}\n\n"
         finally:
-            if sensor_id and sub_queue is not None:
-                live_temperature_broadcaster.unsubscribe(sensor_id, loop, sub_queue)
+            if sensor_ids and sub_queue is not None:
+                live_temperature_broadcaster.unsubscribe_queue(sensor_ids, loop, sub_queue)
 
     return StreamingResponse(
         event_generator(),
