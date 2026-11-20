@@ -263,6 +263,10 @@ def test_rf12_thresholds_rbac_validations_concurrency_and_immediate_application(
             assert rule_eval["estado_operacional"] == "CRITICO"
             assert rule_eval["nivel_criticidad"] == "CRITICO"
 
+            # Desactivar temporalmente sen_temp_only para que ubicacion/{loc_id}/temperatura-actual consulte sen_id
+            with db_cursor() as cursor:
+                cursor.execute("UPDATE sensores SET estado = 'INACTIVO' WHERE id_sensor = %s", (sen_temp_only,))
+
             # Verificar reflejo inmediato en RF-08 y RF-11
             rt_res = client.get(
                 f"/api/mediciones/ubicacion/{loc_id}/temperatura-actual",
