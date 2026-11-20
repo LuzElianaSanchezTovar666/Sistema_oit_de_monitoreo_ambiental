@@ -694,8 +694,9 @@ class MqttIngestionService:
             try:
                 # RF-07: Persistir en MySQL dentro de transacción atómica ANTES de liberar a suscriptores en vivo
                 persisted_ok = False
+                med_id = None
                 try:
-                    persisted_ok, _med_id, _is_dup = measurement_persister.persist_event(event)
+                    persisted_ok, med_id, _is_dup = measurement_persister.persist_event(event)
                 except Exception as exc:
                     logger.error("Error RF-07 persistiendo evento %s: %s", event.event_id, exc)
 
@@ -715,6 +716,14 @@ class MqttIngestionService:
                             handler(event)
                         except Exception as exc:
                             logger.error("Error en handler RF-13 (%s): %s", event.event_id, exc)
+
+                # RF-13: Evaluación de alertas por desborde de límites (incluso con buffer provisional si MySQL cayó)
+                try:
+                    from .alerts_service import alerts_service
+
+                    alerts_service.process_event(event, medicion_id=med_id)
+                except Exception as exc:
+                    logger.error("Error evaluando alertas RF-13 (%s): %s", event.event_id, exc)
             finally:
                 self.telemetry_queue.task_done()
 
