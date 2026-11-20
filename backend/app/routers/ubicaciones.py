@@ -155,8 +155,8 @@ def get_dashboard_mediciones_por_ubicacion(
             INNER JOIN dispositivos d ON d.id_dispositivo = m.dispositivo_id
             LEFT JOIN ubicaciones u ON u.ubicacion_id = COALESCE(m.ubicacion_id, d.ubicacion_id)
             {where_clause}
-            ORDER BY m.fecha_hora DESC, m.id_medicion DESC
-            LIMIT 100
+            ORDER BY m.id_medicion DESC, m.fecha_hora DESC
+            LIMIT 200
             """,
             tuple(params),
         )
