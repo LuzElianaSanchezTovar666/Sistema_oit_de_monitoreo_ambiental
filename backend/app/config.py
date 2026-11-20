@@ -33,8 +33,19 @@ class Settings:
         self.rate_limit_max_attempts: int = int(os.getenv("LOGIN_MAX_ATTEMPTS", "5"))
         self.rate_limit_window_seconds: int = int(os.getenv("LOGIN_WINDOW_SECONDS", "60"))
 
+        self.mqtt_enabled: bool = os.getenv("MQTT_ENABLED", "true").lower() == "true"
         self.mqtt_broker_host: str = os.getenv("MQTT_BROKER_HOST", "127.0.0.1")
         self.mqtt_broker_port: int = int(os.getenv("MQTT_BROKER_PORT", "1883"))
+        self.mqtt_username: str = os.getenv("MQTT_USERNAME", "")
+        self.mqtt_password: str = os.getenv("MQTT_PASSWORD", "")
+        self.mqtt_client_id: str = os.getenv("MQTT_CLIENT_ID", "simoa-backend-ingest")
+        self.mqtt_qos: int = int(os.getenv("MQTT_QOS", "1"))
+        self.mqtt_keepalive_seconds: int = int(os.getenv("MQTT_KEEPALIVE_SECONDS", "60"))
+        self.mqtt_connect_timeout_seconds: int = int(os.getenv("MQTT_CONNECT_TIMEOUT_SECONDS", "10"))
+        self.mqtt_reconnect_min_delay: int = int(os.getenv("MQTT_RECONNECT_MIN_DELAY", "1"))
+        self.mqtt_reconnect_max_delay: int = int(os.getenv("MQTT_RECONNECT_MAX_DELAY", "60"))
+        self.mqtt_queue_maxsize: int = int(os.getenv("MQTT_QUEUE_MAXSIZE", "2000"))
+        self.mqtt_cache_ttl_seconds: int = int(os.getenv("MQTT_CACHE_TTL_SECONDS", "15"))
 
 
 @lru_cache

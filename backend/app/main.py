@@ -4,13 +4,18 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .database import run_migrations
-from .routers import auth, dispositivos, protected_simoa, sensores, ubicaciones
+from .routers import auth, dispositivos, mqtt, protected_simoa, sensores, ubicaciones
+from .services.mqtt_ingest import mqtt_service
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     run_migrations()
-    yield
+    mqtt_service.start(wait_connect_seconds=0.0)
+    try:
+        yield
+    finally:
+        mqtt_service.stop()
 
 
 def create_app() -> FastAPI:
@@ -34,6 +39,7 @@ def create_app() -> FastAPI:
     app.include_router(ubicaciones.router)
     app.include_router(dispositivos.router)
     app.include_router(sensores.router)
+    app.include_router(mqtt.router)
     app.include_router(protected_simoa.router)
 
     @app.get("/api/health")
