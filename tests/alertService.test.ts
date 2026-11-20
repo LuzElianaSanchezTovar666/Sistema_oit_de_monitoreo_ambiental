@@ -4,6 +4,7 @@ import {
   evaluateThresholdBreachClient,
   mergeAlertsDeduplicated,
   LiveAlertRecord,
+  validateAlertTransitionClient,
 } from '../src/services/alertService';
 
 test('RF-13: evaluateThresholdBreachClient evalúa límites exactos, ADVERTENCIA, CRITICA y rango físico humedad', () => {
@@ -55,4 +56,25 @@ test('RF-13: mergeAlertsDeduplicated evita duplicados al reconectar SSE', () => 
   const merged = mergeAlertsDeduplicated([a1], [a1, a2]);
   assert.equal(merged.length, 2);
   assert.equal(merged[0].id_alerta, 'alr-2');
+});
+
+test('RF-14: validateAlertTransitionClient bloquea cierre crítico sin acción correctiva y alertas RESUELTA', () => {
+  const critPending: LiveAlertRecord = {
+    id_alerta: 'alr-crit-1',
+    dispositivo_id: 'dev-1',
+    sensor_id: 'sen-1',
+    ubicacion_id: 'loc-1',
+    tipo: 'LIMITE_SUPERADO',
+    mensaje: 'Temperatura crítica',
+    nivel: 'CRITICA',
+    fecha_hora: '2026-11-20T10:00:00Z',
+    estado: 'PENDIENTE',
+  };
+
+  assert.ok(validateAlertTransitionClient(critPending, 'RESUELTA', '') !== null);
+  assert.equal(validateAlertTransitionClient(critPending, 'RESUELTA', 'Se ajustó HVAC'), null);
+  assert.equal(validateAlertTransitionClient(critPending, 'ATENDIDA', ''), null);
+
+  const resolved: LiveAlertRecord = { ...critPending, estado: 'RESUELTA' };
+  assert.ok(validateAlertTransitionClient(resolved, 'ATENDIDA', 'Cambio') !== null);
 });

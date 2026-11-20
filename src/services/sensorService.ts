@@ -83,7 +83,7 @@ function getCsrfToken(): string {
   return match ? decodeURIComponent(match.split('=')[1] || '') : '';
 }
 
-function buildMutationHeaders(): Record<string, string> {
+export function buildMutationHeaders(): Record<string, string> {
   const csrf = getCsrfToken();
   return {
     'Content-Type': 'application/json',

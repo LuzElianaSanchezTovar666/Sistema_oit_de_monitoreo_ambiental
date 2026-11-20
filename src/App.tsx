@@ -412,8 +412,21 @@ export default function App() {
       }
     };
 
+    const onAlertUpdated = (ev: MessageEvent) => {
+      if (!active) return;
+      try {
+        const dto = JSON.parse(ev.data) as BackendAlertaDTO;
+        const mapped = mapBackendAlertaToUi(dto);
+        notifiedAlertIdsRef.current.add(mapped.id_alerta);
+        setAlerts((prev) => mergeAlertsDeduplicated(prev, [mapped]));
+      } catch {
+        // Ignorar payload corrupto
+      }
+    };
+
     es.addEventListener('snapshot', onSnapshot as EventListener);
     es.addEventListener('alerta', onAlert as EventListener);
+    es.addEventListener('alerta_actualizada', onAlertUpdated as EventListener);
 
     return () => {
       active = false;
@@ -516,34 +529,10 @@ export default function App() {
     [showToast]
   );
 
-  // Optimistic UI Handler: Resolve Alert
-  const handleResolveAlert = useCallback(
-    (
-      alertId: string,
-      motivo: string,
-      notas: string,
-      estado: 'RESUELTA' | 'EN_ATENCION'
-    ) => {
-      setAlerts((prev) => {
-        const updated = prev.map((a) =>
-          a.id_alerta === alertId
-            ? {
-                ...a,
-                estado,
-                motivo_resolucion: motivo,
-                notas_resolucion: notas,
-                atendido_por: currentUser?.nombre || 'Sistema',
-                fecha_resolucion: new Date().toISOString(),
-              }
-            : a
-        );
-        queueMicrotask(() => saveStoredAlertas(updated));
-        return updated;
-      });
-      showToast('UI Optimista (0ms): Alerta resuelta sin esperar confirmación del servidor.');
-    },
-    [currentUser?.nombre, showToast]
-  );
+  // RF-14: Actualización de estado confirmada desde MySQL
+  const handleAlertUpdated = useCallback((updated: LiveAlertRecord) => {
+    setAlerts((prev) => mergeAlertsDeduplicated(prev, [updated]));
+  }, []);
 
   // Optimistic UI Handler: Add Maintenance
   const handleAddMaintenance = useCallback(
@@ -751,7 +740,8 @@ export default function App() {
                         devices={devices}
                         sensors={sensors}
                         currentUser={currentUser}
-                        onResolveAlert={handleResolveAlert}
+                        onAlertUpdated={handleAlertUpdated}
+                        onNotify={showToast}
                         selectedAlertForModal={selectedAlertForModal}
                         onCloseModal={() => setSelectedAlertForModal(null)}
                         onOpenModal={setSelectedAlertForModal}

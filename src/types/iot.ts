@@ -89,7 +89,7 @@ export interface Medicion {
 }
 
 export type AlertSeverity = 'CRITICA' | 'ADVERTENCIA' | 'INFO';
-export type AlertState = 'PENDIENTE' | 'EN_ATENCION' | 'RESUELTA';
+export type AlertState = 'PENDIENTE' | 'ATENDIDA' | 'RESUELTA';
 
 export interface Alerta {
   id_alerta: string;

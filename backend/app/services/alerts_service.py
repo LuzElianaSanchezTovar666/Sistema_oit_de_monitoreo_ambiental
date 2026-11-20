@@ -10,6 +10,7 @@ import time
 from typing import Any, Dict, List, Optional, Set, Tuple
 import uuid
 
+from fastapi import HTTPException, status
 import pymysql
 
 from ..database import db_cursor
@@ -636,88 +637,403 @@ class AlertsService:
             self._stop_event.wait(0.5)
 
 
-def list_alertas(
+_ALERTA_SELECT = """
+    SELECT a.id_alerta, a.medicion_id, a.dispositivo_id, a.sensor_id, a.ubicacion_id,
+           a.tipo, a.variable, a.condicion, a.valor_detectado, a.umbral_superado,
+           a.severidad, a.estado, a.usuario_responsable_id, a.usuario_responsable_correo,
+           a.fecha_atencion, a.fecha_resolucion, a.accion_correctiva, a.causa_raiz,
+           a.observaciones, a.version, a.mensaje, a.ocurrencias_en_ventana,
+           a.ultimo_valor_detectado, a.ultima_ocurrencia_utc, a.fecha_hora,
+           u.nombre AS ubicacion_nombre,
+           d.nombre AS dispositivo_nombre,
+           s.identificador AS sensor_identificador,
+           s.modelo AS sensor_modelo,
+           usr.nombre AS usuario_responsable_nombre
+    FROM alertas a
+    LEFT JOIN ubicaciones u ON u.ubicacion_id = a.ubicacion_id
+    LEFT JOIN dispositivos d ON d.id_dispositivo = a.dispositivo_id
+    LEFT JOIN sensores s ON s.id_sensor = a.sensor_id
+    LEFT JOIN usuarios usr ON usr.id_usuario = a.usuario_responsable_id
+"""
+
+
+def _serialize_alerta_row(r: Dict[str, Any]) -> Dict[str, Any]:
+    estado = "ATENDIDA" if r["estado"] == "EN_ATENCION" else r["estado"]
+    return {
+        "id_alerta": r["id_alerta"],
+        "medicion_id": r.get("medicion_id"),
+        "dispositivo_id": r["dispositivo_id"],
+        "sensor_id": r["sensor_id"],
+        "ubicacion_id": r["ubicacion_id"],
+        "ubicacion_nombre": r.get("ubicacion_nombre"),
+        "dispositivo_nombre": r.get("dispositivo_nombre"),
+        "sensor_identificador": r.get("sensor_identificador"),
+        "sensor_modelo": r.get("sensor_modelo"),
+        "tipo": r["tipo"],
+        "variable": r["variable"],
+        "variable_alterada": r["variable"],
+        "condicion": r["condicion"],
+        "valor_detectado": float(r["valor_detectado"]),
+        "valor_registrado": float(r["valor_detectado"]),
+        "umbral_superado": float(r["umbral_superado"]),
+        "valor_limite": float(r["umbral_superado"]),
+        "severidad": r["severidad"],
+        "nivel": r["severidad"],
+        "estado": estado,
+        "usuario_responsable_id": r.get("usuario_responsable_id"),
+        "usuario_responsable_correo": r.get("usuario_responsable_correo"),
+        "usuario_responsable_nombre": r.get("usuario_responsable_nombre"),
+        "atendido_por": r.get("usuario_responsable_nombre") or r.get("usuario_responsable_correo"),
+        "fecha_atencion": _format_utc_iso(r["fecha_atencion"]) if r.get("fecha_atencion") else None,
+        "fecha_resolucion": _format_utc_iso(r["fecha_resolucion"]) if r.get("fecha_resolucion") else None,
+        "accion_correctiva": r.get("accion_correctiva"),
+        "causa_raiz": r.get("causa_raiz"),
+        "motivo_resolucion": r.get("causa_raiz"),
+        "observaciones": r.get("observaciones"),
+        "notas_resolucion": r.get("observaciones"),
+        "version": int(r.get("version") or 1),
+        "mensaje": r["mensaje"],
+        "ocurrencias_en_ventana": int(r.get("ocurrencias_en_ventana") or 1),
+        "ultimo_valor_detectado": (
+            float(r["ultimo_valor_detectado"]) if r.get("ultimo_valor_detectado") is not None else None
+        ),
+        "ultima_ocurrencia_utc": _format_utc_iso(r["ultima_ocurrencia_utc"])
+        if r.get("ultima_ocurrencia_utc")
+        else None,
+        "fecha_hora": _format_utc_iso(r["fecha_hora"]),
+        "persistida": True,
+        "provisional": False,
+    }
+
+
+def _parse_filter_date(val: Optional[str], end_of_day: bool, tz_offset_minutes: int) -> Optional[datetime]:
+    if not val or not val.strip():
+        return None
+    raw = val.strip()
+    if len(raw) == 10:
+        dt = datetime.strptime(raw, "%Y-%m-%d")
+        if end_of_day:
+            dt = dt.replace(hour=23, minute=59, second=59, microsecond=999999)
+        return dt + timedelta(minutes=tz_offset_minutes)
+    return _to_utc_naive(raw)
+
+
+def list_alertas_paginated(
     estado: Optional[str] = None,
     severidad: Optional[str] = None,
     ubicacion_id: Optional[str] = None,
-    limit: int = 100,
-) -> List[Dict[str, Any]]:
+    dispositivo_id: Optional[str] = None,
+    sensor_id: Optional[str] = None,
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None,
+    tz_offset_minutes: int = 0,
+    search: Optional[str] = None,
+    page: int = 1,
+    page_size: int = 10,
+) -> Dict[str, Any]:
     clauses: List[str] = []
     params: List[Any] = []
     if estado:
+        norm_estado = "ATENDIDA" if estado == "EN_ATENCION" else estado
         clauses.append("a.estado = %s")
-        params.append(estado)
+        params.append(norm_estado)
     if severidad:
         clauses.append("a.severidad = %s")
         params.append(severidad)
     if ubicacion_id:
         clauses.append("a.ubicacion_id = %s")
         params.append(ubicacion_id)
+    if dispositivo_id:
+        clauses.append("a.dispositivo_id = %s")
+        params.append(dispositivo_id)
+    if sensor_id:
+        clauses.append("a.sensor_id = %s")
+        params.append(sensor_id)
+
+    dt_start = _parse_filter_date(fecha_inicio, end_of_day=False, tz_offset_minutes=tz_offset_minutes)
+    dt_end = _parse_filter_date(fecha_fin, end_of_day=True, tz_offset_minutes=tz_offset_minutes)
+    if dt_start and dt_end and dt_start > dt_end:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La fecha inicial no puede ser mayor a la final",
+        )
+    if dt_start:
+        clauses.append("a.fecha_hora >= %s")
+        params.append(dt_start)
+    if dt_end:
+        clauses.append("a.fecha_hora <= %s")
+        params.append(dt_end)
+
+    if search and search.strip():
+        like = f"%{search.strip()}%"
+        clauses.append(
+            "(a.id_alerta LIKE %s OR a.mensaje LIKE %s OR u.nombre LIKE %s OR s.identificador LIKE %s OR d.nombre LIKE %s)"
+        )
+        params.extend([like, like, like, like, like])
 
     where_sql = f"WHERE {' AND '.join(clauses)}" if clauses else ""
-    params.append(limit)
+    offset = (page - 1) * page_size
 
     with db_cursor() as cursor:
         cursor.execute(
             f"""
-            SELECT a.id_alerta, a.medicion_id, a.dispositivo_id, a.sensor_id, a.ubicacion_id,
-                   a.tipo, a.variable, a.condicion, a.valor_detectado, a.umbral_superado,
-                   a.severidad, a.estado, a.mensaje, a.ocurrencias_en_ventana,
-                   a.ultimo_valor_detectado, a.ultima_ocurrencia_utc, a.fecha_hora,
-                   u.nombre AS ubicacion_nombre,
-                   d.nombre AS dispositivo_nombre,
-                   s.identificador AS sensor_identificador,
-                   s.modelo AS sensor_modelo
+            SELECT COUNT(*) AS total_records
             FROM alertas a
             LEFT JOIN ubicaciones u ON u.ubicacion_id = a.ubicacion_id
             LEFT JOIN dispositivos d ON d.id_dispositivo = a.dispositivo_id
             LEFT JOIN sensores s ON s.id_sensor = a.sensor_id
             {where_sql}
-            ORDER BY a.fecha_hora DESC
-            LIMIT %s
             """,
             tuple(params),
         )
+        total_records = int((cursor.fetchone() or {}).get("total_records") or 0)
+        total_pages = math.ceil(total_records / page_size) if total_records > 0 else 0
+
+        rows: List[Dict[str, Any]] = []
+        if total_records > 0 and offset < total_records:
+            cursor.execute(
+                f"""
+                {_ALERTA_SELECT}
+                {where_sql}
+                ORDER BY a.fecha_hora DESC, a.id_alerta DESC
+                LIMIT %s OFFSET %s
+                """,
+                tuple(params + [page_size, offset]),
+            )
+            rows = cursor.fetchall()
+
+        cursor.execute(
+            """
+            SELECT
+              COUNT(*) AS total,
+              SUM(CASE WHEN estado = 'PENDIENTE' THEN 1 ELSE 0 END) AS pendientes,
+              SUM(CASE WHEN estado = 'ATENDIDA' THEN 1 ELSE 0 END) AS atendidas,
+              SUM(CASE WHEN estado = 'RESUELTA' THEN 1 ELSE 0 END) AS resueltas,
+              SUM(CASE WHEN severidad = 'CRITICA' AND estado <> 'RESUELTA' THEN 1 ELSE 0 END) AS criticas_activas,
+              SUM(CASE WHEN severidad = 'CRITICA' THEN 1 ELSE 0 END) AS criticas,
+              SUM(CASE WHEN estado IN ('PENDIENTE', 'ATENDIDA') THEN 1 ELSE 0 END) AS activas
+            FROM alertas
+            """
+        )
+        agg = cursor.fetchone() or {}
+
+    return {
+        "alertas": [_serialize_alerta_row(r) for r in rows],
+        "page": page,
+        "page_size": page_size,
+        "total": total_records,
+        "total_records": total_records,
+        "total_pages": total_pages,
+        "resumen": {
+            "total": int(agg.get("total") or 0),
+            "pendientes": int(agg.get("pendientes") or 0),
+            "atendidas": int(agg.get("atendidas") or 0),
+            "resueltas": int(agg.get("resueltas") or 0),
+            "criticas": int(agg.get("criticas") or 0),
+            "criticas_activas": int(agg.get("criticas_activas") or 0),
+            "activas": int(agg.get("activas") or 0),
+        },
+    }
+
+
+def list_alertas(
+    estado: Optional[str] = None,
+    severidad: Optional[str] = None,
+    ubicacion_id: Optional[str] = None,
+    limit: int = 100,
+) -> List[Dict[str, Any]]:
+    res = list_alertas_paginated(
+        estado=estado,
+        severidad=severidad,
+        ubicacion_id=ubicacion_id,
+        page=1,
+        page_size=limit,
+    )
+    return res["alertas"]
+
+
+def get_alerta_by_id(alerta_id: str) -> Dict[str, Any]:
+    with db_cursor() as cursor:
+        cursor.execute(f"{_ALERTA_SELECT} WHERE a.id_alerta = %s LIMIT 1", (alerta_id,))
+        row = cursor.fetchone()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerta no encontrada.")
+    return _serialize_alerta_row(row)
+
+
+def get_alerta_historial(alerta_id: str) -> List[Dict[str, Any]]:
+    with db_cursor() as cursor:
+        cursor.execute("SELECT id_alerta FROM alertas WHERE id_alerta = %s LIMIT 1", (alerta_id,))
+        if cursor.fetchone() is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerta no encontrada.")
+        cursor.execute(
+            """
+            SELECT id_historial, alerta_id, usuario_id, usuario_correo, usuario_nombre,
+                   estado_anterior, estado_nuevo, accion_correctiva, causa_raiz,
+                   observaciones, fecha_hora_utc
+            FROM historial_alertas
+            WHERE alerta_id = %s
+            ORDER BY fecha_hora_utc ASC,
+              CASE estado_nuevo WHEN 'ATENDIDA' THEN 1 WHEN 'RESUELTA' THEN 2 ELSE 3 END ASC,
+              id_historial ASC
+            """,
+            (alerta_id,),
+        )
         rows = cursor.fetchall()
 
-    out: List[Dict[str, Any]] = []
-    for r in rows:
-        out.append(
-            {
-                "id_alerta": r["id_alerta"],
-                "medicion_id": r.get("medicion_id"),
-                "dispositivo_id": r["dispositivo_id"],
-                "sensor_id": r["sensor_id"],
-                "ubicacion_id": r["ubicacion_id"],
-                "ubicacion_nombre": r.get("ubicacion_nombre"),
-                "dispositivo_nombre": r.get("dispositivo_nombre"),
-                "sensor_identificador": r.get("sensor_identificador"),
-                "sensor_modelo": r.get("sensor_modelo"),
-                "tipo": r["tipo"],
-                "variable": r["variable"],
-                "variable_alterada": r["variable"],
-                "condicion": r["condicion"],
-                "valor_detectado": float(r["valor_detectado"]),
-                "valor_registrado": float(r["valor_detectado"]),
-                "umbral_superado": float(r["umbral_superado"]),
-                "valor_limite": float(r["umbral_superado"]),
-                "severidad": r["severidad"],
-                "nivel": r["severidad"],
-                "estado": r["estado"],
-                "mensaje": r["mensaje"],
-                "ocurrencias_en_ventana": int(r.get("ocurrencias_en_ventana") or 1),
-                "ultimo_valor_detectado": (
-                    float(r["ultimo_valor_detectado"]) if r.get("ultimo_valor_detectado") is not None else None
-                ),
-                "ultima_ocurrencia_utc": _format_utc_iso(r["ultima_ocurrencia_utc"])
-                if r.get("ultima_ocurrencia_utc")
-                else None,
-                "fecha_hora": _format_utc_iso(r["fecha_hora"]),
-                "persistida": True,
-                "provisional": False,
-            }
+    return [
+        {
+            "id_historial": r["id_historial"],
+            "alerta_id": r["alerta_id"],
+            "usuario_id": r["usuario_id"],
+            "usuario_correo": r["usuario_correo"],
+            "usuario_nombre": r["usuario_nombre"],
+            "estado_anterior": r["estado_anterior"],
+            "estado_nuevo": r["estado_nuevo"],
+            "accion_correctiva": r.get("accion_correctiva"),
+            "causa_raiz": r.get("causa_raiz"),
+            "observaciones": r.get("observaciones"),
+            "fecha_hora_utc": _format_utc_iso(r["fecha_hora_utc"]),
+        }
+        for r in rows
+    ]
+
+
+def transition_alerta_estado(
+    alerta_id: str,
+    estado_nuevo_raw: str,
+    current_user: Dict[str, Any],
+    accion_correctiva: Optional[str] = None,
+    causa_raiz: Optional[str] = None,
+    observaciones: Optional[str] = None,
+    expected_version: Optional[int] = None,
+) -> Dict[str, Any]:
+    estado_nuevo = "ATENDIDA" if estado_nuevo_raw == "EN_ATENCION" else estado_nuevo_raw
+    if estado_nuevo not in ("ATENDIDA", "RESUELTA"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Estado destino inválido. Valores permitidos: ATENDIDA, RESUELTA.",
         )
-    return out
+
+    accion_clean = (accion_correctiva or "").strip() or None
+    causa_clean = (causa_raiz or "").strip() or None
+    obs_clean = (observaciones or "").strip() or None
+    now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    now_tag = now_utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    with db_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT id_alerta, severidad, estado, fecha_atencion, fecha_resolucion,
+                   accion_correctiva, causa_raiz, observaciones, version
+            FROM alertas
+            WHERE id_alerta = %s
+            LIMIT 1
+            FOR UPDATE
+            """,
+            (alerta_id,),
+        )
+        existing = cursor.fetchone()
+        if existing is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Alerta no encontrada.")
+
+        estado_anterior = "ATENDIDA" if existing["estado"] == "EN_ATENCION" else existing["estado"]
+        current_version = int(existing.get("version") or 1)
+
+        if expected_version is not None and int(expected_version) != current_version:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Conflicto de concurrencia: la alerta fue modificada por otro usuario. Recarga antes de guardar.",
+            )
+
+        if estado_anterior == "RESUELTA":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Una alerta RESUELTA no puede modificarse ni reabrirse.",
+            )
+
+        if estado_anterior == estado_nuevo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"La alerta ya se encuentra en estado {estado_nuevo}.",
+            )
+
+        if existing["severidad"] == "CRITICA" and estado_nuevo == "RESUELTA":
+            effective_action = accion_clean or (existing.get("accion_correctiva") or "").strip()
+            if not effective_action:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Las alertas críticas no pueden pasar a RESUELTA sin describir la acción correctiva.",
+                )
+
+        # Conservar observaciones previas sin sobrescribirlas
+        prev_obs = (existing.get("observaciones") or "").strip()
+        if obs_clean:
+            merged_obs = f"{prev_obs}\n[{now_tag}] {obs_clean}" if prev_obs else f"[{now_tag}] {obs_clean}"
+        else:
+            merged_obs = prev_obs or None
+
+        merged_action = accion_clean or existing.get("accion_correctiva")
+        merged_causa = causa_clean or existing.get("causa_raiz")
+        fecha_atencion = existing.get("fecha_atencion") or now_utc
+        fecha_resolucion = now_utc if estado_nuevo == "RESUELTA" else existing.get("fecha_resolucion")
+        new_version = current_version + 1
+
+        cursor.execute(
+            """
+            UPDATE alertas
+            SET estado = %s,
+                usuario_responsable_id = %s,
+                usuario_responsable_correo = %s,
+                fecha_atencion = %s,
+                fecha_resolucion = %s,
+                accion_correctiva = %s,
+                causa_raiz = %s,
+                observaciones = %s,
+                version = %s
+            WHERE id_alerta = %s
+            """,
+            (
+                estado_nuevo,
+                current_user["id_usuario"],
+                current_user["correo"],
+                fecha_atencion,
+                fecha_resolucion,
+                merged_action,
+                merged_causa,
+                merged_obs,
+                new_version,
+                alerta_id,
+            ),
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO historial_alertas (
+              id_historial, alerta_id, usuario_id, usuario_correo, usuario_nombre,
+              estado_anterior, estado_nuevo, accion_correctiva, causa_raiz,
+              observaciones, fecha_hora_utc
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                f"ha-{uuid.uuid4().hex[:12]}",
+                alerta_id,
+                current_user["id_usuario"],
+                current_user["correo"],
+                current_user["nombre"],
+                estado_anterior,
+                estado_nuevo,
+                accion_clean,
+                causa_clean,
+                obs_clean,
+                now_utc,
+            ),
+        )
+
+    updated = get_alerta_by_id(alerta_id)
+    alert_stream_broadcaster.broadcast_alert({**updated, "event_type": "alerta_actualizada"})
+    return updated
 
 
 alerts_service = AlertsService()
