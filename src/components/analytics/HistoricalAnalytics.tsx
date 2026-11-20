@@ -194,8 +194,35 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
       if (!active) return;
       try {
         const snap = JSON.parse(ev.data) as LocationTemperatureSnapshotDTO & {
-          humedad_snapshot?: { humedad_actual: number | null; fecha_hora_utc: string | null } | null;
+          thresholds_updated?: boolean;
+          humedad_snapshot?: {
+            humedad_actual: number | null;
+            hum_min?: number | null;
+            hum_max?: number | null;
+            fecha_hora_utc: string | null;
+          } | null;
         };
+        if (snap.thresholds_updated) {
+          setTrendData((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              limites: {
+                ...prev.limites,
+                temperatura: {
+                  ...prev.limites.temperatura,
+                  min: snap.temp_min ?? prev.limites.temperatura.min,
+                  max: snap.temp_max ?? prev.limites.temperatura.max,
+                },
+                humedad: {
+                  ...prev.limites.humedad,
+                  min: snap.humedad_snapshot?.hum_min ?? prev.limites.humedad.min,
+                  max: snap.humedad_snapshot?.hum_max ?? prev.limites.humedad.max,
+                },
+              },
+            };
+          });
+        }
         if (!snap.fecha_hora_utc || snap.temperatura_actual === null) return;
         setTrendData((prev) => {
           if (!prev) return prev;

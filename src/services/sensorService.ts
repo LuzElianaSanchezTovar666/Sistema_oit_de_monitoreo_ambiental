@@ -31,14 +31,25 @@ export interface SensorConfiguracionDTO {
   sensor_id: string;
   temp_min: number | null;
   temp_max: number | null;
+  temp_critico_min?: number | null;
+  temp_critico_max?: number | null;
   hum_min: number | null;
   hum_max: number | null;
+  hum_critico_min?: number | null;
+  hum_critico_max?: number | null;
   presion_min: number | null;
   presion_max: number | null;
   es_predeterminado: boolean;
+  version?: number;
   actualizado_por?: string | null;
   fecha_actualizacion?: string | null;
 }
+
+export const MODEL_TEMP_RANGES: Record<SensorModelo, { min: number; max: number }> = {
+  DHT22: { min: -40, max: 80 },
+  BME280: { min: -40, max: 85 },
+  SHT31: { min: -40, max: 125 },
+};
 
 export const MODEL_CAPABILITIES: Record<SensorModelo, VariableMedida[]> = {
   DHT22: [
@@ -728,6 +739,244 @@ export async function fetchHistoricalTrends(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.detail || 'Error al consultar las tendencias de telemetría.');
+  }
+  return data;
+}
+
+// ============================================================
+// RF-12: Configuración de Límites y Umbrales Ambientales
+// ============================================================
+
+export interface ThresholdFormValues {
+  temp_min: string;
+  temp_max: string;
+  temp_critico_min: string;
+  temp_critico_max: string;
+  hum_min: string;
+  hum_max: string;
+  hum_critico_min: string;
+  hum_critico_max: string;
+  presion_min: string;
+  presion_max: string;
+  motivo?: string;
+}
+
+export interface ThresholdUpsertPayload {
+  temp_min?: number | null;
+  temp_max?: number | null;
+  temp_critico_min?: number | null;
+  temp_critico_max?: number | null;
+  hum_min?: number | null;
+  hum_max?: number | null;
+  hum_critico_min?: number | null;
+  hum_critico_max?: number | null;
+  presion_min?: number | null;
+  presion_max?: number | null;
+  expected_version?: number | null;
+  motivo?: string | null;
+}
+
+export interface ThresholdEffectiveResponse {
+  message?: string;
+  precedencia: string;
+  sensor: {
+    id_sensor: string;
+    identificador: string;
+    modelo: SensorModelo;
+    estado: SensorEstado;
+    variables_medidas: VariableNombre[];
+    rango_modelo_temperatura: { min: number; max: number };
+    dispositivo_id: string;
+    dispositivo_nombre?: string | null;
+    ubicacion_id?: string | null;
+    ubicacion_nombre?: string | null;
+    codigo_area?: string | null;
+  };
+  configuracion: SensorConfiguracionDTO | null;
+}
+
+export interface ThresholdHistoryItemDTO extends SensorConfiguracionDTO {
+  id_historial: string;
+  motivo?: string | null;
+  vigente_desde?: string | null;
+  vigente_hasta?: string | null;
+}
+
+export const RF12_MIN_MAX_ERROR = 'El límite mínimo debe ser estrictamente menor que el límite máximo';
+
+function parseFiniteField(raw: string, label: string): { ok: true; value: number } | { ok: false; error: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return { ok: false, error: `El campo '${label}' es obligatorio y debe ser un número finito.` };
+  }
+  const num = Number(trimmed);
+  if (!Number.isFinite(num)) {
+    return { ok: false, error: `El campo '${label}' debe ser un número finito válido.` };
+  }
+  return { ok: true, value: Math.round(num * 100) / 100 };
+}
+
+export function validateThresholdsClient(
+  modelo: SensorModelo,
+  measuredVars: VariableNombre[],
+  form: ThresholdFormValues
+): { valid: true; payload: ThresholdUpsertPayload } | { valid: false; error: string } {
+  const payload: ThresholdUpsertPayload = {
+    motivo: form.motivo?.trim() || undefined,
+  };
+
+  if (measuredVars.includes('temperatura')) {
+    const tMin = parseFiniteField(form.temp_min, 'Temperatura mínima operacional');
+    if (!tMin.ok) return { valid: false, error: tMin.error };
+    const tMax = parseFiniteField(form.temp_max, 'Temperatura máxima operacional');
+    if (!tMax.ok) return { valid: false, error: tMax.error };
+
+    if (tMin.value >= tMax.value) {
+      return { valid: false, error: RF12_MIN_MAX_ERROR };
+    }
+
+    const tCritMin = parseFiniteField(form.temp_critico_min, 'Temperatura crítica inferior');
+    if (!tCritMin.ok) return { valid: false, error: tCritMin.error };
+    const tCritMax = parseFiniteField(form.temp_critico_max, 'Temperatura crítica superior');
+    if (!tCritMax.ok) return { valid: false, error: tCritMax.error };
+
+    if (!(tCritMin.value < tMin.value && tMin.value < tMax.value && tMax.value < tCritMax.value)) {
+      return {
+        valid: false,
+        error: 'La temperatura debe cumplir: critico_inferior < temp_min < temp_max < critico_superior.',
+      };
+    }
+
+    const bounds = MODEL_TEMP_RANGES[modelo] ?? { min: -40, max: 85 };
+    for (const [label, val] of [
+      ['Temperatura crítica inferior', tCritMin.value],
+      ['Temperatura mínima operacional', tMin.value],
+      ['Temperatura máxima operacional', tMax.value],
+      ['Temperatura crítica superior', tCritMax.value],
+    ] as const) {
+      if (val < bounds.min || val > bounds.max) {
+        return {
+          valid: false,
+          error: `${label} (${val} °C) está fuera del rango del modelo ${modelo} (${bounds.min} °C a ${bounds.max} °C).`,
+        };
+      }
+    }
+
+    payload.temp_min = tMin.value;
+    payload.temp_max = tMax.value;
+    payload.temp_critico_min = tCritMin.value;
+    payload.temp_critico_max = tCritMax.value;
+  }
+
+  if (measuredVars.includes('humedad')) {
+    const hMin = parseFiniteField(form.hum_min, 'Humedad mínima operacional');
+    if (!hMin.ok) return { valid: false, error: hMin.error };
+    const hMax = parseFiniteField(form.hum_max, 'Humedad máxima operacional');
+    if (!hMax.ok) return { valid: false, error: hMax.error };
+
+    if (hMin.value >= hMax.value) {
+      return { valid: false, error: RF12_MIN_MAX_ERROR };
+    }
+
+    const hCritMin = parseFiniteField(form.hum_critico_min, 'Humedad crítica inferior');
+    if (!hCritMin.ok) return { valid: false, error: hCritMin.error };
+    const hCritMax = parseFiniteField(form.hum_critico_max, 'Humedad crítica superior');
+    if (!hCritMax.ok) return { valid: false, error: hCritMax.error };
+
+    if (!(hCritMin.value < hMin.value && hMin.value < hMax.value && hMax.value < hCritMax.value)) {
+      return {
+        valid: false,
+        error: 'La humedad relativa debe cumplir: critico_inferior < hum_min < hum_max < critico_superior.',
+      };
+    }
+
+    for (const [label, val] of [
+      ['Humedad crítica inferior', hCritMin.value],
+      ['Humedad mínima operacional', hMin.value],
+      ['Humedad máxima operacional', hMax.value],
+      ['Humedad crítica superior', hCritMax.value],
+    ] as const) {
+      if (val < 0 || val > 100) {
+        return {
+          valid: false,
+          error: `${label} (${val} %RH) debe estar entre 0 % y 100 %.`,
+        };
+      }
+    }
+
+    payload.hum_min = hMin.value;
+    payload.hum_max = hMax.value;
+    payload.hum_critico_min = hCritMin.value;
+    payload.hum_critico_max = hCritMax.value;
+  }
+
+  if (measuredVars.includes('presion')) {
+    const hasPresMin = form.presion_min.trim().length > 0;
+    const hasPresMax = form.presion_max.trim().length > 0;
+    if (hasPresMin || hasPresMax) {
+      const pMin = parseFiniteField(form.presion_min, 'Presión mínima');
+      if (!pMin.ok) return { valid: false, error: pMin.error };
+      const pMax = parseFiniteField(form.presion_max, 'Presión máxima');
+      if (!pMax.ok) return { valid: false, error: pMax.error };
+      if (pMin.value >= pMax.value) {
+        return { valid: false, error: RF12_MIN_MAX_ERROR };
+      }
+      if (pMin.value < 300 || pMax.value > 1100) {
+        return { valid: false, error: 'La presión debe estar entre 300 hPa y 1100 hPa.' };
+      }
+      payload.presion_min = pMin.value;
+      payload.presion_max = pMax.value;
+    }
+  }
+
+  return { valid: true, payload };
+}
+
+export async function fetchThresholdConfig(sensorId: string): Promise<ThresholdEffectiveResponse> {
+  const res = await fetch(`/api/configuraciones/${encodeURIComponent(sensorId)}`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar la configuración de umbrales.');
+  }
+  return data;
+}
+
+export async function saveThresholdConfig(
+  sensorId: string,
+  payload: ThresholdUpsertPayload
+): Promise<ThresholdEffectiveResponse> {
+  const res = await fetch(`/api/configuraciones/${encodeURIComponent(sensorId)}`, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: buildMutationHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.detail || 'No fue posible guardar los umbrales ambientales.') as Error & {
+      status?: number;
+    };
+    err.status = res.status;
+    throw err;
+  }
+  return data;
+}
+
+export async function fetchThresholdHistory(sensorId: string): Promise<{
+  sensor_id: string;
+  historial: ThresholdHistoryItemDTO[];
+  total: number;
+}> {
+  const res = await fetch(`/api/configuraciones/${encodeURIComponent(sensorId)}/historial`, {
+    method: 'GET',
+    credentials: 'include',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar el historial de umbrales.');
   }
   return data;
 }

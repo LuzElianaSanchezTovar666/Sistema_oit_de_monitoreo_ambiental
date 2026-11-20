@@ -684,8 +684,10 @@ def get_sensor_configuraciones(
 
         cursor.execute(
             """
-            SELECT sensor_id, temp_min, temp_max, hum_min, hum_max, presion_min, presion_max,
-                   es_predeterminado, actualizado_por, fecha_actualizacion
+            SELECT sensor_id, temp_min, temp_max, temp_critico_min, temp_critico_max,
+                   hum_min, hum_max, hum_critico_min, hum_critico_max,
+                   presion_min, presion_max, es_predeterminado, version,
+                   actualizado_por, fecha_actualizacion
             FROM umbrales_alerta
             WHERE sensor_id = %s
             LIMIT 1
@@ -695,10 +697,22 @@ def get_sensor_configuraciones(
         cfg = cursor.fetchone()
 
     if cfg:
-        for k in ("temp_min", "temp_max", "hum_min", "hum_max", "presion_min", "presion_max"):
+        for k in (
+            "temp_min",
+            "temp_max",
+            "temp_critico_min",
+            "temp_critico_max",
+            "hum_min",
+            "hum_max",
+            "hum_critico_min",
+            "hum_critico_max",
+            "presion_min",
+            "presion_max",
+        ):
             if cfg.get(k) is not None:
                 cfg[k] = float(cfg[k])
         cfg["es_predeterminado"] = bool(cfg.get("es_predeterminado", 1))
+        cfg["version"] = int(cfg.get("version") or 1)
         fa = cfg.get("fecha_actualizacion")
         cfg["fecha_actualizacion"] = fa.isoformat() if hasattr(fa, "isoformat") else (str(fa) if fa else None)
 
