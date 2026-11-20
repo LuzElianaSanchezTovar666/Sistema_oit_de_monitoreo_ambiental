@@ -520,3 +520,103 @@ export async function fetchLocationHumidity(
   }
   return data;
 }
+
+// ============================================================
+// RF-10: Consulta y Filtrado Histórico de Mediciones
+// ============================================================
+
+export interface HistoricalMeasurementItemDTO {
+  id_medicion: number;
+  dispositivo_id: string;
+  dispositivo_nombre?: string | null;
+  dispositivo_codigo?: string | null;
+  sensor_id?: string | null;
+  sensor_identificador?: string | null;
+  sensor_modelo?: string | null;
+  ubicacion_id?: string | null;
+  ubicacion_nombre?: string | null;
+  ubicacion_codigo_area?: string | null;
+  temperatura: number | null;
+  humedad: number | null;
+  presion: number | null;
+  es_fuera_de_umbral: boolean | null;
+  estado_evaluacion: 'Conforme' | 'Fuera de umbral' | 'No evaluable';
+  fecha_hora_utc: string;
+}
+
+export interface HistoricalVariableStatsDTO {
+  muestras: number;
+  unidad: string;
+  minimo: number | null;
+  maximo: number | null;
+  promedio: number | null;
+  desviacion_estandar: number | null;
+}
+
+export interface HistoricalStatsDTO {
+  total_registros_filtrados: number;
+  desviacion_tipo: 'muestral';
+  criterio_cumplimiento: string;
+  temperatura: HistoricalVariableStatsDTO;
+  humedad: HistoricalVariableStatsDTO;
+  cumplimiento: {
+    mediciones_evaluables: number;
+    mediciones_conformes: number;
+    porcentaje: number | null;
+  };
+}
+
+export interface HistoricalQueryParams {
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  ubicacion_id?: string;
+  dispositivo_id?: string;
+  sensor_id?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export interface HistoricalQueryResponseDTO {
+  items: HistoricalMeasurementItemDTO[];
+  page: number;
+  page_size: number;
+  total_records: number;
+  total_pages: number;
+  estadisticas: HistoricalStatsDTO;
+  zona_horaria: 'UTC';
+}
+
+export function validateHistoricalDateRange(fechaInicio?: string, fechaFin?: string): string | null {
+  if (fechaInicio && fechaFin && fechaInicio.trim() && fechaFin.trim()) {
+    if (fechaInicio.trim() > fechaFin.trim()) {
+      return 'La fecha inicial no puede ser mayor a la final';
+    }
+  }
+  return null;
+}
+
+export async function fetchHistoricalMeasurements(
+  params: HistoricalQueryParams,
+  signal?: AbortSignal
+): Promise<HistoricalQueryResponseDTO> {
+  const qs = new URLSearchParams();
+  if (params.fecha_inicio) qs.set('fecha_inicio', params.fecha_inicio);
+  if (params.fecha_fin) qs.set('fecha_fin', params.fecha_fin);
+  if (params.ubicacion_id) qs.set('ubicacion_id', params.ubicacion_id);
+  if (params.dispositivo_id) qs.set('dispositivo_id', params.dispositivo_id);
+  if (params.sensor_id) qs.set('sensor_id', params.sensor_id);
+  qs.set('page', String(params.page ?? 1));
+  qs.set('page_size', String(params.page_size ?? 20));
+  qs.set('tz_offset_minutes', String(new Date().getTimezoneOffset()));
+
+  const res = await fetch(`/api/mediciones/historico?${qs.toString()}`, {
+    method: 'GET',
+    credentials: 'include',
+    signal,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar el historial de mediciones.');
+  }
+  return data;
+}

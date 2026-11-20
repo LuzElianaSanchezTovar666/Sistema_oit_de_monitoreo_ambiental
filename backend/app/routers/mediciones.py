@@ -1,9 +1,12 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 import json
-from typing import Any, Dict, List, Optional
+import logging
+import math
+from typing import Any, Dict, List, Optional, Tuple
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
+import pymysql
 
 from ..database import db_cursor
 from ..dependencies import require_roles
@@ -16,6 +19,48 @@ from ..services.live_telemetry import (
 from ..services.measurement_persistence import measurement_persister
 
 router = APIRouter(prefix="/api/mediciones", tags=["Mediciones Persistentes UTC (RF-07)"])
+logger = logging.getLogger("simoa.mediciones")
+
+
+def _parse_historical_bound(raw: Optional[str], tz_offset_minutes: int, is_end: bool) -> Optional[Tuple[datetime, bool]]:
+    """Convierte fecha_inicio / fecha_fin a UTC naive.
+    - Si es fecha pura YYYY-MM-DD: inicio = 00:00 local -> UTC; fin = 00:00 del día siguiente local -> UTC (exclusivo).
+    - Si incluye hora/zona ISO-8601: convierte a UTC (para fin inclusivo exacto, suma 1 microsegundo como límite exclusivo).
+    """
+    if not raw or not raw.strip():
+        return None
+    cleaned = raw.strip()
+
+    if len(cleaned) == 10 and cleaned[4] == "-" and cleaned[7] == "-":
+        try:
+            d = date.fromisoformat(cleaned)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Formato de fecha inválido. Use YYYY-MM-DD o ISO-8601.",
+            )
+        local_dt = datetime(d.year, d.month, d.day, 0, 0, 0)
+        if is_end:
+            local_dt = local_dt + timedelta(days=1)
+        # JS getTimezoneOffset() = UTC - Local (ej. UTC-5 => +300 min) => UTC = Local + offset
+        utc_dt = local_dt + timedelta(minutes=tz_offset_minutes)
+        return utc_dt, True
+
+    iso_str = cleaned[:-1] + "+00:00" if cleaned.endswith("Z") else cleaned
+    try:
+        dt = datetime.fromisoformat(iso_str)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Formato de fecha/hora inválido. Use YYYY-MM-DD o ISO-8601.",
+        )
+    if dt.tzinfo is not None:
+        utc_dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+    else:
+        utc_dt = dt + timedelta(minutes=tz_offset_minutes)
+    if is_end:
+        utc_dt = utc_dt + timedelta(microseconds=1)
+    return utc_dt, False
 
 
 def _parse_utc_query_dt(raw: Optional[str]) -> Optional[datetime]:
@@ -130,6 +175,199 @@ def list_mediciones(
 
     items = [_serialize_medicion(r) for r in rows]
     return {"items": items, "total": len(items), "zona_horaria": "UTC"}
+
+
+@router.get("/historico")
+def get_historico_mediciones(
+    fecha_inicio: Optional[str] = Query(default=None),
+    fecha_fin: Optional[str] = Query(default=None),
+    tz_offset_minutes: int = Query(default=0, ge=-840, le=840),
+    ubicacion_id: Optional[str] = Query(default=None, max_length=64),
+    dispositivo_id: Optional[str] = Query(default=None, max_length=64),
+    sensor_id: Optional[str] = Query(default=None, max_length=64),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> Dict[str, Any]:
+    """RF-10: Consulta y filtrado histórico paginado en MySQL con estadísticas consolidadas y cumplimiento RF-07."""
+    start_parsed = _parse_historical_bound(fecha_inicio, tz_offset_minutes, is_end=False)
+    end_parsed = _parse_historical_bound(fecha_fin, tz_offset_minutes, is_end=True)
+
+    start_utc = start_parsed[0] if start_parsed else None
+    end_utc_excl = end_parsed[0] if end_parsed else None
+
+    if start_utc is not None and end_utc_excl is not None and start_utc >= end_utc_excl:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La fecha inicial no puede ser mayor a la final",
+        )
+
+    conditions: List[str] = []
+    params: List[Any] = []
+
+    if ubicacion_id and ubicacion_id.strip():
+        conditions.append("COALESCE(m.ubicacion_id, d.ubicacion_id) = %s")
+        params.append(ubicacion_id.strip())
+    if dispositivo_id and dispositivo_id.strip():
+        conditions.append("m.dispositivo_id = %s")
+        params.append(dispositivo_id.strip())
+    if sensor_id and sensor_id.strip():
+        conditions.append("m.sensor_id = %s")
+        params.append(sensor_id.strip())
+    if start_utc is not None:
+        conditions.append("m.fecha_hora >= %s")
+        params.append(start_utc)
+    if end_utc_excl is not None:
+        conditions.append("m.fecha_hora < %s")
+        params.append(end_utc_excl)
+
+    where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    offset = (page - 1) * page_size
+
+    try:
+        with db_cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT
+                  COUNT(*) AS total_records,
+                  COUNT(m.temperatura) AS temp_count,
+                  MIN(m.temperatura) AS temp_min,
+                  MAX(m.temperatura) AS temp_max,
+                  AVG(m.temperatura) AS temp_avg,
+                  STDDEV_SAMP(m.temperatura) AS temp_std,
+                  COUNT(m.humedad) AS hum_count,
+                  MIN(m.humedad) AS hum_min,
+                  MAX(m.humedad) AS hum_max,
+                  AVG(m.humedad) AS hum_avg,
+                  STDDEV_SAMP(m.humedad) AS hum_std,
+                  SUM(CASE WHEN m.es_fuera_de_umbral IS NOT NULL THEN 1 ELSE 0 END) AS mediciones_evaluables,
+                  SUM(CASE WHEN m.es_fuera_de_umbral = 0 THEN 1 ELSE 0 END) AS mediciones_conformes
+                FROM mediciones m
+                INNER JOIN dispositivos d ON d.id_dispositivo = m.dispositivo_id
+                {where_clause}
+                """,
+                tuple(params),
+            )
+            agg = cursor.fetchone() or {}
+
+            total_records = int(agg.get("total_records") or 0)
+            total_pages = math.ceil(total_records / page_size) if total_records > 0 else 0
+
+            rows: List[Dict[str, Any]] = []
+            if total_records > 0 and offset < total_records:
+                cursor.execute(
+                    f"""
+                    SELECT
+                      m.id_medicion,
+                      m.dispositivo_id,
+                      d.nombre AS dispositivo_nombre,
+                      d.codigo AS dispositivo_codigo,
+                      m.sensor_id,
+                      s.identificador AS sensor_identificador,
+                      s.modelo AS sensor_modelo,
+                      COALESCE(m.ubicacion_id, d.ubicacion_id) AS ubicacion_id,
+                      u.nombre AS ubicacion_nombre,
+                      u.codigo_area AS ubicacion_codigo_area,
+                      m.temperatura,
+                      m.humedad,
+                      m.presion,
+                      m.es_fuera_de_umbral,
+                      m.alerta_generada,
+                      m.score_anomalia_ia,
+                      m.configuracion_id,
+                      m.fecha_hora
+                    FROM mediciones m
+                    INNER JOIN dispositivos d ON d.id_dispositivo = m.dispositivo_id
+                    LEFT JOIN sensores s ON s.id_sensor = m.sensor_id
+                    LEFT JOIN ubicaciones u ON u.ubicacion_id = COALESCE(m.ubicacion_id, d.ubicacion_id)
+                    {where_clause}
+                    ORDER BY m.fecha_hora DESC, m.sensor_id ASC, m.id_medicion DESC
+                    LIMIT %s OFFSET %s
+                    """,
+                    tuple(params + [page_size, offset]),
+                )
+                rows = cursor.fetchall()
+    except pymysql.MySQLError as exc:
+        logger.error("Error MySQL en consulta histórica RF-10: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Error temporal consultando el historial de mediciones en base de datos.",
+        )
+
+    items: List[Dict[str, Any]] = []
+    for r in rows:
+        base = _serialize_medicion(r)
+        base.update(
+            {
+                "ubicacion_nombre": r.get("ubicacion_nombre"),
+                "ubicacion_codigo_area": r.get("ubicacion_codigo_area"),
+                "dispositivo_nombre": r.get("dispositivo_nombre"),
+                "dispositivo_codigo": r.get("dispositivo_codigo"),
+                "sensor_identificador": r.get("sensor_identificador"),
+                "sensor_modelo": r.get("sensor_modelo"),
+                "estado_evaluacion": (
+                    "No evaluable"
+                    if r.get("es_fuera_de_umbral") is None
+                    else ("Fuera de umbral" if bool(r.get("es_fuera_de_umbral")) else "Conforme")
+                ),
+            }
+        )
+        items.append(base)
+
+    temp_count = int(agg.get("temp_count") or 0)
+    hum_count = int(agg.get("hum_count") or 0)
+    evaluables = int(agg.get("mediciones_evaluables") or 0)
+    conformes = int(agg.get("mediciones_conformes") or 0)
+
+    def _round_opt(val: Any, digits: int = 2) -> Optional[float]:
+        return round(float(val), digits) if val is not None else None
+
+    estadisticas = {
+        "total_registros_filtrados": total_records,
+        "desviacion_tipo": "muestral",
+        "criterio_cumplimiento": "evaluacion_combinada_rf07",
+        "temperatura": {
+            "muestras": temp_count,
+            "unidad": "°C",
+            "minimo": _round_opt(agg.get("temp_min"), 2),
+            "maximo": _round_opt(agg.get("temp_max"), 2),
+            "promedio": _round_opt(agg.get("temp_avg"), 2),
+            "desviacion_estandar": (
+                0.0 if temp_count == 1 else _round_opt(agg.get("temp_std"), 2)
+            )
+            if temp_count > 0
+            else None,
+        },
+        "humedad": {
+            "muestras": hum_count,
+            "unidad": "%RH",
+            "minimo": _round_opt(agg.get("hum_min"), 2),
+            "maximo": _round_opt(agg.get("hum_max"), 2),
+            "promedio": _round_opt(agg.get("hum_avg"), 2),
+            "desviacion_estandar": (
+                0.0 if hum_count == 1 else _round_opt(agg.get("hum_std"), 2)
+            )
+            if hum_count > 0
+            else None,
+        },
+        "cumplimiento": {
+            "mediciones_evaluables": evaluables,
+            "mediciones_conformes": conformes,
+            "porcentaje": round((conformes / evaluables) * 100.0, 2) if evaluables > 0 else None,
+        },
+    }
+
+    return {
+        "items": items,
+        "page": page,
+        "page_size": page_size,
+        "total_records": total_records,
+        "total_pages": total_pages,
+        "estadisticas": estadisticas,
+        "zona_horaria": "UTC",
+    }
 
 
 @router.get("/{id_medicion}")
