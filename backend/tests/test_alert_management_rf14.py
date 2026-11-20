@@ -31,10 +31,10 @@ def _ensure_user_and_login(client: TestClient, email: str, rol: str, nombre: str
         if cursor.fetchone() is None:
             cursor.execute(
                 """
-                INSERT INTO usuarios (id_usuario, nombre, correo, password_hash, rol, estado)
-                VALUES (%s, %s, %s, %s, %s, 'activo')
+                INSERT INTO usuarios (nombre, correo, password_hash, rol, estado)
+                VALUES (%s, %s, %s, %s, 'activo')
                 """,
-                (f"usr-{uuid.uuid4().hex[:8]}", nombre, email, pwd_hash, rol),
+                (nombre, email, pwd_hash, rol),
             )
         else:
             cursor.execute(

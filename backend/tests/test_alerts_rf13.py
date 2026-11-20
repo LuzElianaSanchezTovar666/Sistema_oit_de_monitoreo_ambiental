@@ -40,10 +40,10 @@ def _ensure_user_and_login(client: TestClient, email: str, rol: str) -> dict:
         if cursor.fetchone() is None:
             cursor.execute(
                 """
-                INSERT INTO usuarios (id_usuario, nombre, correo, password_hash, rol, estado)
-                VALUES (%s, %s, %s, %s, %s, 'activo')
+                INSERT INTO usuarios (nombre, correo, password_hash, rol, estado)
+                VALUES (%s, %s, %s, %s, 'activo')
                 """,
-                (f"usr-{uuid.uuid4().hex[:8]}", f"User {rol}", email, pwd_hash, rol),
+                (f"User {rol}", email, pwd_hash, rol),
             )
         else:
             cursor.execute(
@@ -171,8 +171,7 @@ def test_rf13_debouncing_escalation_concurrency_recovery_mqtt_latency_and_rbac(t
             assert cfg_res.status_code == 200, cfg_res.text
 
             # 2. Seguridad RBAC
-            with TestClient(app) as anon:
-                assert anon.get("/api/alertas").status_code == 401
+            assert TestClient(app).get("/api/alertas").status_code == 401
             assert client.get("/api/alertas", headers=tec_headers).status_code == 403
             assert client.get("/api/alertas", headers=op_headers).status_code == 200
 
@@ -240,6 +239,7 @@ def test_rf13_debouncing_escalation_concurrency_recovery_mqtt_latency_and_rbac(t
             th2 = threading.Thread(target=_worker, args=(26.2,))
             th1.start(); th2.start(); th1.join(); th2.join()
             assert len(conc_results) == 1
+            assert conc_results[0]["persistida"] and not conc_results[0]["provisional"]
 
             # 5. Tolerancia a fallo temporal de MySQL -> buffer durable + recuperación
             orig_get = svc._get_limits_and_context
@@ -268,10 +268,10 @@ def test_rf13_debouncing_escalation_concurrency_recovery_mqtt_latency_and_rbac(t
             assert tmp_buf.count() == 0
 
             # 6. Prueba real MQTT (Mosquitto 1883 -> RF-06 -> RF-07 -> RF-13) midiendo latencia < 2.0 s
-            # Activar dispositivo y esperar a que mqtt_service esté suscrito al broker real
+            # Esperar a que mqtt_service esté suscrito al broker real
             with db_cursor() as cursor:
-                cursor.execute("UPDATE dispositivos SET estado = 'ACTIVO' WHERE id_dispositivo = %s", (dev_id,))
                 cursor.execute("DELETE FROM alertas WHERE sensor_id = %s", (sen_id,))
+            mqtt_service.invalidate_cache()
 
             deadline_sub = time.monotonic() + 5.0
             while time.monotonic() < deadline_sub:
@@ -279,6 +279,7 @@ def test_rf13_debouncing_escalation_concurrency_recovery_mqtt_latency_and_rbac(t
                 if st.get("connected") and st.get("subscribed"):
                     break
                 time.sleep(0.05)
+            assert st.get("connected") and st.get("subscribed"), st
 
             t_mqtt_start = time.perf_counter()
             pub = mqtt_client.Client(mqtt_client.CallbackAPIVersion.VERSION2, client_id=f"rf13-pub-{suffix}")

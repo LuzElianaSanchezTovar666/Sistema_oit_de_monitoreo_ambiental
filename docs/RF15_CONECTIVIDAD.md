@@ -54,4 +54,6 @@ npm run build -- --configLoader runner
 
 ## Evidencia local
 
-La suite RF-15 pasó 10 pruebas con MariaDB 10.4 y Mosquitto 2.1.4. La prueba con broker autenticado rechazó la publicación de otro nodo y registró la secuencia `ONLINE → OFFLINE → ONLINE` tras detener y reiniciar el broker. La prueba de persistencia conservó el último contacto al quedar `OFFLINE`, reprodujo un microcorte y confirmó que no se añadieron lecturas durante el corte. Las 21 pruebas de frontend verificaron, entre otros casos, el aviso visual y los marcadores de falta de datos de RF-08 y RF-09.
+La suite de backend pasó 50 pruebas, incluidas las 10 de RF-15, con MariaDB 10.4 y Mosquitto 2.1.4. La prueba con broker autenticado rechazó la publicación de otro nodo y registró `ONLINE → ADVERTENCIA → OFFLINE → ONLINE` al detener y reiniciar el broker sin clientes del Dashboard. La prueba de persistencia conservó el último contacto al quedar `OFFLINE`, reprodujo un microcorte y confirmó que no se añadieron lecturas durante el corte. Pasaron las 21 pruebas de frontend, TypeScript y la compilación.
+
+Durante la regresión se corrigieron datos de prueba incompatibles con el esquema de usuarios, fechas futuras en las pruebas de telemetría actual y el cierre prematuro del consumidor MQTT en un test de RF-13. RF-13 serializa la creación concurrente de la primera alerta de una ventana para preservar el debouncing RN-15.

@@ -265,6 +265,7 @@ def test_rf15_broker_autenticado_acl_y_reconexion(rf15_nodes, monkeypatch, tmp_p
         "mqtt_enabled": True, "mqtt_broker_host": "127.0.0.1", "mqtt_broker_port": port,
         "mqtt_username": "backend", "mqtt_password": password, "mqtt_tls_ca_file": "",
         "rf15_normal_seconds": 1, "rf15_max_silence_seconds": 2, "rf15_evidence_max_age_seconds": 1,
+        "rf15_scan_seconds": 0.1,
     }.items():
         monkeypatch.setattr(settings, attribute, value)
 
@@ -313,20 +314,20 @@ def test_rf15_broker_autenticado_acl_y_reconexion(rf15_nodes, monkeypatch, tmp_p
         wait_for(lambda: inventory_row(node)["estado"] == "ONLINE")
         first_ping = inventory_row(node)["ultimo_ping"]
 
+        monitor.start()
         broker.terminate()
         broker.wait(timeout=5)
         wait_for(lambda: not service.get_status()["connected"])
-        wait_for(lambda: (connectivity.utc_now() - first_ping).total_seconds() > 2)
-        monitor.scan()
-        assert inventory_row(node)["estado"] == "OFFLINE"
+        wait_for(lambda: inventory_row(node)["estado"] == "OFFLINE")
         assert inventory_row(node)["ultimo_ping"] == first_ping
 
         broker = start_broker()
         wait_for(lambda: service.get_status()["subscribed"], timeout=10)
         assert not publish("node", node, packet(node, connectivity.utc_now(), heartbeat=True)).is_failure
         wait_for(lambda: inventory_row(node)["estado"] == "ONLINE")
-        assert [entry["estado_nuevo"] for entry in audit(node)] == ["ONLINE", "OFFLINE", "ONLINE"]
+        assert [entry["estado_nuevo"] for entry in audit(node)] == ["ONLINE", "ADVERTENCIA", "OFFLINE", "ONLINE"]
     finally:
+        monitor.stop()
         service.stop()
         if broker.poll() is None:
             broker.terminate()

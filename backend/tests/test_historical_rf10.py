@@ -33,10 +33,10 @@ def _ensure_admin_and_login(client: TestClient) -> dict:
         if cursor.fetchone() is None:
             cursor.execute(
                 """
-                INSERT INTO usuarios (id_usuario, nombre, correo, password_hash, rol, estado)
-                VALUES (%s, %s, %s, %s, 'Administrador', 'activo')
+                INSERT INTO usuarios (nombre, correo, password_hash, rol, estado)
+                VALUES (%s, %s, %s, 'Administrador', 'activo')
                 """,
-                (f"usr-{uuid.uuid4().hex[:8]}", "Admin RF10", email, pwd_hash),
+                ("Admin RF10", email, pwd_hash),
             )
         else:
             cursor.execute(

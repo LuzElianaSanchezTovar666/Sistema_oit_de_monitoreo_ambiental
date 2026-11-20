@@ -53,6 +53,7 @@ def _cleanup_rf04():
             "DELETE h FROM historial_ubicaciones h INNER JOIN dispositivos d ON h.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s",
             (TEST_MACS,),
         )
+        cursor.execute("DELETE h FROM historial_conectividad_dispositivos h JOIN dispositivos d ON h.dispositivo_id = d.id_dispositivo WHERE d.mac_address IN %s", (TEST_MACS,))
         cursor.execute("DELETE FROM dispositivos WHERE mac_address IN %s", (TEST_MACS,))
         placeholders = ",".join(["%s"] * len(emails))
         cursor.execute(f"DELETE FROM usuarios WHERE correo IN ({placeholders})", tuple(emails))

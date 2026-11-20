@@ -45,10 +45,10 @@ def _ensure_admin_and_login(client: TestClient) -> dict:
         if cursor.fetchone() is None:
             cursor.execute(
                 """
-                INSERT INTO usuarios (id_usuario, nombre, correo, password_hash, rol, estado)
-                VALUES (%s, %s, %s, %s, 'Administrador', 'activo')
+                INSERT INTO usuarios (nombre, correo, password_hash, rol, estado)
+                VALUES (%s, %s, %s, 'Administrador', 'activo')
                 """,
-                (f"usr-{uuid.uuid4().hex[:8]}", "Admin RF09", email, pwd_hash),
+                ("Admin RF09", email, pwd_hash),
             )
         else:
             cursor.execute(
@@ -184,7 +184,7 @@ def test_rf09_realtime_humedad_sincronizada_rf08_validaciones_y_seguridad():
             pub.connect("127.0.0.1", 1883, keepalive=30)
             pub.loop_start()
             try:
-                now_ts = int(time.time())
+                now_ts = int(time.time()) - 12
                 # Publicar lectura combinada (temperatura + humedad NOMINAL) -> actualiza RF-08 y RF-09
                 pub.publish(
                     f"simoa/dispositivos/{code1}/telemetria",
@@ -251,7 +251,7 @@ def test_rf09_realtime_humedad_sincronizada_rf08_validaciones_y_seguridad():
             loop.close()
 
         # Límites exactos (40.0 y 70.0 -> NOMINAL) + Z-Score disponible
-        base_dt = datetime.now(timezone.utc) + timedelta(seconds=2)
+        base_dt = datetime.now(timezone.utc) - timedelta(seconds=6)
         for idx, hum_val in enumerate([50.0, 52.0, 54.0, 40.0, 70.0]):
             measurement_persister.persist_event(
                 {

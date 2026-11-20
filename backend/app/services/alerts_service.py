@@ -393,6 +393,11 @@ class AlertsService:
         window_start = event_dt - timedelta(seconds=DEBOUNCE_WINDOW_SECONDS)
 
         with db_cursor() as cursor:
+            # Serializa la primera alerta de una ventana y conserva el orden de bloqueo de RF-07.
+            cursor.execute(
+                "SELECT id_dispositivo FROM dispositivos WHERE id_dispositivo = %s FOR UPDATE",
+                (candidate["dispositivo_id"],),
+            )
             cursor.execute(
                 """
                 SELECT id_alerta, severidad, ocurrencias_en_ventana

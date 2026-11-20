@@ -148,6 +148,7 @@ export function watchDeviceConnectivity(onSnapshot: (items: DeviceConnectivity[]
     }
   };
   const unavailable = () => {
+    if (!active) return;
     streamHealthy = false;
     onSnapshot(null);
     void poll();
