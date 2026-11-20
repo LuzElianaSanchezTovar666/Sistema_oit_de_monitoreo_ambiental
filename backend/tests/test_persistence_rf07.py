@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import json
 import os
 from pathlib import Path
@@ -236,6 +236,7 @@ def test_rf07_flujo_mqtt_persistencia_utc_umbrales_ia_inmutabilidad_indice_y_ren
         assert "idx_mediciones_sensor_fecha" in possible_keys
 
         # 8. Prueba real de rendimiento (< 50 ms por inserción unitaria)
+        perf_base = datetime.now(timezone.utc) - timedelta(seconds=30)
         for i in range(25):
             ok_p, _id_p, dup_p = measurement_persister.persist_event(
                 {
@@ -243,7 +244,7 @@ def test_rf07_flujo_mqtt_persistencia_utc_umbrales_ia_inmutabilidad_indice_y_ren
                     "sensor_id": sen_id,
                     "ubicacion_id": loc_id,
                     "magnitudes": {"temperatura": 20.0 + i * 0.05, "humedad": 50.0},
-                    "captured_at": datetime(2026, 11, 20, 13, 0, i, tzinfo=timezone.utc),
+                    "captured_at": perf_base + timedelta(seconds=i),
                 }
             )
             assert ok_p is True and dup_p is False

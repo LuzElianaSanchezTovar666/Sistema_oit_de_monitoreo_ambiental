@@ -15,6 +15,7 @@ import paho.mqtt.client as mqtt
 from ..config import get_settings
 from ..database import db_cursor
 from ..routers.sensores import MODEL_CAPABILITIES, STANDARD_UNITS
+from .live_telemetry import live_temperature_broadcaster
 from .measurement_persistence import measurement_persister
 
 logger = logging.getLogger("simoa.mqtt")
@@ -251,7 +252,9 @@ class MqttIngestionService:
         self._dlq_thread: Optional[threading.Thread] = None
 
         self._rf07_handlers: List[Callable[[NormalizedTelemetryEvent], None]] = []
-        self._rf13_handlers: List[Callable[[NormalizedTelemetryEvent], None]] = []
+        self._rf13_handlers: List[Callable[[NormalizedTelemetryEvent], None]] = [
+            live_temperature_broadcaster.publish_from_rf07_event
+        ]
         self._recent_routed: Deque[NormalizedTelemetryEvent] = deque(maxlen=200)
         self._processing_times_ms: Deque[float] = deque(maxlen=1000)
 

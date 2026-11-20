@@ -56,7 +56,8 @@ def _create_device_and_sensor(headers: dict, modelo: str = "DHT22", variables=No
     active_loc = next(l for l in loc_res.json()["items"] if l["estado"] == "ACTIVA")
 
     uid = uuid.uuid4().hex[:6].upper()
-    mac = ":".join([f"{(i * 17 + int(uid[:2], 16)) % 256:02X}" for i in range(6)])
+    raw_mac = uuid.uuid4().bytes[:6]
+    mac = ":".join(f"{b:02X}" for b in raw_mac)
     dev_res = client.post(
         "/api/dispositivos",
         headers=headers,
