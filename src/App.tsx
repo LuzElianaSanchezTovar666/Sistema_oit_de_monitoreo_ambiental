@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import {
   Usuario,
   Ubicacion,
@@ -39,9 +39,16 @@ import { Sidebar } from './components/layout/Sidebar';
 import { EnvironmentalLandingPage } from './components/landing/EnvironmentalLandingPage';
 import { LiveTelemetryView } from './components/dashboard/LiveTelemetryView';
 import { HeroSkeleton, CardGridSkeleton } from './components/common/SkeletonLoader';
-import { Check, AlertCircle, Smartphone, Loader2 } from 'lucide-react';
+import { Check, AlertCircle, Smartphone, Loader2, AlertTriangle, AlertOctagon, Volume2, VolumeX, X } from 'lucide-react';
 import { fetchCurrentUser, logoutSession, getDefaultTabForRole } from './services/authService';
 import { fetchUbicaciones } from './services/locationService';
+import {
+  BackendAlertaDTO,
+  fetchAlertas,
+  LiveAlertRecord,
+  mapBackendAlertaToUi,
+  mergeAlertsDeduplicated,
+} from './services/alertService';
 
 // ErrorBoundary para evitar pantallas vacías si falla un chunk o vista
 class SystemErrorBoundary extends React.Component<
@@ -197,7 +204,10 @@ export default function App() {
 
   const [devices, setDevices] = useState<Dispositivo[]>(getStoredDispositivos);
   const [sensors, setSensors] = useState<Sensor[]>(getStoredSensores);
-  const [alerts, setAlerts] = useState<Alerta[]>(getStoredAlertas);
+  const [alerts, setAlerts] = useState<LiveAlertRecord[]>(getStoredAlertas);
+  const [liveAlertBanner, setLiveAlertBanner] = useState<LiveAlertRecord | null>(null);
+  const [alertSoundEnabled, setAlertSoundEnabled] = useState<boolean>(true);
+  const notifiedAlertIdsRef = useRef<Set<string>>(new Set());
   const [maintenances, setMaintenances] = useState<Mantenimiento[]>(getStoredMantenimientos);
   const [dlqEntries, setDlqEntries] = useState<DLQEntry[]>(getStoredDLQ);
 
@@ -340,6 +350,76 @@ export default function App() {
       mounted = false;
     };
   }, []);
+
+  // RF-13: Canal SSE en tiempo real para alertas automáticas por desborde de límites
+  useEffect(() => {
+    if (!currentUser) return;
+    const canViewAlerts =
+      currentUser.rol === 'admin' ||
+      currentUser.rol === 'cliente' ||
+      currentUser.rol === 'supervisor';
+    if (!canViewAlerts) return;
+
+    let active = true;
+    fetchAlertas()
+      .then((persisted) => {
+        if (!active) return;
+        for (const a of persisted) {
+          notifiedAlertIdsRef.current.add(a.id_alerta);
+        }
+        setAlerts((prev) => mergeAlertsDeduplicated(prev, persisted));
+      })
+      .catch(() => {
+        // Fallback silencioso si el usuario no tiene sesión válida o el endpoint no está disponible aún
+      });
+
+    if (typeof EventSource === 'undefined') {
+      return () => {
+        active = false;
+      };
+    }
+
+    const es = new EventSource('/api/alertas/stream', { withCredentials: true });
+    const onSnapshot = (ev: MessageEvent) => {
+      if (!active) return;
+      try {
+        const data = JSON.parse(ev.data) as { alertas?: BackendAlertaDTO[] };
+        const mapped = Array.isArray(data.alertas) ? data.alertas.map(mapBackendAlertaToUi) : [];
+        for (const a of mapped) {
+          notifiedAlertIdsRef.current.add(a.id_alerta);
+        }
+        setAlerts((prev) => mergeAlertsDeduplicated(prev, mapped));
+      } catch {
+        // Ignorar payload corrupto
+      }
+    };
+
+    const onAlert = (ev: MessageEvent) => {
+      if (!active) return;
+      try {
+        const dto = JSON.parse(ev.data) as BackendAlertaDTO;
+        const mapped = mapBackendAlertaToUi(dto);
+        setAlerts((prev) => mergeAlertsDeduplicated(prev, [mapped]));
+        if (!notifiedAlertIdsRef.current.has(mapped.id_alerta)) {
+          notifiedAlertIdsRef.current.add(mapped.id_alerta);
+          setLiveAlertBanner(mapped);
+          if (alertSoundEnabled) {
+            playAlertSound();
+          }
+        }
+      } catch {
+        // Ignorar payload corrupto
+      }
+    };
+
+    es.addEventListener('snapshot', onSnapshot as EventListener);
+    es.addEventListener('alerta', onAlert as EventListener);
+
+    return () => {
+      active = false;
+      es.close();
+    };
+  }, [currentUser, alertSoundEnabled, playAlertSound]);
 
   // Interval for real-time telemetry streaming (2.5 seconds)
   useEffect(() => {
@@ -773,6 +853,80 @@ export default function App() {
           />
         )}
       </Suspense>
+
+      {/* Banner de Alerta Automática en Tiempo Real RF-13 */}
+      {liveAlertBanner && (
+        <div
+          role="alert"
+          className={`fixed top-20 right-6 z-50 max-w-md rounded-[16px] border p-4 shadow-xl backdrop-blur-md transition-all ${
+            liveAlertBanner.nivel === 'CRITICA'
+              ? 'bg-[#2A0E12]/95 border-[#DC2626] text-pure-white'
+              : 'bg-[#261D09]/95 border-signal-yellow text-pure-white'
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            {liveAlertBanner.nivel === 'CRITICA' ? (
+              <AlertOctagon className="w-5 h-5 text-[#EF4444] shrink-0 mt-0.5" />
+            ) : (
+              <AlertTriangle className="w-5 h-5 text-signal-yellow shrink-0 mt-0.5" />
+            )}
+            <div className="flex-1 min-w-0 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className={`text-[11px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    liveAlertBanner.nivel === 'CRITICA'
+                      ? 'bg-[#DC2626]/25 text-[#FCA5A5]'
+                      : 'bg-signal-yellow/20 text-signal-yellow'
+                  }`}
+                >
+                  {liveAlertBanner.nivel} · {liveAlertBanner.variable_alterada || 'AMBIENTAL'}
+                </span>
+                {liveAlertBanner.provisional && (
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-signal-yellow/20 text-signal-yellow">
+                    Provisional
+                  </span>
+                )}
+              </div>
+              <p className="text-xs font-medium text-pure-white leading-snug">
+                {liveAlertBanner.mensaje}
+              </p>
+              <p className="text-[11px] text-slate-text">
+                {liveAlertBanner.ubicacion_nombre || liveAlertBanner.ubicacion_id} ·{' '}
+                {liveAlertBanner.sensor_identificador || liveAlertBanner.sensor_id}
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAuthorizedTabChange('alerts');
+                    setLiveAlertBanner(null);
+                  }}
+                  className="text-[11px] font-medium text-neon-pulse hover:underline cursor-pointer"
+                >
+                  Ver en Alertas
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAlertSoundEnabled((v) => !v)}
+                  title={alertSoundEnabled ? 'Silenciar aviso sonoro' : 'Activar aviso sonoro'}
+                  className="text-[11px] text-slate-text hover:text-pure-white inline-flex items-center gap-1 cursor-pointer ml-auto"
+                >
+                  {alertSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                  {alertSoundEnabled ? 'Sonido ON' : 'Sonido OFF'}
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setLiveAlertBanner(null)}
+              aria-label="Cerrar notificación de alerta"
+              className="text-slate-text hover:text-pure-white cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Global Toast Notification — SIMOA Eco Capsule */}
       {toastMessage && (
