@@ -6,6 +6,7 @@ import {
   evaluateHumidityStatus,
   evaluateThermalStatus,
   MODEL_CAPABILITIES,
+  validateHistoricalDateRange,
   validateSensorVariablesSelection,
 } from '../src/services/sensorService';
 
@@ -72,4 +73,14 @@ test('evaluateHumidityStatus valida rango físico [0, 100] %RH y banda óptima R
   assert.equal(evaluateHumidityStatus(105.0, 40.0, 70.0), 'ESPERANDO_DATOS');
   assert.equal(evaluateHumidityStatus(55.0, null, null), 'SIN_CONFIGURACION');
   assert.equal(evaluateHumidityStatus(null, 40.0, 70.0), 'ESPERANDO_DATOS');
+});
+
+test('validateHistoricalDateRange rechaza fecha inicial mayor a final con mensaje exacto RF-10', () => {
+  assert.equal(
+    validateHistoricalDateRange('2026-11-20', '2026-11-19'),
+    'La fecha inicial no puede ser mayor a la final'
+  );
+  assert.equal(validateHistoricalDateRange('2026-11-19', '2026-11-20'), null);
+  assert.equal(validateHistoricalDateRange('2026-11-20', '2026-11-20'), null);
+  assert.equal(validateHistoricalDateRange('', '2026-11-20'), null);
 });

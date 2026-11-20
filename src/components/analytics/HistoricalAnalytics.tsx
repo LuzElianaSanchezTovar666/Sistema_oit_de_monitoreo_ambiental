@@ -1,410 +1,562 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
-  Download,
-  FileSpreadsheet,
-  FileCode,
-  CheckCircle,
+  Search,
+  RotateCcw,
   Thermometer,
   Droplets,
   Award,
-  Loader2,
-  Layers,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Database,
 } from 'lucide-react';
 import { Ubicacion, Dispositivo, Sensor, Medicion } from '../../types/iot';
+import { SkeletonBox } from '../common/SkeletonLoader';
+import { fetchUbicaciones, UbicacionDTO } from '../../services/locationService';
+import { DispositivoDTO, fetchDispositivos } from '../../services/deviceService';
 import {
-  backgroundJobQueue,
-  selectColumns,
-  buildEntityIndexes,
-  BackgroundJob,
-} from '../../services/performanceEngine';
+  fetchHistoricalMeasurements,
+  fetchSensores,
+  HistoricalQueryResponseDTO,
+  SensorDTO,
+  validateHistoricalDateRange,
+} from '../../services/sensorService';
 
 interface HistoricalAnalyticsProps {
-  locations: Ubicacion[];
-  devices: Dispositivo[];
-  sensors: Sensor[];
-  readingsHistory: { [sensorId: string]: Medicion[] };
+  locations?: Ubicacion[];
+  devices?: Dispositivo[];
+  sensors?: Sensor[];
+  readingsHistory?: { [sensorId: string]: Medicion[] };
 }
 
-export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.memo(({
-  locations,
-  devices,
-  sensors,
-  readingsHistory,
-}) => {
-  const [selectedLocId, setSelectedLocId] = useState<string>(locations[0]?.id_ubicacion || '');
-  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
-  const [jobs, setJobs] = useState<BackgroundJob[]>(() => backgroundJobQueue.getJobs());
+export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.memo(() => {
+  const [ubicaciones, setUbicaciones] = useState<UbicacionDTO[]>([]);
+  const [dispositivos, setDispositivos] = useState<DispositivoDTO[]>([]);
+  const [sensores, setSensores] = useState<SensorDTO[]>([]);
+
+  // Filtros controlados
+  const [ubicacionId, setUbicacionId] = useState<string>('');
+  const [dispositivoId, setDispositivoId] = useState<string>('');
+  const [sensorId, setSensorId] = useState<string>('');
+  const [fechaInicio, setFechaInicio] = useState<string>('');
+  const [fechaFin, setFechaFin] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>('');
+  const [result, setResult] = useState<HistoricalQueryResponseDTO | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const unsubscribe = backgroundJobQueue.subscribe(() => {
-      setJobs(backgroundJobQueue.getJobs());
+    let active = true;
+    Promise.all([
+      fetchUbicaciones().catch(() => ({ items: [] as UbicacionDTO[] })),
+      fetchDispositivos().catch(() => ({ items: [] as DispositivoDTO[] })),
+      fetchSensores().catch(() => ({ items: [] as SensorDTO[] })),
+    ]).then(([uRes, dRes, sRes]) => {
+      if (!active) return;
+      setUbicaciones(uRes.items);
+      setDispositivos(dRes.items);
+      setSensores(sRes.items);
     });
-    return unsubscribe;
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const indexes = useMemo(
-    () => buildEntityIndexes(locations, devices, sensors),
-    [locations, devices, sensors]
+  // Selectores dependientes respetando relaciones reales en MySQL
+  const filteredDispositivos = useMemo(() => {
+    if (!ubicacionId) return dispositivos;
+    return dispositivos.filter((d) => d.ubicacion_id === ubicacionId);
+  }, [dispositivos, ubicacionId]);
+
+  const filteredSensores = useMemo(() => {
+    if (dispositivoId) {
+      return sensores.filter((s) => s.dispositivo_id === dispositivoId);
+    }
+    if (ubicacionId) {
+      const validDevIds = new Set(filteredDispositivos.map((d) => d.id_dispositivo));
+      return sensores.filter((s) => validDevIds.has(s.dispositivo_id));
+    }
+    return sensores;
+  }, [sensores, dispositivoId, ubicacionId, filteredDispositivos]);
+
+  const handleUbicacionChange = (newUbiId: string) => {
+    setUbicacionId(newUbiId);
+    if (newUbiId && dispositivoId) {
+      const dev = dispositivos.find((d) => d.id_dispositivo === dispositivoId);
+      if (!dev || dev.ubicacion_id !== newUbiId) {
+        setDispositivoId('');
+        setSensorId('');
+      }
+    }
+    if (newUbiId && sensorId && !dispositivoId) {
+      const sen = sensores.find((s) => s.id_sensor === sensorId);
+      const dev = sen ? dispositivos.find((d) => d.id_dispositivo === sen.dispositivo_id) : null;
+      if (!dev || dev.ubicacion_id !== newUbiId) {
+        setSensorId('');
+      }
+    }
+  };
+
+  const handleDispositivoChange = (newDevId: string) => {
+    setDispositivoId(newDevId);
+    if (newDevId && sensorId) {
+      const sen = sensores.find((s) => s.id_sensor === sensorId);
+      if (!sen || sen.dispositivo_id !== newDevId) {
+        setSensorId('');
+      }
+    }
+  };
+
+  const executeQuery = useCallback(
+    async (targetPage: number, targetPageSize: number, overrides?: {
+      ubicacion_id?: string;
+      dispositivo_id?: string;
+      sensor_id?: string;
+      fecha_inicio?: string;
+      fecha_fin?: string;
+    }) => {
+      const fIni = overrides?.fecha_inicio !== undefined ? overrides.fecha_inicio : fechaInicio;
+      const fFin = overrides?.fecha_fin !== undefined ? overrides.fecha_fin : fechaFin;
+      const rangeErr = validateHistoricalDateRange(fIni, fFin);
+      if (rangeErr) {
+        setError(rangeErr);
+        return;
+      }
+
+      // RN-12: Cancelar solicitud anterior para evitar estados inconsistentes
+      if (abortRef.current) {
+        abortRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      setLoading(true);
+      setError('');
+      try {
+        const res = await fetchHistoricalMeasurements(
+          {
+            ubicacion_id: (overrides?.ubicacion_id !== undefined ? overrides.ubicacion_id : ubicacionId) || undefined,
+            dispositivo_id: (overrides?.dispositivo_id !== undefined ? overrides.dispositivo_id : dispositivoId) || undefined,
+            sensor_id: (overrides?.sensor_id !== undefined ? overrides.sensor_id : sensorId) || undefined,
+            fecha_inicio: fIni || undefined,
+            fecha_fin: fFin || undefined,
+            page: targetPage,
+            page_size: targetPageSize,
+          },
+          controller.signal
+        );
+        setResult(res);
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+        setError(err?.message || 'Error al consultar el historial de mediciones.');
+      } finally {
+        if (abortRef.current === controller) {
+          setLoading(false);
+        }
+      }
+    },
+    [ubicacionId, dispositivoId, sensorId, fechaInicio, fechaFin]
   );
 
-  const currentLocation = indexes.locationById.get(selectedLocId) || locations[0];
-  const currentDevice = currentLocation
-    ? indexes.devicesByLocationId.get(currentLocation.id_ubicacion)?.[0]
-    : undefined;
-  const locationSensor =
-    (currentDevice ? indexes.sensorByDeviceId.get(currentDevice.id_dispositivo) : undefined) ||
-    sensors[0];
-  const history = locationSensor ? readingsHistory[locationSensor.id_sensor] || [] : [];
-
-  // Cálculos estadísticos consolidados
-  const stats = useMemo(() => {
-    if (history.length === 0) {
-      return {
-        avgTemp: 0,
-        minTemp: 0,
-        maxTemp: 0,
-        stdTemp: 0,
-        avgHum: 0,
-        minHum: 0,
-        maxHum: 0,
-        compliancePct: 100,
-        anomalyCount: 0,
-      };
-    }
-
-    const tVals = history.map((h) => h.temperatura);
-    const hVals = history.map((h) => h.humedad);
-    const anomalies = history.filter((h) => h.valor_anomalo);
-    const breaches = history.filter((h) => h.es_fuera_de_umbral);
-
-    const avgT = tVals.reduce((a, b) => a + b, 0) / tVals.length;
-    const avgH = hVals.reduce((a, b) => a + b, 0) / hVals.length;
-
-    const stdT = Math.sqrt(
-      tVals.reduce((acc, val) => acc + Math.pow(val - avgT, 2), 0) / Math.max(1, tVals.length - 1)
-    );
-
-    const compliance = ((history.length - breaches.length) / history.length) * 100;
-
-    return {
-      avgTemp: parseFloat(avgT.toFixed(2)),
-      minTemp: parseFloat(Math.min(...tVals).toFixed(2)),
-      maxTemp: parseFloat(Math.max(...tVals).toFixed(2)),
-      stdTemp: parseFloat(stdT.toFixed(2)),
-      avgHum: parseFloat(avgH.toFixed(1)),
-      minHum: parseFloat(Math.min(...hVals).toFixed(1)),
-      maxHum: parseFloat(Math.max(...hVals).toFixed(1)),
-      compliancePct: parseFloat(compliance.toFixed(1)),
-      anomalyCount: anomalies.length,
+  useEffect(() => {
+    executeQuery(1, pageSize);
+    return () => {
+      if (abortRef.current) abortRef.current.abort();
     };
-  }, [history]);
+  }, []);
 
-  // Enviar tarea pesada de exportación CSV a la Cola de Trabajos en Segundo Plano (Background Job Queue)
-  // pidiendo solo las columnas necesarias con selectColumns
-  const handleExportCSV = () => {
-    if (history.length === 0) return;
-    backgroundJobQueue.enqueueJob(
-      `Exportación CSV (${currentLocation?.nombre} · ${history.length} filas)`,
-      async () => {
-        const projected = selectColumns(history, [
-          'id_medicion',
-          'fecha_hora',
-          'temperatura',
-          'humedad',
-          'valor_anomalo',
-          'score_anomalia_ia',
-          'z_score_temp',
-        ]);
-        const headers = ['id_medicion', 'fecha_hora', 'temperatura_c', 'humedad_rh', 'es_anomalo', 'score_ml', 'z_temp'];
-        const rows = projected.map((m) => [
-          m.id_medicion,
-          m.fecha_hora,
-          m.temperatura,
-          m.humedad,
-          m.valor_anomalo ? 1 : 0,
-          m.score_anomalia_ia,
-          m.z_score_temp,
-        ]);
-
-        const csvContent =
-          'data:text/csv;charset=utf-8,' +
-          [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `telemetria_${currentLocation?.nombre.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        return `CSV generado (${projected.length} registros, 7 columnas proyectadas)`;
-      }
-    );
+  const handleConsultar = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    executeQuery(1, pageSize);
   };
 
-  // Enviar tarea pesada de exportación JSON a la Cola de Trabajos en Segundo Plano
-  const handleExportJSON = () => {
-    if (history.length === 0) return;
-    backgroundJobQueue.enqueueJob(
-      `Exportación JSON (${currentLocation?.nombre})`,
-      async () => {
-        const projected = selectColumns(history, [
-          'id_medicion',
-          'fecha_hora',
-          'temperatura',
-          'humedad',
-          'valor_anomalo',
-          'score_anomalia_ia',
-        ]);
-        const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(projected, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute('href', dataStr);
-        downloadAnchor.setAttribute('download', `telemetria_${currentLocation?.nombre.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-        return `JSON exportado (${projected.length} objetos con proyección selectColumns)`;
-      }
-    );
+  const handleLimpiarFiltros = () => {
+    setUbicacionId('');
+    setDispositivoId('');
+    setSensorId('');
+    setFechaInicio('');
+    setFechaFin('');
+    setPage(1);
+    setError('');
+    executeQuery(1, pageSize, {
+      ubicacion_id: '',
+      dispositivo_id: '',
+      sensor_id: '',
+      fecha_inicio: '',
+      fecha_fin: '',
+    });
   };
 
-  const activeJob = jobs.find((j) => j.status === 'PROCESSING' || j.status === 'QUEUED');
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage);
+    executeQuery(nextPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+    executeQuery(1, newSize);
+  };
+
+  const stats = result?.estadisticas;
+  const tempStats = stats?.temperatura;
+  const humStats = stats?.humedad;
+  const compStats = stats?.cumplimiento;
 
   return (
-    <div className="space-y-[24px]">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 animate-fadeIn">
+      {/* Encabezado */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-sheet-white p-6 rounded-[16px]">
         <div>
-          <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
-            <FileSpreadsheet className="w-6 h-6 text-canopy" />
-            <span>Analítica Histórica y Series Temporales</span>
-          </h2>
+          <p className="sauce-eyebrow text-canopy">RF-10 · REGISTROS INMUTABLES EN MYSQL</p>
+          <h1 className="apple-card-heading text-bark mt-1">Analítica Histórica</h1>
           <p className="text-[14px] text-slate mt-1">
-            Consolidado estadístico, proyección de columnas y cola asíncrona de trabajos pesados (Background Job Queue)
+            Consulta paginada de mediciones ambientales almacenadas en UTC y estadísticas consolidadas sobre todo el conjunto filtrado.
           </p>
         </div>
-
-        {/* Botones de Descarga vía Background Worker Queue */}
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={handleExportCSV}
-            disabled={Boolean(activeJob)}
-            className="apple-blue-pill flex items-center gap-1.5 px-4 py-2 text-xs font-semibold disabled:opacity-60"
-          >
-            {activeJob ? (
-              <Loader2 className="w-3.5 h-3.5 text-sheet-white animate-spin" />
-            ) : (
-              <Download className="w-3.5 h-3.5 text-sheet-white" />
-            )}
-            <span>{activeJob ? `En Cola (${activeJob.progress}%)` : 'Encolar CSV'}</span>
-          </button>
-          <button
-            onClick={handleExportJSON}
-            disabled={Boolean(activeJob)}
-            className="apple-white-outline-pill flex items-center gap-1.5 py-2 text-xs font-semibold disabled:opacity-60"
-          >
-            <FileCode className="w-3.5 h-3.5 text-bark" />
-            <span>Encolar JSON</span>
-          </button>
+        <div className="text-[11px] font-mono text-slate bg-cream-paper px-3 py-2 rounded-[8px] flex items-center gap-1.5 self-start sm:self-auto">
+          <Database className="w-3.5 h-3.5 text-canopy" />
+          <span>Solo lectura (RN-09) · Paginación servidor (RN-12)</span>
         </div>
       </div>
 
-      {/* Estado de la Cola de Trabajos en Segundo Plano si hay tareas recientes */}
-      {jobs.length > 0 && (
-        <div className="bg-sheet-white rounded-[16px] p-4 border border-sage-mist/60 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-bark flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-canopy" />
-              Cola de Trabajos Asíncronos (BullMQ / Worker Queue)
-            </span>
-            <span className="font-mono text-[11px] text-slate">
-              No bloquea el hilo principal de UI
-            </span>
+      {/* Panel de Filtros */}
+      <form onSubmit={handleConsultar} className="bg-sheet-white p-6 rounded-[16px] space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div>
+            <label htmlFor="rf10-ubi" className="block text-xs text-slate font-medium mb-1">
+              Ubicación
+            </label>
+            <select
+              id="rf10-ubi"
+              value={ubicacionId}
+              onChange={(e) => handleUbicacionChange(e.target.value)}
+              className="w-full px-3 py-2 rounded-[8px] bg-cream-paper border border-sage-mist text-xs text-bark"
+            >
+              <option value="">Todas las ubicaciones</option>
+              {ubicaciones.map((u) => (
+                <option key={u.ubicacion_id} value={u.ubicacion_id}>
+                  {u.nombre} ({u.codigo_area})
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {jobs.slice(0, 2).map((job) => (
-              <div key={job.id} className="bg-cream-paper p-3 rounded-[14px] flex items-center justify-between gap-3 text-xs">
-                <div className="truncate">
-                  <div className="font-semibold text-bark truncate">{job.name}</div>
-                  <div className="text-[11px] text-slate font-mono truncate">
-                    {job.resultSummary || `Estado: ${job.status}`}
-                  </div>
-                </div>
-                <span
-                  className={`px-2 py-0.5 rounded-[5px] font-mono text-[10px] font-semibold shrink-0 ${
-                    job.status === 'COMPLETED'
-                      ? 'bg-canopy/15 text-canopy'
-                      : 'bg-canopy/20 text-canopy'
-                  }`}
-                >
-                  {job.progress}%
-                </span>
-              </div>
-            ))}
+
+          <div>
+            <label htmlFor="rf10-dev" className="block text-xs text-slate font-medium mb-1">
+              Dispositivo
+            </label>
+            <select
+              id="rf10-dev"
+              value={dispositivoId}
+              onChange={(e) => handleDispositivoChange(e.target.value)}
+              className="w-full px-3 py-2 rounded-[8px] bg-cream-paper border border-sage-mist text-xs text-bark"
+            >
+              <option value="">Todos los dispositivos</option>
+              {filteredDispositivos.map((d) => (
+                <option key={d.id_dispositivo} value={d.id_dispositivo}>
+                  {d.nombre} ({d.codigo})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="rf10-sen" className="block text-xs text-slate font-medium mb-1">
+              Sensor
+            </label>
+            <select
+              id="rf10-sen"
+              value={sensorId}
+              onChange={(e) => setSensorId(e.target.value)}
+              className="w-full px-3 py-2 rounded-[8px] bg-cream-paper border border-sage-mist text-xs text-bark"
+            >
+              <option value="">Todos los sensores</option>
+              {filteredSensores.map((s) => (
+                <option key={s.id_sensor} value={s.id_sensor}>
+                  {s.identificador} ({s.modelo})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="rf10-fini" className="block text-xs text-slate font-medium mb-1">
+              Fecha inicial
+            </label>
+            <input
+              id="rf10-fini"
+              type="date"
+              value={fechaInicio}
+              onChange={(e) => {
+                setFechaInicio(e.target.value);
+                setError('');
+              }}
+              className="w-full px-3 py-2 rounded-[8px] bg-cream-paper border border-sage-mist text-xs text-bark font-mono"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="rf10-ffin" className="block text-xs text-slate font-medium mb-1">
+              Fecha final
+            </label>
+            <input
+              id="rf10-ffin"
+              type="date"
+              value={fechaFin}
+              onChange={(e) => {
+                setFechaFin(e.target.value);
+                setError('');
+              }}
+              className="w-full px-3 py-2 rounded-[8px] bg-cream-paper border border-sage-mist text-xs text-bark font-mono"
+            />
           </div>
         </div>
-      )}
 
-      {/* Controles de Selección — Charcoal Stage (#FFFFFF, 28px radius) */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-sheet-white p-4 rounded-[16px]">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <span className="text-xs text-slate">Espacio Analizado:</span>
-          <select
-            value={selectedLocId}
-            onChange={(e) => setSelectedLocId(e.target.value)}
-            className="apple-pill-select py-2 text-xs font-medium"
-          >
-            {locations.map((loc) => (
-              <option key={loc.id_ubicacion} value={loc.id_ubicacion}>
-                {loc.nombre} ({loc.codigo_area})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex items-center gap-1 p-1 bg-cream-paper rounded-[8px] text-[12px]">
-          <button
-            onClick={() => setTimeRange('24h')}
-            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
-              timeRange === '24h'
-                ? 'bg-cream-paper text-bark font-semibold'
-                : 'text-slate hover:text-bark'
-            }`}
-          >
-            Últimas 24 Horas
-          </button>
-          <button
-            onClick={() => setTimeRange('7d')}
-            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
-              timeRange === '7d'
-                ? 'bg-cream-paper text-bark font-semibold'
-                : 'text-slate hover:text-bark'
-            }`}
-          >
-            7 Días
-          </button>
-          <button
-            onClick={() => setTimeRange('30d')}
-            className={`px-3.5 py-1.5 rounded-[8px] transition-colors ${
-              timeRange === '30d'
-                ? 'bg-cream-paper text-bark font-semibold'
-                : 'text-slate hover:text-bark'
-            }`}
-          >
-            Mes Completo
-          </button>
-        </div>
-      </div>
-
-      {/* Tarjetas de Métricas Estadísticas — Feature Metric Tiles (28px radius, 16px padding, no shadow) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
-        {/* Conformidad Operacional */}
-        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate">
-            <span className="flex items-center gap-1.5">
-              <Award className="w-4 h-4 text-canopy" />
-              Tasa de Conformidad
-            </span>
-            <span className="text-[11px] font-mono text-canopy">SLA 99.5%</span>
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="apple-blue-pill px-5 py-2 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              Consultar
+            </button>
+            <button
+              type="button"
+              onClick={handleLimpiarFiltros}
+              className="px-4 py-2 rounded-[56px] bg-cream-paper border border-sage-mist text-xs text-bark hover:border-canopy inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Limpiar filtros
+            </button>
           </div>
-          <div className="apple-metric-display text-canopy tabular-nums py-1">
-            {stats.compliancePct}%
+
+          <div className="flex items-center gap-2 text-xs text-slate">
+            <label htmlFor="rf10-psize">Filas por página:</label>
+            <select
+              id="rf10-psize"
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="px-2.5 py-1 rounded-[8px] bg-cream-paper border border-sage-mist text-xs text-bark font-mono"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
           </div>
-          <p className="text-[12px] text-slate">
-            Tiempo de operación estricto dentro de los umbrales nominales asignados.
-          </p>
         </div>
 
-        {/* Temperatura Media */}
-        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate">
-            <span className="flex items-center gap-1.5">
+        {error && (
+          <div
+            role="alert"
+            className="p-3 rounded-[10px] bg-[#DC2626]/10 border border-[#DC2626]/40 text-xs text-[#DC2626] flex items-center gap-2"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+      </form>
+
+      {/* Tarjetas KPI Consolidadas (sobre todos los registros filtrados) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-sheet-white rounded-[16px] p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate flex items-center gap-1.5">
               <Thermometer className="w-4 h-4 text-canopy" />
-              Temperatura Promedio
+              Temperatura (°C)
             </span>
-            <span className="text-[11px] font-mono">σ: {stats.stdTemp}°C</span>
+            <span className="text-[11px] font-mono text-slate">
+              {tempStats?.muestras ?? 0} muestras
+            </span>
           </div>
-          <div className="apple-metric-display text-bark tabular-nums py-1">
-            {stats.avgTemp}°C
+          <div className="text-2xl font-semibold text-canopy font-mono tabular-nums">
+            {tempStats?.promedio !== null && tempStats?.promedio !== undefined
+              ? `${tempStats.promedio.toFixed(2)} °C`
+              : 'No disponible'}
           </div>
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate">
-            <span>Mín: {stats.minTemp}°C</span>
-            <span>Máx: {stats.maxTemp}°C</span>
+          <div className="text-[11px] font-mono text-slate flex flex-wrap gap-x-3 gap-y-1">
+            <span>
+              Mín: {tempStats?.minimo !== null && tempStats?.minimo !== undefined ? `${tempStats.minimo} °C` : 'No disponible'}
+            </span>
+            <span>
+              Máx: {tempStats?.maximo !== null && tempStats?.maximo !== undefined ? `${tempStats.maximo} °C` : 'No disponible'}
+            </span>
+            <span>
+              σ (muestral):{' '}
+              {tempStats?.desviacion_estandar !== null && tempStats?.desviacion_estandar !== undefined
+                ? `${tempStats.desviacion_estandar} °C`
+                : 'No disponible'}
+            </span>
           </div>
         </div>
 
-        {/* Humedad Media */}
-        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate">
-            <span className="flex items-center gap-1.5">
+        <div className="bg-sheet-white rounded-[16px] p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate flex items-center gap-1.5">
               <Droplets className="w-4 h-4 text-canopy" />
-              Humedad Promedio
+              Humedad Relativa (%RH)
             </span>
-            <span className="text-[11px] font-mono text-canopy">Nominal</span>
+            <span className="text-[11px] font-mono text-slate">
+              {humStats?.muestras ?? 0} muestras
+            </span>
           </div>
-          <div className="apple-metric-display text-bark tabular-nums py-1">
-            {stats.avgHum}%
+          <div className="text-2xl font-semibold text-bark font-mono tabular-nums">
+            {humStats?.promedio !== null && humStats?.promedio !== undefined
+              ? `${humStats.promedio.toFixed(2)} %RH`
+              : 'No disponible'}
           </div>
-          <div className="flex items-center justify-between text-[11px] font-mono text-slate">
-            <span>Mín: {stats.minHum}%</span>
-            <span>Máx: {stats.maxHum}%</span>
+          <div className="text-[11px] font-mono text-slate flex flex-wrap gap-x-3 gap-y-1">
+            <span>
+              Mín: {humStats?.minimo !== null && humStats?.minimo !== undefined ? `${humStats.minimo} %RH` : 'No disponible'}
+            </span>
+            <span>
+              Máx: {humStats?.maximo !== null && humStats?.maximo !== undefined ? `${humStats.maximo} %RH` : 'No disponible'}
+            </span>
+            <span>
+              σ (muestral):{' '}
+              {humStats?.desviacion_estandar !== null && humStats?.desviacion_estandar !== undefined
+                ? `${humStats.desviacion_estandar} %RH`
+                : 'No disponible'}
+            </span>
           </div>
         </div>
 
-        {/* Eventos Anómalos IA */}
-        <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-2 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs font-semibold text-slate">
-            <span>Anomalías Detectadas</span>
-            <span className="apple-badge-orange font-mono">ML Engine</span>
+        <div className="bg-sheet-white rounded-[16px] p-5 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-canopy" />
+              Cumplimiento Ambiental
+            </span>
+            <span className="text-[11px] font-mono text-slate">Evaluación RF-07</span>
           </div>
-          <div className="apple-metric-display text-[#DC2626] tabular-nums py-1">
-            {stats.anomalyCount}
+          <div className="text-2xl font-semibold text-canopy font-mono tabular-nums">
+            {compStats?.porcentaje !== null && compStats?.porcentaje !== undefined
+              ? `${compStats.porcentaje.toFixed(1)} %`
+              : 'No disponible'}
           </div>
-          <p className="text-[12px] text-slate">
-            Disparos por modelo de detección Isolation Forest (Z &gt; 2.8σ).
-          </p>
+          <div className="text-[11px] font-mono text-slate">
+            {compStats && compStats.mediciones_evaluables > 0
+              ? `${compStats.mediciones_conformes} conformes de ${compStats.mediciones_evaluables} evaluables`
+              : 'Sin mediciones evaluables en el rango'}
+          </div>
         </div>
       </div>
 
-      {/* Certificado de Cumplimiento Normativo ISO/GxP — Charcoal Stage (#FFFFFF, 28px radius) */}
-      <div className="bg-sheet-white rounded-[16px] p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-full bg-cream-paper text-canopy flex items-center justify-center shrink-0">
-              <CheckCircle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-[17px] font-semibold text-bark">
-                Certificación de Cadena de Frío y Cumplimiento Normativo GxP
-              </h3>
-              <p className="text-[14px] text-slate mt-0.5">
-                La ubicación {currentLocation?.nombre} cumple con los estándares de Buenas Prácticas de Manufactura y Almacenamiento Ambiental.
-              </p>
-            </div>
-          </div>
-          <span className="text-xs font-mono font-semibold px-3 py-1 rounded-[5px] bg-canopy/15 text-canopy shrink-0">
-            ESTADO: APROBADO
+      {/* Tabla Paginada de Resultados */}
+      <div className="bg-sheet-white rounded-[16px] overflow-hidden">
+        <div className="px-6 py-4 border-b border-sage-mist/60 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-[16px] font-semibold text-bark">
+            Resultados ({result?.total_records ?? 0} registros)
+          </h2>
+          <span className="text-xs font-mono text-slate">
+            Página {result?.total_pages ? result.page : 0} de {result?.total_pages ?? 0}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono pt-4 border-t border-sage-mist/60 text-bark">
-          <div className="bg-cream-paper p-3.5 rounded-[16px]">
-            <span className="text-[10px] text-slate block font-sans">ID Protocolo</span>
-            <span className="font-semibold">ECO-VAL-{currentLocation?.codigo_area}-2026</span>
+        {loading ? (
+          <div className="p-6 space-y-3">
+            <SkeletonBox className="h-10 w-full" />
+            <SkeletonBox className="h-10 w-full" />
+            <SkeletonBox className="h-10 w-full" />
+            <SkeletonBox className="h-10 w-full" />
+            <SkeletonBox className="h-10 w-full" />
           </div>
-          <div className="bg-cream-paper p-3.5 rounded-[16px]">
-            <span className="text-[10px] text-slate block font-sans">Total Mediciones</span>
-            <span className="font-semibold">{history.length} registros</span>
+        ) : !result || result.items.length === 0 ? (
+          <div className="p-10 text-center text-sm text-slate">
+            No se encontraron mediciones para los filtros seleccionados
           </div>
-          <div className="bg-cream-paper p-3.5 rounded-[16px]">
-            <span className="text-[10px] text-slate block font-sans">Excursiones Térmicas</span>
-            <span className="font-semibold text-canopy">0 no justificadas</span>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-cream-paper text-slate font-mono uppercase tracking-wider border-b border-sage-mist/60">
+                  <th className="py-3 px-4">Fecha y hora</th>
+                  <th className="py-3 px-4">Ubicación</th>
+                  <th className="py-3 px-4">Dispositivo</th>
+                  <th className="py-3 px-4">Sensor</th>
+                  <th className="py-3 px-4 text-right">Temperatura (°C)</th>
+                  <th className="py-3 px-4 text-right">Humedad (%RH)</th>
+                  <th className="py-3 px-4 text-center">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.items.map((m) => (
+                  <tr
+                    key={m.id_medicion}
+                    className="border-b border-sage-mist/40 hover:bg-cream-paper/50 font-mono tabular-nums"
+                  >
+                    <td className="py-3 px-4 text-bark whitespace-nowrap" title={`UTC: ${m.fecha_hora_utc}`}>
+                      {new Date(m.fecha_hora_utc).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4 font-sans text-bark">
+                      {m.ubicacion_nombre || m.ubicacion_id || '—'}
+                    </td>
+                    <td className="py-3 px-4 font-sans text-bark">
+                      {m.dispositivo_nombre || m.dispositivo_codigo || m.dispositivo_id}
+                    </td>
+                    <td className="py-3 px-4 text-slate">
+                      {m.sensor_identificador || m.sensor_id || '—'}
+                    </td>
+                    <td className="py-3 px-4 text-right text-canopy font-semibold">
+                      {m.temperatura !== null ? `${m.temperatura.toFixed(2)} °C` : '—'}
+                    </td>
+                    <td className="py-3 px-4 text-right text-bark">
+                      {m.humedad !== null ? `${m.humedad.toFixed(1)} %RH` : '—'}
+                    </td>
+                    <td className="py-3 px-4 text-center font-sans">
+                      <span
+                        className={`px-2 py-0.5 rounded-[5px] text-[11px] font-semibold ${
+                          m.estado_evaluacion === 'Conforme'
+                            ? 'bg-canopy/15 text-canopy'
+                            : m.estado_evaluacion === 'Fuera de umbral'
+                              ? 'bg-[#DC2626]/15 text-[#DC2626]'
+                              : 'bg-cream-paper text-slate'
+                        }`}
+                      >
+                        {m.estado_evaluacion}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="bg-cream-paper p-3.5 rounded-[16px]">
-            <span className="text-[10px] text-slate block font-sans">Firma Hash SHA-256</span>
-            <span className="font-semibold truncate block">e7c84a2f89...b11</span>
+        )}
+
+        {/* Paginación */}
+        {result && result.total_pages > 1 && (
+          <div className="px-6 py-4 border-t border-sage-mist/60 flex items-center justify-between text-xs">
+            <button
+              type="button"
+              disabled={page <= 1 || loading}
+              onClick={() => handlePageChange(page - 1)}
+              className="px-3 py-1.5 rounded-[8px] bg-cream-paper border border-sage-mist text-bark disabled:opacity-50 inline-flex items-center gap-1 cursor-pointer"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              Anterior
+            </button>
+            <span className="font-mono text-slate">
+              Página {result.page} / {result.total_pages}
+            </span>
+            <button
+              type="button"
+              disabled={page >= result.total_pages || loading}
+              onClick={() => handlePageChange(page + 1)}
+              className="px-3 py-1.5 rounded-[8px] bg-cream-paper border border-sage-mist text-bark disabled:opacity-50 inline-flex items-center gap-1 cursor-pointer"
+            >
+              Siguiente
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
