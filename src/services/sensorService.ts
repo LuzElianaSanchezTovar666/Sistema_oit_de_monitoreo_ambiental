@@ -620,3 +620,114 @@ export async function fetchHistoricalMeasurements(
   }
   return data;
 }
+
+// ============================================================
+// RF-11: Generación de Gráficos de Tendencia Dinámicos (SVG)
+// ============================================================
+
+export interface TrendPointDTO {
+  id_medicion: number;
+  sensor_id: string | null;
+  sensor_identificador?: string | null;
+  sensor_modelo?: string | null;
+  dispositivo_id: string;
+  ubicacion_id: string | null;
+  temperatura: number | null;
+  humedad: number | null;
+  es_fuera_de_umbral: boolean | null;
+  estado_evaluacion: 'Conforme' | 'Fuera de umbral' | 'No evaluable';
+  score_anomalia_ia: number | null;
+  es_anomalia_ia: boolean;
+  fecha_hora_utc: string;
+}
+
+export interface TrendLimitMetaDTO {
+  min: number | null;
+  max: number | null;
+  vigente_desde_utc: string | null;
+  vigencia_completa: boolean;
+  motivo: string | null;
+}
+
+export interface HistoricalTrendResponseDTO {
+  series: TrendPointDTO[];
+  total_original: number;
+  total_retornados: number;
+  reducido: boolean;
+  estrategia_reduccion: 'none' | 'extremes_and_anomalies_bucket';
+  anomalias_ia_disponibles: boolean;
+  limites: {
+    temperatura: TrendLimitMetaDTO;
+    humedad: TrendLimitMetaDTO;
+  };
+  zona_horaria: 'UTC';
+}
+
+export const INSUFFICIENT_TREND_MESSAGE =
+  'Recolección inicial de datos en curso. Aún no hay suficientes mediciones para visualizar una tendencia';
+
+export function getTrendInsufficientMessage(validCount: number): string | null {
+  return validCount < 2 ? INSUFFICIENT_TREND_MESSAGE : null;
+}
+
+export function computeTrendAxisBounds(
+  values: number[],
+  limitMin: number | null,
+  limitMax: number | null,
+  isHumidity: boolean
+): { min: number; max: number } {
+  const candidates = [...values];
+  if (limitMin !== null) candidates.push(limitMin);
+  if (limitMax !== null) candidates.push(limitMax);
+
+  if (candidates.length === 0) {
+    return isHumidity ? { min: 0, max: 100 } : { min: 15, max: 30 };
+  }
+
+  let rawMin = Math.min(...candidates);
+  let rawMax = Math.max(...candidates);
+  if (rawMax - rawMin < 2) {
+    rawMin -= 1;
+    rawMax += 1;
+  } else {
+    const pad = (rawMax - rawMin) * 0.12;
+    rawMin -= pad;
+    rawMax += pad;
+  }
+
+  if (isHumidity) {
+    rawMin = Math.max(0, Math.floor(rawMin));
+    rawMax = Math.min(100, Math.ceil(rawMax));
+    if (rawMax <= rawMin) {
+      return { min: 0, max: 100 };
+    }
+    return { min: rawMin, max: rawMax };
+  }
+
+  return { min: Math.floor(rawMin * 10) / 10, max: Math.ceil(rawMax * 10) / 10 };
+}
+
+export async function fetchHistoricalTrends(
+  params: Omit<HistoricalQueryParams, 'page' | 'page_size'> & { max_points?: number },
+  signal?: AbortSignal
+): Promise<HistoricalTrendResponseDTO> {
+  const qs = new URLSearchParams();
+  if (params.fecha_inicio) qs.set('fecha_inicio', params.fecha_inicio);
+  if (params.fecha_fin) qs.set('fecha_fin', params.fecha_fin);
+  if (params.ubicacion_id) qs.set('ubicacion_id', params.ubicacion_id);
+  if (params.dispositivo_id) qs.set('dispositivo_id', params.dispositivo_id);
+  if (params.sensor_id) qs.set('sensor_id', params.sensor_id);
+  qs.set('max_points', String(params.max_points ?? 300));
+  qs.set('tz_offset_minutes', String(new Date().getTimezoneOffset()));
+
+  const res = await fetch(`/api/mediciones/tendencias?${qs.toString()}`, {
+    method: 'GET',
+    credentials: 'include',
+    signal,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar las tendencias de telemetría.');
+  }
+  return data;
+}

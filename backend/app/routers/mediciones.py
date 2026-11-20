@@ -370,6 +370,259 @@ def get_historico_mediciones(
     }
 
 
+def _downsample_preserving_extremes(rows: List[Dict[str, Any]], max_points: int) -> List[Dict[str, Any]]:
+    """Reduce volumen manteniendo orden cronológico, extremos (mín/máx), fuera de umbral y anomalías IA."""
+    total = len(rows)
+    if total <= max_points or max_points < 10:
+        return rows
+
+    num_buckets = max(1, max_points // 4)
+    bucket_size = math.ceil(total / num_buckets)
+    selected_indices = {0, total - 1}
+
+    for start in range(0, total, bucket_size):
+        end = min(total, start + bucket_size)
+        selected_indices.add(start)
+        selected_indices.add(end - 1)
+
+        min_t_idx = max_t_idx = min_h_idx = max_h_idx = None
+        for idx in range(start, end):
+            r = rows[idx]
+            if r.get("es_fuera_de_umbral") == 1 or (
+                r.get("score_anomalia_ia") is not None and float(r["score_anomalia_ia"]) >= 0.7
+            ):
+                selected_indices.add(idx)
+
+            t = r.get("temperatura")
+            if t is not None:
+                tv = float(t)
+                if min_t_idx is None or tv < float(rows[min_t_idx]["temperatura"]):
+                    min_t_idx = idx
+                if max_t_idx is None or tv > float(rows[max_t_idx]["temperatura"]):
+                    max_t_idx = idx
+
+            h = r.get("humedad")
+            if h is not None:
+                hv = float(h)
+                if min_h_idx is None or hv < float(rows[min_h_idx]["humedad"]):
+                    min_h_idx = idx
+                if max_h_idx is None or hv > float(rows[max_h_idx]["humedad"]):
+                    max_h_idx = idx
+
+        for idx in (min_t_idx, max_t_idx, min_h_idx, max_h_idx):
+            if idx is not None:
+                selected_indices.add(idx)
+
+    return [rows[i] for i in sorted(selected_indices)]
+
+
+@router.get("/tendencias")
+def get_tendencias_mediciones(
+    fecha_inicio: Optional[str] = Query(default=None),
+    fecha_fin: Optional[str] = Query(default=None),
+    tz_offset_minutes: int = Query(default=0, ge=-840, le=840),
+    ubicacion_id: Optional[str] = Query(default=None, max_length=64),
+    dispositivo_id: Optional[str] = Query(default=None, max_length=64),
+    sensor_id: Optional[str] = Query(default=None, max_length=64),
+    max_points: int = Query(default=300, ge=20, le=1000),
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> Dict[str, Any]:
+    """RF-11: Serie temporal cronológica real (SVG) integrada con filtros RF-10, límites reales y anomalías RF-18."""
+    start_parsed = _parse_historical_bound(fecha_inicio, tz_offset_minutes, is_end=False)
+    end_parsed = _parse_historical_bound(fecha_fin, tz_offset_minutes, is_end=True)
+
+    start_utc = start_parsed[0] if start_parsed else None
+    end_utc_excl = end_parsed[0] if end_parsed else None
+
+    if start_utc is not None and end_utc_excl is not None and start_utc >= end_utc_excl:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La fecha inicial no puede ser mayor a la final",
+        )
+
+    conditions: List[str] = []
+    params: List[Any] = []
+    if ubicacion_id and ubicacion_id.strip():
+        conditions.append("COALESCE(m.ubicacion_id, d.ubicacion_id) = %s")
+        params.append(ubicacion_id.strip())
+    if dispositivo_id and dispositivo_id.strip():
+        conditions.append("m.dispositivo_id = %s")
+        params.append(dispositivo_id.strip())
+    if sensor_id and sensor_id.strip():
+        conditions.append("m.sensor_id = %s")
+        params.append(sensor_id.strip())
+    if start_utc is not None:
+        conditions.append("m.fecha_hora >= %s")
+        params.append(start_utc)
+    if end_utc_excl is not None:
+        conditions.append("m.fecha_hora < %s")
+        params.append(end_utc_excl)
+
+    where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
+    try:
+        with db_cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT
+                  m.id_medicion,
+                  m.dispositivo_id,
+                  m.sensor_id,
+                  s.identificador AS sensor_identificador,
+                  s.modelo AS sensor_modelo,
+                  COALESCE(m.ubicacion_id, d.ubicacion_id) AS ubicacion_id,
+                  m.temperatura,
+                  m.humedad,
+                  m.es_fuera_de_umbral,
+                  m.score_anomalia_ia,
+                  m.fecha_hora
+                FROM mediciones m
+                INNER JOIN dispositivos d ON d.id_dispositivo = m.dispositivo_id
+                LEFT JOIN sensores s ON s.id_sensor = m.sensor_id
+                {where_clause}
+                ORDER BY m.fecha_hora ASC, m.sensor_id ASC, m.id_medicion ASC
+                LIMIT 10000
+                """,
+                tuple(params),
+            )
+            raw_rows = cursor.fetchall()
+
+            # Obtener límites reales de configuración para el sensor o conjunto filtrado
+            limit_conditions: List[str] = []
+            limit_params: List[Any] = []
+            if sensor_id and sensor_id.strip():
+                limit_conditions.append("l.sensor_id = %s")
+                limit_params.append(sensor_id.strip())
+            elif dispositivo_id and dispositivo_id.strip():
+                limit_conditions.append("s.dispositivo_id = %s")
+                limit_params.append(dispositivo_id.strip())
+            elif ubicacion_id and ubicacion_id.strip():
+                limit_conditions.append("d.ubicacion_id = %s")
+                limit_params.append(ubicacion_id.strip())
+            else:
+                distinct_sensors = sorted({r["sensor_id"] for r in raw_rows if r.get("sensor_id")})
+                if len(distinct_sensors) == 1:
+                    limit_conditions.append("l.sensor_id = %s")
+                    limit_params.append(distinct_sensors[0])
+
+            limit_rows: List[Dict[str, Any]] = []
+            if limit_conditions:
+                limit_where = f"WHERE {' AND '.join(limit_conditions)}"
+                cursor.execute(
+                    f"""
+                    SELECT l.sensor_id, l.temp_min, l.temp_max, l.hum_min, l.hum_max, l.fecha_actualizacion
+                    FROM umbrales_alerta l
+                    INNER JOIN sensores s ON s.id_sensor = l.sensor_id
+                    INNER JOIN dispositivos d ON d.id_dispositivo = s.dispositivo_id
+                    {limit_where}
+                    """,
+                    tuple(limit_params),
+                )
+                limit_rows = cursor.fetchall()
+    except pymysql.MySQLError as exc:
+        logger.error("Error MySQL en consulta de tendencias RF-11: %s", type(exc).__name__)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Error temporal consultando series de tendencia en base de datos.",
+        )
+
+    total_original = len(raw_rows)
+    reduced_rows = _downsample_preserving_extremes(raw_rows, max_points)
+    was_reduced = len(reduced_rows) < total_original
+
+    series: List[Dict[str, Any]] = []
+    anomalias_ia_disponibles = False
+    for r in reduced_rows:
+        fh = r.get("fecha_hora")
+        fecha_utc = (
+            fh.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+            if hasattr(fh, "isoformat")
+            else str(fh)
+        )
+        score_ia = float(r["score_anomalia_ia"]) if r.get("score_anomalia_ia") is not None else None
+        if score_ia is not None:
+            anomalias_ia_disponibles = True
+        es_anomalia_ia = bool(score_ia is not None and score_ia >= 0.7)
+        es_fuera = bool(r["es_fuera_de_umbral"]) if r.get("es_fuera_de_umbral") is not None else None
+        series.append(
+            {
+                "id_medicion": int(r["id_medicion"]),
+                "sensor_id": r.get("sensor_id"),
+                "sensor_identificador": r.get("sensor_identificador"),
+                "sensor_modelo": r.get("sensor_modelo"),
+                "dispositivo_id": r["dispositivo_id"],
+                "ubicacion_id": r.get("ubicacion_id"),
+                "temperatura": float(r["temperatura"]) if r.get("temperatura") is not None else None,
+                "humedad": float(r["humedad"]) if r.get("humedad") is not None else None,
+                "es_fuera_de_umbral": es_fuera,
+                "estado_evaluacion": (
+                    "No evaluable"
+                    if es_fuera is None
+                    else ("Fuera de umbral" if es_fuera else "Conforme")
+                ),
+                "score_anomalia_ia": score_ia,
+                "es_anomalia_ia": es_anomalia_ia,
+                "fecha_hora_utc": fecha_utc,
+            }
+        )
+
+    first_dt = raw_rows[0]["fecha_hora"] if raw_rows else None
+
+    def _build_limit_meta(min_col: str, max_col: str) -> Dict[str, Any]:
+        pairs = {
+            (
+                float(lr[min_col]) if lr.get(min_col) is not None else None,
+                float(lr[max_col]) if lr.get(max_col) is not None else None,
+            )
+            for lr in limit_rows
+            if lr.get(min_col) is not None and lr.get(max_col) is not None
+        }
+        if len(pairs) == 1:
+            mn, mx = next(iter(pairs))
+            fa = limit_rows[0].get("fecha_actualizacion")
+            fa_utc = (
+                fa.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+                if hasattr(fa, "isoformat")
+                else None
+            )
+            vigencia_completa = bool(first_dt is not None and fa is not None and fa <= first_dt)
+            return {
+                "min": mn,
+                "max": mx,
+                "vigente_desde_utc": fa_utc,
+                "vigencia_completa": vigencia_completa,
+                "motivo": None,
+            }
+        motivo = (
+            "Múltiples sensores con límites distintos; filtre por sensor para ver umbrales"
+            if len(pairs) > 1
+            else "Sin límites configurados en el sistema"
+        )
+        return {
+            "min": None,
+            "max": None,
+            "vigente_desde_utc": None,
+            "vigencia_completa": False,
+            "motivo": motivo,
+        }
+
+    return {
+        "series": series,
+        "total_original": total_original,
+        "total_retornados": len(series),
+        "reducido": was_reduced,
+        "estrategia_reduccion": "extremes_and_anomalies_bucket" if was_reduced else "none",
+        "anomalias_ia_disponibles": anomalias_ia_disponibles,
+        "limites": {
+            "temperatura": _build_limit_meta("temp_min", "temp_max"),
+            "humedad": _build_limit_meta("hum_min", "hum_max"),
+        },
+        "zona_horaria": "UTC",
+    }
+
+
 @router.get("/{id_medicion}")
 def get_medicion_by_id(
     id_medicion: int,

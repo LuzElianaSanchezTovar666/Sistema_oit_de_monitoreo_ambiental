@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Search,
   RotateCcw,
@@ -12,12 +12,16 @@ import {
 } from 'lucide-react';
 import { Ubicacion, Dispositivo, Sensor, Medicion } from '../../types/iot';
 import { SkeletonBox } from '../common/SkeletonLoader';
+import { TrendChartPanel } from './TrendChartPanel';
 import { fetchUbicaciones, UbicacionDTO } from '../../services/locationService';
 import { DispositivoDTO, fetchDispositivos } from '../../services/deviceService';
 import {
   fetchHistoricalMeasurements,
+  fetchHistoricalTrends,
   fetchSensores,
   HistoricalQueryResponseDTO,
+  HistoricalTrendResponseDTO,
+  LocationTemperatureSnapshotDTO,
   SensorDTO,
   validateHistoricalDateRange,
 } from '../../services/sensorService';
@@ -46,6 +50,8 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [result, setResult] = useState<HistoricalQueryResponseDTO | null>(null);
+  const [trendData, setTrendData] = useState<HistoricalTrendResponseDTO | null>(null);
+  const [liveFollow, setLiveFollow] = useState<boolean>(false);
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -137,19 +143,26 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
       setLoading(true);
       setError('');
       try {
-        const res = await fetchHistoricalMeasurements(
-          {
-            ubicacion_id: (overrides?.ubicacion_id !== undefined ? overrides.ubicacion_id : ubicacionId) || undefined,
-            dispositivo_id: (overrides?.dispositivo_id !== undefined ? overrides.dispositivo_id : dispositivoId) || undefined,
-            sensor_id: (overrides?.sensor_id !== undefined ? overrides.sensor_id : sensorId) || undefined,
-            fecha_inicio: fIni || undefined,
-            fecha_fin: fFin || undefined,
-            page: targetPage,
-            page_size: targetPageSize,
-          },
-          controller.signal
-        );
+        const filterPayload = {
+          ubicacion_id: (overrides?.ubicacion_id !== undefined ? overrides.ubicacion_id : ubicacionId) || undefined,
+          dispositivo_id: (overrides?.dispositivo_id !== undefined ? overrides.dispositivo_id : dispositivoId) || undefined,
+          sensor_id: (overrides?.sensor_id !== undefined ? overrides.sensor_id : sensorId) || undefined,
+          fecha_inicio: fIni || undefined,
+          fecha_fin: fFin || undefined,
+        };
+        const [res, trends] = await Promise.all([
+          fetchHistoricalMeasurements(
+            {
+              ...filterPayload,
+              page: targetPage,
+              page_size: targetPageSize,
+            },
+            controller.signal
+          ),
+          fetchHistoricalTrends(filterPayload, controller.signal),
+        ]);
         setResult(res);
+        setTrendData(trends);
       } catch (err: any) {
         if (err?.name === 'AbortError') return;
         setError(err?.message || 'Error al consultar el historial de mediciones.');
@@ -168,6 +181,63 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
       if (abortRef.current) abortRef.current.abort();
     };
   }, []);
+
+  // Seguimiento en vivo opcional reutilizando SSE existente (sin consumidores MQTT duplicados)
+  useEffect(() => {
+    if (!liveFollow || !ubicacionId || typeof EventSource === 'undefined') return;
+    let active = true;
+    const es = new EventSource(
+      `/api/mediciones/stream/temperatura?ubicacion_id=${encodeURIComponent(ubicacionId)}`,
+      { withCredentials: true }
+    );
+    const onLiveReading = (ev: MessageEvent) => {
+      if (!active) return;
+      try {
+        const snap = JSON.parse(ev.data) as LocationTemperatureSnapshotDTO & {
+          humedad_snapshot?: { humedad_actual: number | null; fecha_hora_utc: string | null } | null;
+        };
+        if (!snap.fecha_hora_utc || snap.temperatura_actual === null) return;
+        setTrendData((prev) => {
+          if (!prev) return prev;
+          const exists = prev.series.some((p) => p.fecha_hora_utc === snap.fecha_hora_utc && p.sensor_id === snap.sensor_id);
+          if (exists) return prev;
+          const newPt = {
+            id_medicion: Date.now(),
+            sensor_id: snap.sensor_id,
+            sensor_identificador: snap.sensor_identificador,
+            sensor_modelo: snap.sensor_modelo,
+            dispositivo_id: snap.dispositivo_id || '',
+            ubicacion_id: snap.ubicacion_id,
+            temperatura: snap.temperatura_actual,
+            humedad: snap.humedad_snapshot?.humedad_actual ?? null,
+            es_fuera_de_umbral:
+              snap.estado_termico === 'FUERA DE RANGO' ? true : snap.estado_termico === 'NOMINAL' ? false : null,
+            estado_evaluacion: (snap.estado_termico === 'FUERA DE RANGO'
+              ? 'Fuera de umbral'
+              : snap.estado_termico === 'NOMINAL'
+                ? 'Conforme'
+                : 'No evaluable') as 'Conforme' | 'Fuera de umbral' | 'No evaluable',
+            score_anomalia_ia: null,
+            es_anomalia_ia: false,
+            fecha_hora_utc: snap.fecha_hora_utc!,
+          };
+          return {
+            ...prev,
+            series: [...prev.series, newPt],
+            total_original: prev.total_original + 1,
+            total_retornados: prev.total_retornados + 1,
+          };
+        });
+      } catch {
+        // Ignorar payload inválido
+      }
+    };
+    es.addEventListener('temperatura', onLiveReading as EventListener);
+    return () => {
+      active = false;
+      es.close();
+    };
+  }, [liveFollow, ubicacionId]);
 
   const handleConsultar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -338,7 +408,18 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-slate">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate">
+            {ubicacionId && (
+              <label className="inline-flex items-center gap-1.5 cursor-pointer text-bark">
+                <input
+                  type="checkbox"
+                  checked={liveFollow}
+                  onChange={(e) => setLiveFollow(e.target.checked)}
+                  className="accent-[#104336]"
+                />
+                <span>Seguimiento en vivo (SSE)</span>
+              </label>
+            )}
             <label htmlFor="rf10-psize">Filas por página:</label>
             <select
               id="rf10-psize"
@@ -449,6 +530,9 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
           </div>
         </div>
       </div>
+
+      {/* Gráficos de Tendencia Dinámicos SVG (RF-11) */}
+      <TrendChartPanel trendData={trendData} loading={loading} error={error} />
 
       {/* Tabla Paginada de Resultados */}
       <div className="bg-sheet-white rounded-[16px] overflow-hidden">

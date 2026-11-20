@@ -3,8 +3,11 @@ import assert from 'node:assert/strict';
 import {
   areSensorDatesCoherent,
   computeThermalGaugeGeometry,
+  computeTrendAxisBounds,
   evaluateHumidityStatus,
   evaluateThermalStatus,
+  getTrendInsufficientMessage,
+  INSUFFICIENT_TREND_MESSAGE,
   MODEL_CAPABILITIES,
   validateHistoricalDateRange,
   validateSensorVariablesSelection,
@@ -83,4 +86,18 @@ test('validateHistoricalDateRange rechaza fecha inicial mayor a final con mensaj
   assert.equal(validateHistoricalDateRange('2026-11-19', '2026-11-20'), null);
   assert.equal(validateHistoricalDateRange('2026-11-20', '2026-11-20'), null);
   assert.equal(validateHistoricalDateRange('', '2026-11-20'), null);
+});
+
+test('RF-11: getTrendInsufficientMessage y computeTrendAxisBounds respetan límites y 0-100 %RH', () => {
+  assert.equal(getTrendInsufficientMessage(0), INSUFFICIENT_TREND_MESSAGE);
+  assert.equal(getTrendInsufficientMessage(1), INSUFFICIENT_TREND_MESSAGE);
+  assert.equal(getTrendInsufficientMessage(2), null);
+
+  const humBounds = computeTrendAxisBounds([-5, 50, 105], 40, 70, true);
+  assert.equal(humBounds.min, 0);
+  assert.equal(humBounds.max, 100);
+
+  const tempBounds = computeTrendAxisBounds([20.0, 22.0], 18.0, 25.0, false);
+  assert.ok(tempBounds.min <= 18.0);
+  assert.ok(tempBounds.max >= 25.0);
 });
