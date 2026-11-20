@@ -550,7 +550,23 @@ class MqttIngestionService:
                     raw_bytes,
                 )
                 return
-            magnitudes[key] = float(value)
+            num_val = float(value)
+            if key == "humedad" and (num_val < 0.0 or num_val > 100.0):
+                logger.warning(
+                    "Anomalía de sensor en %s (%s): humedad físicamente inválida (%s %%RH); descartada sin alerta ambiental.",
+                    topic_code,
+                    topic,
+                    num_val,
+                )
+                self._enqueue_rejection(
+                    topic,
+                    topic_code,
+                    "LECTURA_FISICA_INVALIDA",
+                    f"Anomalía de sensor: humedad fuera de rango físico [0, 100] %RH ({num_val}).",
+                    raw_bytes,
+                )
+                return
+            magnitudes[key] = num_val
 
         if not magnitudes:
             self._enqueue_rejection(

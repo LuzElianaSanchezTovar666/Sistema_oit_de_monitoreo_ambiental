@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  Droplets,
   Cpu,
   BrainCircuit,
   Wifi,
@@ -14,6 +13,7 @@ import {
 import { Ubicacion, Dispositivo, Sensor, Medicion, Alerta } from '../../types/iot';
 import { TelemetryChart } from './TelemetryChart';
 import { TemperatureKpiCard } from './TemperatureKpiCard';
+import { HumidityKpiCard } from './HumidityKpiCard';
 import { buildEntityIndexes, selectColumns } from '../../services/performanceEngine';
 import { VirtualList } from '../common/VirtualList';
 import {
@@ -26,7 +26,9 @@ import {
   DashboardTelemetryItemDTO,
   DashboardTelemetrySensorDTO,
   fetchDashboardTelemetry,
+  fetchLocationHumidity,
   fetchLocationTemperature,
+  LocationHumiditySnapshotDTO,
   LocationTemperatureSnapshotDTO,
 } from '../../services/sensorService';
 
@@ -107,30 +109,42 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
   const [mysqlSensorConfigs, setMysqlSensorConfigs] = useState<DashboardTelemetrySensorDTO[]>([]);
   const [mysqlTelemetry, setMysqlTelemetry] = useState<DashboardTelemetryItemDTO[]>([]);
 
-  // RF-08: Estado en tiempo real de temperatura actual (°C) vía SSE post-COMMIT de RF-07
+  // RF-08 & RF-09: Estado en tiempo real de temperatura (°C) y humedad (%RH) vía SSE único post-COMMIT de RF-07
   const [rf08Snapshot, setRf08Snapshot] = useState<LocationTemperatureSnapshotDTO | null>(null);
+  const [rf09Snapshot, setRf09Snapshot] = useState<LocationHumiditySnapshotDTO | null>(null);
   const [rf08StreamConnected, setRf08StreamConnected] = useState<boolean>(false);
   const [rf08Stale, setRf08Stale] = useState<boolean>(false);
+  const [rf09Stale, setRf09Stale] = useState<boolean>(false);
 
   useEffect(() => {
     const locId = currentLocation?.id_ubicacion;
     // Limpiar inmediatamente lecturas de la ubicación anterior al cambiar de recinto
     setRf08Snapshot(null);
+    setRf09Snapshot(null);
     setRf08StreamConnected(false);
     setRf08Stale(false);
+    setRf09Stale(false);
     if (!locId) return;
 
     let active = true;
-    fetchLocationTemperature(locId)
-      .then((snap) => {
-        if (!active) return;
-        setRf08Snapshot(snap);
-        setRf08Stale(!snap.datos_recientes);
-      })
-      .catch(() => {
-        if (!active) return;
+    Promise.all([
+      fetchLocationTemperature(locId).catch(() => null),
+      fetchLocationHumidity(locId).catch(() => null),
+    ]).then(([tSnap, hSnap]) => {
+      if (!active) return;
+      if (tSnap) {
+        setRf08Snapshot(tSnap);
+        setRf08Stale(!tSnap.datos_recientes);
+      } else {
         setRf08Stale(true);
-      });
+      }
+      if (hSnap) {
+        setRf09Snapshot(hSnap);
+        setRf09Stale(!hSnap.datos_recientes);
+      } else {
+        setRf09Stale(true);
+      }
+    });
 
     let es: EventSource | null = null;
     if (typeof EventSource !== 'undefined') {
@@ -138,20 +152,39 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
         `/api/mediciones/stream/temperatura?ubicacion_id=${encodeURIComponent(locId)}`,
         { withCredentials: true }
       );
-      const handleEvent = (ev: MessageEvent) => {
+      const handleTempOrSnapshot = (ev: MessageEvent) => {
         if (!active) return;
         try {
-          const data: LocationTemperatureSnapshotDTO = JSON.parse(ev.data);
+          const data = JSON.parse(ev.data) as LocationTemperatureSnapshotDTO & {
+            humedad_snapshot?: LocationHumiditySnapshotDTO | null;
+          };
           if (data.ubicacion_id !== locId) return;
           setRf08Snapshot(data);
           setRf08StreamConnected(true);
           setRf08Stale(!data.datos_recientes);
+          if (data.humedad_snapshot && data.humedad_snapshot.ubicacion_id === locId) {
+            setRf09Snapshot(data.humedad_snapshot);
+            setRf09Stale(!data.humedad_snapshot.datos_recientes);
+          }
         } catch {
           // Ignorar payload corrupto sin romper UI
         }
       };
-      es.addEventListener('snapshot', handleEvent as EventListener);
-      es.addEventListener('temperatura', handleEvent as EventListener);
+      const handleHumidity = (ev: MessageEvent) => {
+        if (!active) return;
+        try {
+          const hData = JSON.parse(ev.data) as LocationHumiditySnapshotDTO;
+          if (hData.ubicacion_id !== locId) return;
+          setRf09Snapshot(hData);
+          setRf08StreamConnected(true);
+          setRf09Stale(!hData.datos_recientes);
+        } catch {
+          // Ignorar payload corrupto sin romper UI
+        }
+      };
+      es.addEventListener('snapshot', handleTempOrSnapshot as EventListener);
+      es.addEventListener('temperatura', handleTempOrSnapshot as EventListener);
+      es.addEventListener('humedad', handleHumidity as EventListener);
       es.onopen = () => {
         if (active) setRf08StreamConnected(true);
       };
@@ -169,6 +202,16 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
         const ageMs = Date.now() - new Date(prev.fecha_hora_utc).getTime();
         const maxMs = (prev.antiguedad_max_segundos || 30) * 1000;
         setRf08Stale(ageMs > maxMs);
+        return prev;
+      });
+      setRf09Snapshot((prev) => {
+        if (!prev || !prev.fecha_hora_utc) {
+          setRf09Stale(true);
+          return prev;
+        }
+        const ageMs = Date.now() - new Date(prev.fecha_hora_utc).getTime();
+        const maxMs = (prev.antiguedad_max_segundos || 30) * 1000;
+        setRf09Stale(ageMs > maxMs);
         return prev;
       });
     }, 5000);
@@ -376,53 +419,15 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           />
         )}
 
-        {/* Tarjeta 2: Humedad Relativa (solo si está habilitada en RF-05) */}
-        {humEnabled && (() => {
-          const humMin = activeSensorConfig?.limites.hum_min ?? currentSensor?.limites.hum_min ?? 0;
-          const humMax = activeSensorConfig?.limites.hum_max ?? currentSensor?.limites.hum_max ?? 100;
-          const humOutOfRange = displayHum !== null && (displayHum < humMin || displayHum > humMax);
-          return (
-            <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] font-semibold text-slate flex items-center gap-1.5">
-                  <Droplets className="w-4 h-4 text-canopy" />
-                  Humedad Relativa
-                </span>
-                <span
-                  className={`text-[11px] font-mono px-2 py-0.5 rounded-[5px] font-semibold ${
-                    humOutOfRange
-                      ? 'bg-[#DC2626]/20 text-[#DC2626]'
-                      : 'bg-canopy/15 text-canopy'
-                  }`}
-                >
-                  {humOutOfRange ? 'FUERA DE RANGO' : 'NOMINAL'}
-                </span>
-              </div>
-
-          <div>
-            <div className="apple-metric-display text-bark tabular-nums">
-              {displayHum !== null ? `${displayHum.toFixed(1)}` : '--'}
-              <span className="text-[20px] font-normal text-slate ml-1">%RH</span>
-            </div>
-            <div className="flex items-center justify-between text-[11px] text-slate mt-2 font-mono">
-              <span>Banda: {humMin}% - {humMax}%</span>
-              <span>Z: {reading ? reading.z_score_hum : '--'}σ</span>
-            </div>
-          </div>
-
-          <div className="w-full bg-cream-paper rounded-full h-1.5 overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 ${
-                humOutOfRange ? 'bg-[#DC2626]' : 'bg-canopy'
-              }`}
-              style={{
-                width: displayHum !== null ? `${Math.min(100, Math.max(5, displayHum))}%` : '0%',
-              }}
-            />
-          </div>
-        </div>
-          );
-        })()}
+        {/* Tarjeta 2: Humedad Relativa %RH (RF-09, solo si está habilitada en RF-05) */}
+        {humEnabled && (
+          <HumidityKpiCard
+            snapshot={rf09Snapshot}
+            locationName={currentLocation?.nombre || ''}
+            streamConnected={rf08StreamConnected}
+            isStale={rf09Stale}
+          />
+        )}
 
         {/* Tarjeta Opcional BME280: Presión Atmosférica (solo si está habilitada en RF-05) */}
         {presEnabled && (

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   areSensorDatesCoherent,
   computeThermalGaugeGeometry,
+  evaluateHumidityStatus,
   evaluateThermalStatus,
   MODEL_CAPABILITIES,
   validateSensorVariablesSelection,
@@ -59,4 +60,16 @@ test('evaluateThermalStatus y computeThermalGaugeGeometry evalúan límites exac
   const gaugeNoCfg = computeThermalGaugeGeometry(22.0, null, null);
   assert.equal(gaugeNoCfg.hasScale, false);
   assert.equal(gaugeNoCfg.markerPct, null);
+});
+
+test('evaluateHumidityStatus valida rango físico [0, 100] %RH y banda óptima RF-09', () => {
+  assert.equal(evaluateHumidityStatus(55.0, 40.0, 70.0), 'NOMINAL');
+  assert.equal(evaluateHumidityStatus(40.0, 40.0, 70.0), 'NOMINAL');
+  assert.equal(evaluateHumidityStatus(70.0, 40.0, 70.0), 'NOMINAL');
+  assert.equal(evaluateHumidityStatus(39.9, 40.0, 70.0), 'FUERA DE RANGO');
+  assert.equal(evaluateHumidityStatus(70.1, 40.0, 70.0), 'FUERA DE RANGO');
+  assert.equal(evaluateHumidityStatus(-5.0, 40.0, 70.0), 'ESPERANDO_DATOS');
+  assert.equal(evaluateHumidityStatus(105.0, 40.0, 70.0), 'ESPERANDO_DATOS');
+  assert.equal(evaluateHumidityStatus(55.0, null, null), 'SIN_CONFIGURACION');
+  assert.equal(evaluateHumidityStatus(null, 40.0, 70.0), 'ESPERANDO_DATOS');
 });

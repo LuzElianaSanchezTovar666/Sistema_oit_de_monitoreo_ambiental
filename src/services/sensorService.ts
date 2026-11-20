@@ -464,3 +464,59 @@ export async function fetchLocationTemperature(
   }
   return data;
 }
+
+// ============================================================
+// RF-09: Visualización en Tiempo Real de la Humedad Relativa (%RH)
+// ============================================================
+
+export interface LocationHumiditySnapshotDTO {
+  ubicacion_id: string;
+  ubicacion_nombre: string;
+  codigo_area: string;
+  sensor_id: string | null;
+  sensor_identificador: string | null;
+  sensor_modelo: string | null;
+  sensor_estado: string | null;
+  dispositivo_id: string | null;
+  humedad_actual: number | null;
+  unidad: '%RH';
+  hum_min: number | null;
+  hum_max: number | null;
+  estado_humedad: ThermalStateRF08;
+  estado_operativo: string;
+  datos_recientes: boolean;
+  antiguedad_max_segundos: number;
+  z_score: number | null;
+  z_score_disponible: boolean;
+  z_score_motivo: string;
+  z_score_muestras: number;
+  fecha_hora_utc: string | null;
+}
+
+export function evaluateHumidityStatus(
+  humedad: number | null,
+  humMin: number | null,
+  humMax: number | null
+): ThermalStateRF08 {
+  if (humedad === null || !Number.isFinite(humedad) || humedad < 0 || humedad > 100) {
+    return 'ESPERANDO_DATOS';
+  }
+  return evaluateThermalStatus(humedad, humMin, humMax);
+}
+
+export async function fetchLocationHumidity(
+  ubicacionId: string
+): Promise<LocationHumiditySnapshotDTO> {
+  const res = await fetch(
+    `/api/mediciones/ubicacion/${encodeURIComponent(ubicacionId)}/humedad-actual`,
+    {
+      method: 'GET',
+      credentials: 'include',
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar la humedad actual de la ubicación.');
+  }
+  return data;
+}

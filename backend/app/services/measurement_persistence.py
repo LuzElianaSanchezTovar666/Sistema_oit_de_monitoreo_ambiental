@@ -249,6 +249,8 @@ class MeasurementPersistenceService:
         for k, val in magnitudes.items():
             if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(float(val)):
                 raise ValueError(f"Valor numérico inválido para '{k}'.")
+            if k == "humedad" and (float(val) < 0.0 or float(val) > 100.0):
+                raise ValueError("Anomalía de sensor: la humedad relativa debe estar entre 0 %RH y 100 %RH.")
 
         captured_utc = _to_utc_naive(captured_raw)
         idem_key = compute_idempotency_key(sensor_id, captured_utc, magnitudes, explicit_id=explicit_id)
