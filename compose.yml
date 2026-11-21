@@ -1,0 +1,21 @@
+services:
+  db:
+    image: mariadb:10.11
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-simoa}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-}
+      # Compatibilidad con DB_PASSWORD vacío en desarrollo local.
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "1"
+    ports:
+      - "127.0.0.1:${DB_PORT:-3306}:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+volumes:
+  mariadb-data:
