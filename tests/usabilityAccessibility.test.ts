@@ -34,8 +34,8 @@ function getContrastRatio(hex1: string, hex2: string): number {
 }
 
 test('RNF-01: Usabilidad - Acceso a temperatura actual en < 10 segundos para Operador', () => {
-  // 1. Redirección inmediata al Dashboard tras inicio de sesión según rol
-  const defaultTab = getDefaultTabForRole('Operador');
+  // 1. Redirección inmediata al Dashboard tras inicio de sesión según rol (Operador mapea a rol cliente)
+  const defaultTab = getDefaultTabForRole('cliente');
   assert.equal(defaultTab, 'dashboard', 'El Operador debe ser dirigido de inmediato al Dashboard');
 
   // 2. Tiempo simulado de navegación: 0 clics adicionales requeridos
