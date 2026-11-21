@@ -795,7 +795,8 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
                   <th className="py-3 px-4">Sensor</th>
                   <th className="py-3 px-4 text-right">Temperatura (°C)</th>
                   <th className="py-3 px-4 text-right">Humedad (%RH)</th>
-                  <th className="py-3 px-4 text-center">Estado</th>
+                  <th className="py-3 px-4 text-center">Estado Umbral</th>
+                  <th className="py-3 px-4 text-center">Anomalía IA (RF-18)</th>
                 </tr>
               </thead>
               <tbody>
@@ -834,6 +835,31 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
                       >
                         {m.estado_evaluacion}
                       </span>
+                    </td>
+                    <td className="py-3 px-4 text-center font-sans">
+                      {m.es_anomalia_ia || m.valor_anomalo ? (
+                        <span
+                          className="px-2 py-0.5 rounded-[5px] text-[11px] font-bold bg-purple-100 text-purple-900 border border-purple-300 inline-flex items-center gap-1"
+                          title={`Score Anomaly Forest: ${m.score_anomalia_ia ?? 'N/A'}`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
+                          <span>Anómalo</span>
+                          {m.score_anomalia_ia !== null && m.score_anomalia_ia !== undefined && (
+                            <span className="text-[10px] font-mono opacity-80">
+                              ({m.score_anomalia_ia.toFixed(2)})
+                            </span>
+                          )}
+                        </span>
+                      ) : m.score_anomalia_ia !== null && m.score_anomalia_ia !== undefined ? (
+                        <span
+                          className="px-2 py-0.5 rounded-[5px] text-[11px] text-slate font-mono"
+                          title={`Score Anomaly Forest: ${m.score_anomalia_ia.toFixed(4)}`}
+                        >
+                          Nominal ({m.score_anomalia_ia.toFixed(2)})
+                        </span>
+                      ) : (
+                        <span className="text-slate text-[11px] font-mono">No evaluado</span>
+                      )}
                     </td>
                   </tr>
                 ))}

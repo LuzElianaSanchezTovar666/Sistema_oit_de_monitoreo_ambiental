@@ -555,6 +555,9 @@ export interface HistoricalMeasurementItemDTO {
   humedad: number | null;
   presion: number | null;
   es_fuera_de_umbral: boolean | null;
+  valor_anomalo?: boolean | null;
+  score_anomalia_ia?: number | null;
+  es_anomalia_ia?: boolean | null;
   estado_evaluacion: 'Conforme' | 'Fuera de umbral' | 'No evaluable';
   fecha_hora_utc: string;
 }
@@ -652,9 +655,10 @@ export interface TrendPointDTO {
   temperatura: number | null;
   humedad: number | null;
   es_fuera_de_umbral: boolean | null;
-  estado_evaluacion: 'Conforme' | 'Fuera de umbral' | 'No evaluable';
+  valor_anomalo?: boolean | null;
   score_anomalia_ia: number | null;
   es_anomalia_ia: boolean;
+  estado_evaluacion: 'Conforme' | 'Fuera de umbral' | 'No evaluable';
   fecha_hora_utc: string;
 }
 
