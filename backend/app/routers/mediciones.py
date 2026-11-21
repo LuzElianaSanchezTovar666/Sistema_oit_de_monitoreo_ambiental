@@ -1,5 +1,7 @@
 import asyncio
+import csv
 from datetime import date, datetime, timedelta, timezone
+import io
 import json
 import logging
 import math
@@ -781,3 +783,224 @@ async def stream_ubicacion_temperatura(
         media_type="text/event-stream",
         headers=SSE_HEADERS,
     )
+
+
+# ==============================================================================
+# RF-17: Exportación de Mediciones Históricas a Formato Tabular CSV (RN-19)
+# ==============================================================================
+
+def _escape_csv_cell(val: Any) -> Any:
+    """Protección contra inyección de fórmulas (CSV / Formula Injection) en hojas de cálculo (RN-19)."""
+    if isinstance(val, str) and val:
+        stripped = val.lstrip()
+        if stripped.startswith(("=", "+", "-", "@")) and not val.startswith("'"):
+            return f"'{val}"
+    return val
+
+
+def _format_estado_umbral(es_fuera_de_umbral: Optional[int]) -> str:
+    if es_fuera_de_umbral is None:
+        return "NO EVALUABLE"
+    return "FUERA DE RANGO" if bool(es_fuera_de_umbral) else "NOMINAL"
+
+
+def _format_iso_utc(dt: Any) -> str:
+    if isinstance(dt, datetime):
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(timezone.utc)
+        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    elif hasattr(dt, "strftime"):
+        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    return str(dt) if dt else ""
+
+
+def _generate_csv_chunks(where_clause: str, params: List[Any], total_count: int, chunk_size: int = 1000):
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=",", quoting=csv.QUOTE_MINIMAL, lineterminator="\r\n")
+
+    # 1. UTF-8 BOM (\ufeff) para compatibilidad nativa inmediata con Microsoft Excel y LibreOffice Calc
+    yield "\ufeff"
+
+    # 2. Las siete columnas obligatorias en el orden exacto especificado por RF-17
+    headers = [
+        "fecha_hora",
+        "dispositivo",
+        "sensor",
+        "temperatura",
+        "humedad",
+        "score_ia",
+        "estado_umbral",
+    ]
+    writer.writerow(headers)
+    yield output.getvalue()
+    output.seek(0)
+    output.truncate(0)
+
+    # 3. Lotes sucesivos garantizando un orden determinista y evitando sobrecarga de memoria
+    offset = 0
+    with db_cursor() as cursor:
+        while offset < total_count:
+            cursor.execute(
+                f"""
+                SELECT
+                  m.id_medicion,
+                  m.fecha_hora,
+                  COALESCE(d.nombre, d.codigo, m.dispositivo_id) AS dispositivo,
+                  COALESCE(s.identificador, s.modelo, m.sensor_id) AS sensor,
+                  m.temperatura,
+                  m.humedad,
+                  m.score_anomalia_ia,
+                  m.es_fuera_de_umbral
+                FROM mediciones m
+                INNER JOIN dispositivos d ON d.id_dispositivo = m.dispositivo_id
+                LEFT JOIN sensores s ON s.id_sensor = m.sensor_id
+                LEFT JOIN ubicaciones u ON u.ubicacion_id = COALESCE(m.ubicacion_id, d.ubicacion_id)
+                {where_clause}
+                ORDER BY m.fecha_hora ASC, m.id_medicion ASC
+                LIMIT %s OFFSET %s
+                """,
+                tuple(params + [chunk_size, offset]),
+            )
+            rows = cursor.fetchall()
+            if not rows:
+                break
+
+            for r in rows:
+                temp_val = "" if r.get("temperatura") is None else str(r["temperatura"])
+                hum_val = "" if r.get("humedad") is None else str(r["humedad"])
+                score_val = "" if r.get("score_anomalia_ia") is None else str(r["score_anomalia_ia"])
+
+                row_cells = [
+                    _format_iso_utc(r.get("fecha_hora")),
+                    _escape_csv_cell(r.get("dispositivo") or ""),
+                    _escape_csv_cell(r.get("sensor") or ""),
+                    temp_val,
+                    hum_val,
+                    score_val,
+                    _format_estado_umbral(r.get("es_fuera_de_umbral")),
+                ]
+                writer.writerow(row_cells)
+
+            yield output.getvalue()
+            output.seek(0)
+            output.truncate(0)
+            offset += len(rows)
+
+
+def _build_csv_export_response(
+    fecha_inicio: Optional[str],
+    fecha_fin: Optional[str],
+    tz_offset_minutes: int,
+    ubicacion_id: Optional[str],
+    dispositivo_id: Optional[str],
+    sensor_id: Optional[str],
+) -> StreamingResponse:
+    start_parsed = _parse_historical_bound(fecha_inicio, tz_offset_minutes, is_end=False)
+    end_parsed = _parse_historical_bound(fecha_fin, tz_offset_minutes, is_end=True)
+
+    start_utc = start_parsed[0] if start_parsed else None
+    end_utc_excl = end_parsed[0] if end_parsed else None
+
+    if start_utc is not None and end_utc_excl is not None and start_utc >= end_utc_excl:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La fecha inicial no puede ser mayor a la final",
+        )
+
+    conditions: List[str] = []
+    params: List[Any] = []
+
+    if ubicacion_id and ubicacion_id.strip():
+        conditions.append("COALESCE(m.ubicacion_id, d.ubicacion_id) = %s")
+        params.append(ubicacion_id.strip())
+    if dispositivo_id and dispositivo_id.strip():
+        conditions.append("m.dispositivo_id = %s")
+        params.append(dispositivo_id.strip())
+    if sensor_id and sensor_id.strip():
+        conditions.append("m.sensor_id = %s")
+        params.append(sensor_id.strip())
+    if start_utc is not None:
+        conditions.append("m.fecha_hora >= %s")
+        params.append(start_utc)
+    if end_utc_excl is not None:
+        conditions.append("m.fecha_hora < %s")
+        params.append(end_utc_excl)
+
+    where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+
+    with db_cursor() as cursor:
+        cursor.execute(
+            f"""
+            SELECT COUNT(*) AS total_count
+            FROM mediciones m
+            INNER JOIN dispositivos d ON d.id_dispositivo = m.dispositivo_id
+            {where_clause}
+            """,
+            tuple(params),
+        )
+        row = cursor.fetchone() or {}
+        total_count = int(row.get("total_count") or 0)
+
+    if total_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No hay mediciones disponibles para exportar con los filtros seleccionados",
+        )
+
+    now_stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    filename = f"simoa_reporte_{now_stamp}.csv"
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="{filename}"',
+        "Content-Type": "text/csv; charset=utf-8",
+        "X-Report-Total-Records": str(total_count),
+        "Access-Control-Expose-Headers": "Content-Disposition, X-Report-Total-Records",
+    }
+
+    return StreamingResponse(
+        _generate_csv_chunks(where_clause, params, total_count),
+        media_type="text/csv; charset=utf-8",
+        headers=headers,
+    )
+
+
+@router.get("/exportar/csv")
+def exportar_mediciones_csv_get(
+    fecha_inicio: Optional[str] = Query(default=None),
+    fecha_fin: Optional[str] = Query(default=None),
+    tz_offset_minutes: int = Query(default=0, ge=-840, le=840),
+    ubicacion_id: Optional[str] = Query(default=None, max_length=64),
+    dispositivo_id: Optional[str] = Query(default=None, max_length=64),
+    sensor_id: Optional[str] = Query(default=None, max_length=64),
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> StreamingResponse:
+    """RF-17: Exportación de mediciones históricas filtradas a CSV estándar (GET)."""
+    return _build_csv_export_response(
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        tz_offset_minutes=tz_offset_minutes,
+        ubicacion_id=ubicacion_id,
+        dispositivo_id=dispositivo_id,
+        sensor_id=sensor_id,
+    )
+
+
+@router.post("/exportar/csv")
+def exportar_mediciones_csv_post(
+    request_data: Dict[str, Any],
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> StreamingResponse:
+    """RF-17: Exportación de mediciones históricas filtradas a CSV estándar (POST)."""
+    return _build_csv_export_response(
+        fecha_inicio=request_data.get("fecha_inicio"),
+        fecha_fin=request_data.get("fecha_fin"),
+        tz_offset_minutes=int(request_data.get("tz_offset_minutes") or 0),
+        ubicacion_id=request_data.get("ubicacion_id"),
+        dispositivo_id=request_data.get("dispositivo_id"),
+        sensor_id=request_data.get("sensor_id"),
+    )
+
