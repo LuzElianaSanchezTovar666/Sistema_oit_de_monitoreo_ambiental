@@ -2,6 +2,7 @@ import ipaddress
 import re
 import secrets
 import socket
+import time
 from typing import Any, Dict, List, Literal, Optional
 import uuid
 
@@ -113,20 +114,43 @@ class DispositivoReasignarUbicacionRequest(BaseModel):
     motivo: Optional[str] = Field(default=None, max_length=255)
 
 
+_BROKER_STATUS_CACHE: Dict[str, Any] = {"checked_at": 0.0, "status": None}
+
+
 def _check_mqtt_broker_status() -> Dict[str, Any]:
+    global _BROKER_STATUS_CACHE
+    now = time.monotonic()
+    if (now - _BROKER_STATUS_CACHE["checked_at"]) < 2.0 and _BROKER_STATUS_CACHE["status"] is not None:
+        return _BROKER_STATUS_CACHE["status"]
+
     settings = get_settings()
     host = settings.mqtt_broker_host
     port = settings.mqtt_broker_port
+
     try:
-        with socket.create_connection((host, port), timeout=0.5):
-            return {
+        from ..services.mqtt_ingest import mqtt_service
+        if mqtt_service._connected:
+            res = {
+                "mqtt_broker_disponible": True,
+                "mqtt_broker_host": host,
+                "mqtt_broker_port": port,
+                "mqtt_broker_mensaje": f"Broker MQTT conectado y activo en {host}:{port}.",
+            }
+            _BROKER_STATUS_CACHE = {"checked_at": now, "status": res}
+            return res
+    except Exception:
+        pass
+
+    try:
+        with socket.create_connection((host, port), timeout=0.15):
+            res = {
                 "mqtt_broker_disponible": True,
                 "mqtt_broker_host": host,
                 "mqtt_broker_port": port,
                 "mqtt_broker_mensaje": f"Broker MQTT accesible en {host}:{port}. Esperando autenticación del nodo.",
             }
     except OSError:
-        return {
+        res = {
             "mqtt_broker_disponible": False,
             "mqtt_broker_host": host,
             "mqtt_broker_port": port,
@@ -135,6 +159,9 @@ def _check_mqtt_broker_status() -> Dict[str, Any]:
                 "el dispositivo permanece en estado PENDIENTE sin conexión confirmada."
             ),
         }
+
+    _BROKER_STATUS_CACHE = {"checked_at": now, "status": res}
+    return res
 
 
 def _normalize_mac_or_400(mac_raw: str) -> str:

@@ -54,7 +54,12 @@ def create_app() -> FastAPI:
     app.include_router(mqtt.router)
     app.include_router(protected_simoa.router)
 
-    @app.get("/api/health")
+    @app.get(
+        "/api/health",
+        tags=["Diagnóstico del Sistema"],
+        summary="Verificación de estado de salud del backend",
+        description="Comprueba que el servicio FastAPI esté activo y respondiendo solicitudes.",
+    )
     def health_check():
         return {"status": "ok", "service": "simoa-auth-backend"}
 

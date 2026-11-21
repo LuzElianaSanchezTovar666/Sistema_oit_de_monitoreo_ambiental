@@ -237,8 +237,13 @@ class ConnectivityMonitor:
 
     def stop(self) -> None:
         self._stop.set()
-        if self._thread is not None:
-            self._thread.join(timeout=5)
+        t = self._thread
+        self._thread = None
+        if t is not None and t.is_alive():
+            try:
+                t.join(timeout=5)
+            except RuntimeError:
+                pass
 
 
 connectivity_monitor = ConnectivityMonitor()

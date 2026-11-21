@@ -19,6 +19,7 @@ from ..routers.sensores import MODEL_CAPABILITIES, STANDARD_UNITS
 from .device_connectivity import lock_device, record_contact, utc_now
 from .live_telemetry import live_temperature_broadcaster
 from .measurement_persistence import measurement_persister
+from .time_sync import validate_telemetry_timestamp
 
 logger = logging.getLogger("simoa.mqtt")
 
@@ -560,6 +561,18 @@ class MqttIngestionService:
                 raw_bytes,
             )
             return
+
+        # RNF-12: Verificación de deriva temporal respecto a reloj UTC del servidor
+        is_ts_valid, ts_drift_sec, ts_anomaly_reason = validate_telemetry_timestamp(captured_dt, reference_time=received)
+        if not is_ts_valid:
+            logger.warning("RNF-12: Desfase temporal detectado en %s (%.1fs): %s", topic_code, ts_drift_sec, ts_anomaly_reason)
+            self._enqueue_rejection(
+                topic,
+                topic_code,
+                "ANOMALIA_TEMPORAL",
+                f"RNF-12: Desfase temporal de {ts_drift_sec:.1f}s registrado en bitácora de anomalías temporales.",
+                raw_bytes,
+            )
 
         trusted = get_settings().rf15_mqtt_acl_enforced and bool(device.mqtt_client_id) and (
             device.mqtt_topic == f"simoa/dispositivos/{topic_code}/telemetria"
