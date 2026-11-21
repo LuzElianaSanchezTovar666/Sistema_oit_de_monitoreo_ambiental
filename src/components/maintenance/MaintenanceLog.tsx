@@ -4,9 +4,16 @@ import {
   Plus,
   CheckCircle2,
   Cpu,
+  RefreshCw,
+  ShieldAlert,
 } from 'lucide-react';
 import { Mantenimiento, Usuario } from '../../types/iot';
-import { DeviceConnectivity } from '../../services/deviceService';
+import {
+  createGlobalMaintenance,
+  DeviceConnectivity,
+  fetchAllMaintenances,
+  MantenimientoDTO,
+} from '../../services/deviceService';
 import { fetchSensores, SensorDTO } from '../../services/sensorService';
 import { DeviceConnectivityPanel } from '../devices/DeviceConnectivity';
 
@@ -18,7 +25,7 @@ interface MaintenanceLogProps {
 }
 
 export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
-  maintenances,
+  maintenances: initialMaintenances,
   connectivity,
   currentUser,
   onAddMaintenance,
@@ -26,41 +33,94 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
   const [showModal, setShowModal] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [sensors, setSensors] = useState<SensorDTO[]>([]);
+  const [backendMaintenances, setBackendMaintenances] = useState<MantenimientoDTO[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const isAdminOrTecnico = currentUser.rol === 'admin' || currentUser.rol === 'tecnico';
   const devices = connectivity ?? [];
+
+  const loadData = async () => {
+    setLoadingList(true);
+    try {
+      const [senRes, mntRes] = await Promise.all([
+        fetchSensores().catch(() => ({ items: [] })),
+        fetchAllMaintenances().catch(() => ({ items: [], total: 0 })),
+      ]);
+      setSensors(senRes.items);
+      setBackendMaintenances(mntRes.items);
+    } catch {
+      // fallback
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
   useEffect(() => {
-    let active = true;
-    fetchSensores().then((result) => {
-      if (active) setSensors(result.items);
-    }).catch(() => {});
-    return () => { active = false; };
+    void loadData();
   }, []);
+
   const [tipoMnt, setTipoMnt] = useState<Mantenimiento['tipo_mantenimiento']>('CALIBRACION');
   const [descripcion, setDescripcion] = useState('');
   const [costo, setCosto] = useState(85);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdminOrTecnico) return;
     if (!devices.some((device) => device.id_dispositivo === selectedDeviceId)) return;
     const sens = sensors.find((s) => s.dispositivo_id === selectedDeviceId);
 
-    const newMnt: Mantenimiento = {
-      id_mantenimiento: `mnt-${Date.now().toString().slice(-6)}`,
-      dispositivo_id: selectedDeviceId,
-      sensor_id: sens?.id_sensor,
-      tecnico_id: currentUser.id_usuario,
-      tecnico_nombre: currentUser.nombre,
-      tipo_mantenimiento: tipoMnt,
-      descripcion,
-      fecha_realizacion: new Date().toISOString(),
-      proxima_fecha_sugerida: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-      costo_estimado_usd: costo,
-      estado: 'COMPLETADO',
-    };
+    setSubmitting(true);
+    setFormError('');
 
-    onAddMaintenance(newMnt);
-    setShowModal(false);
-    setDescripcion('');
+    try {
+      const res = await createGlobalMaintenance({
+        dispositivo_id: selectedDeviceId,
+        sensor_id: sens?.id_sensor,
+        tipo_mantenimiento: tipoMnt,
+        descripcion,
+        costo_estimado_usd: costo,
+        resultado: 'EXITOSO',
+        estado: 'COMPLETADO',
+      });
+
+      const newMnt: Mantenimiento = {
+        id_mantenimiento: res.mantenimiento.id_mantenimiento,
+        dispositivo_id: selectedDeviceId,
+        sensor_id: sens?.id_sensor,
+        tecnico_id: currentUser.id_usuario,
+        tecnico_nombre: currentUser.nombre,
+        tipo_mantenimiento: tipoMnt,
+        descripcion,
+        fecha_realizacion: res.mantenimiento.fecha_intervencion,
+        proxima_fecha_sugerida: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+        costo_estimado_usd: costo,
+        estado: 'COMPLETADO',
+      };
+
+      onAddMaintenance(newMnt);
+      setBackendMaintenances((prev) => [res.mantenimiento, ...prev]);
+      setShowModal(false);
+      setDescripcion('');
+    } catch (err: any) {
+      setFormError(err?.message || 'Error al persistir intervención en MySQL.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  // Merge backend and local maintenances
+  const displayMaintenances = backendMaintenances.length > 0
+    ? backendMaintenances
+    : initialMaintenances.map((m) => ({
+        ...m,
+        id_usuario_responsable: Number(m.tecnico_id) || null,
+        fecha_intervencion: m.fecha_realizacion,
+        resultado: 'EXITOSO' as const,
+        costo_estimado_usd: m.costo_estimado_usd || 0,
+        estado: 'COMPLETADO' as const,
+      }));
 
   return (
     <div className="space-y-[24px]">
@@ -76,17 +136,24 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            setSelectedDeviceId(devices[0]?.id_dispositivo ?? '');
-            setShowModal(true);
-          }}
-          disabled={devices.length === 0}
-          className="apple-blue-pill flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Registrar Intervención Técnica</span>
-        </button>
+        {isAdminOrTecnico ? (
+          <button
+            onClick={() => {
+              setSelectedDeviceId(devices[0]?.id_dispositivo ?? '');
+              setShowModal(true);
+            }}
+            disabled={devices.length === 0}
+            className="apple-blue-pill flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Registrar Intervención Técnica</span>
+          </button>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-700 border border-amber-500/30">
+            <ShieldAlert className="w-4 h-4 text-amber-600" />
+            <span>Solo lectura (RN-22: Requiere Administrador o Técnico)</span>
+          </span>
+        )}
       </div>
 
       <DeviceConnectivityPanel devices={connectivity} />
@@ -151,23 +218,25 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-border/40 font-sans">
-              {maintenances.map((mnt) => {
+              {displayMaintenances.map((mnt) => {
                 const dev = devices.find((d) => d.id_dispositivo === mnt.dispositivo_id);
+                const fecha = (mnt as any).fecha_intervencion || mnt.fecha_realizacion;
+                const devName = (mnt as any).dispositivo_nombre || dev?.nombre || mnt.dispositivo_id;
                 return (
                   <tr key={mnt.id_mantenimiento} className="hover:bg-cream-paper/50 transition-colors">
                     <td className="px-5 py-3.5 font-mono text-slate">
-                      {new Date(mnt.fecha_realizacion).toLocaleDateString()}
+                      {fecha ? new Date(fecha).toLocaleDateString() : 'N/D'}
                     </td>
                     <td className="px-5 py-3.5">
                       <span className="apple-badge-orange font-mono">{mnt.tipo_mantenimiento}</span>
                     </td>
                     <td className="px-5 py-3.5 font-semibold text-bark">
-                      {dev?.nombre}
+                      {devName}
                     </td>
                     <td className="px-5 py-3.5 text-slate">
                       {mnt.tecnico_nombre}
                     </td>
-                    <td className="px-5 py-3.5 text-slate max-w-xs truncate">
+                    <td className="px-5 py-3.5 text-slate max-w-xs truncate" title={mnt.descripcion}>
                       {mnt.descripcion}
                     </td>
                     <td className="px-5 py-3.5 text-right font-mono font-semibold text-bark">
@@ -203,6 +272,12 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                 ✕
               </button>
             </div>
+
+            {formError && (
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-700 text-xs">
+                {formError}
+              </div>
+            )}
 
             <form onSubmit={handleCreate} className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -291,8 +366,10 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="apple-blue-pill px-5 py-2 font-semibold text-xs"
+                  disabled={submitting}
+                  className="apple-blue-pill px-5 py-2 font-semibold text-xs inline-flex items-center gap-1.5"
                 >
+                  {submitting && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   Guardar en Bitácora
                 </button>
               </div>

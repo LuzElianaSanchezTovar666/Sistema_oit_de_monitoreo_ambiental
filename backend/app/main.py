@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .database import run_migrations
-from .routers import alertas, auth, configuraciones, dispositivos, ia, mediciones, mqtt, protected_simoa, reportes, sensores, ubicaciones
+from .routers import alertas, auth, configuraciones, dispositivos, ia, mantenimientos, mediciones, mqtt, protected_simoa, reportes, sensores, ubicaciones
 from .services.alerts_service import alerts_service
 from .services.device_connectivity import connectivity_monitor
 from .services.mqtt_ingest import mqtt_service
@@ -45,6 +45,7 @@ def create_app() -> FastAPI:
     app.include_router(ubicaciones.router)
     app.include_router(dispositivos.router)
     app.include_router(sensores.router)
+    app.include_router(mantenimientos.router)
     app.include_router(configuraciones.router)
     app.include_router(mediciones.router)
     app.include_router(ia.router)

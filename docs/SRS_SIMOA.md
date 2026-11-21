@@ -964,6 +964,7 @@ classDiagram
 - **RN-03 (Caducidad de Conexión - Keep-Alive):** Si el servidor no recibe paquetes de un dispositivo en un lapso mayor a 3 ciclos nominales (60 segundos), su estado cambiará automáticamente de `EN LÍNEA` a `DESCONECTADO`.
 - **RN-04 (Inmutabilidad Histórica):** Las mediciones registradas en la tabla `mediciones` no podrán ser editadas ni eliminadas individualmente por ningún usuario para preservar la integridad de la auditoría.
 - **RN-05 (Complementariedad de Alertas e IA):** Una alerta por umbral fijo tiene prioridad crítica; el módulo de IA genera advertencias de comportamiento anómalo que complementan el diagnóstico pero no anulan la alarma por temperatura extrema.
+- **RN-22 (Restricción de Parámetros Técnicos y Mantenimientos):** La modificación de parámetros de configuración técnica (firmware, IP, ubicación, observaciones) y el registro de intervenciones en la bitácora de mantenimiento está restringida exclusivamente a los roles **Administrador** y **Técnico**. Los roles **Supervisor** y **Operador** cuentan con acceso de solo lectura. Toda modificación técnica preserva la trazabilidad y advierte que no reprograma físicamente el firmware ni la IP física del hardware ESP32.
 
 ---
 

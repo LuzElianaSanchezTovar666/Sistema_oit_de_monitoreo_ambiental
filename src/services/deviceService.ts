@@ -30,6 +30,7 @@ export interface DispositivoDTO extends DeviceConnectivity {
   codigo: string;
   nombre: string;
   mac_address: string;
+  ip_address?: string | null;
   tipo: DispositivoTipo;
   firmware_version: string;
   ubicacion_id: string;
@@ -69,6 +70,7 @@ export interface CreateDispositivoPayload {
   firmware_version: string;
   ubicacion_id?: string;
   ubicacion?: string;
+  ip_address?: string;
   observacion_tecnica?: string;
 }
 
@@ -352,6 +354,218 @@ export async function deactivateDispositivo(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.detail || 'No fue posible desactivar el dispositivo.');
+  }
+  return data;
+}
+
+// ============================================================================
+// RF-20: FICHA TÉCNICA DETALLADA E HISTORIAL POR DISPOSITIVO (RN-22)
+// ============================================================================
+
+export type MaintenanceType =
+  | 'PREVENTIVO'
+  | 'CORRECTIVO'
+  | 'CALIBRACION'
+  | 'REEMPLAZO_BATERIA'
+  | 'LIMPIEZA_SONDA'
+  | 'ACTUALIZACION_FIRMWARE'
+  | 'REVISION_GENERAL';
+
+export type MaintenanceResult = 'EXITOSO' | 'PENDIENTE' | 'EN_OBSERVACION';
+export type MaintenanceStatus = 'COMPLETADO' | 'PROGRAMADO' | 'EN_CURSO';
+
+export interface MantenimientoDTO {
+  id_mantenimiento: string;
+  dispositivo_id: string;
+  sensor_id?: string | null;
+  id_usuario_responsable?: number | null;
+  tecnico_id: string;
+  tecnico_nombre: string;
+  tipo_mantenimiento: MaintenanceType;
+  fecha_intervencion: string;
+  fecha_realizacion: string;
+  descripcion: string;
+  actividades_realizadas?: string | null;
+  resultado: MaintenanceResult;
+  observaciones?: string | null;
+  proxima_fecha_sugerida?: string | null;
+  costo_estimado_usd: number;
+  id_alerta_relacionada?: string | null;
+  estado: MaintenanceStatus;
+  fecha_registro?: string | null;
+  dispositivo_nombre?: string;
+  dispositivo_codigo?: string;
+}
+
+export interface FichaSensorDTO {
+  id_sensor: string;
+  dispositivo_id: string;
+  identificador: string;
+  modelo: 'DHT22' | 'BME280' | 'SHT31';
+  variables_medidas: string[];
+  fecha_instalacion: string;
+  ultima_calibracion: string;
+  estado: string;
+  descripcion?: string | null;
+  historial_mediciones_count: number;
+}
+
+export interface FichaAlertaDTO {
+  id_alerta: string;
+  tipo: string;
+  severidad?: string;
+  nivel?: string;
+  estado: string;
+  mensaje: string;
+  fecha_hora: string;
+}
+
+export interface DeviceFichaTecnicaDTO {
+  dispositivo: DispositivoDTO;
+  conectividad: DeviceConnectivity;
+  mqtt: {
+    client_id: string;
+    topic_telemetria: string;
+    topic_heartbeat: string;
+    broker_host: string;
+    broker_port: number;
+    broker_disponible: boolean;
+    broker_mensaje: string;
+  };
+  sensores: FichaSensorDTO[];
+  sensores_count: number;
+  mantenimientos: MantenimientoDTO[];
+  mantenimientos_count: number;
+  alertas_recientes: FichaAlertaDTO[];
+  permisos: {
+    puede_editar_tecnico: boolean;
+    puede_registrar_mantenimiento: boolean;
+    rol_actual: string;
+  };
+  advertencia_hardware: string;
+}
+
+export interface UpdateDeviceTechnicalPayload {
+  nombre?: string;
+  firmware_version?: string;
+  ubicacion_id?: string;
+  ip_address?: string;
+  observacion_tecnica?: string;
+}
+
+export interface CreateMantenimientoPayload {
+  dispositivo_id: string;
+  sensor_id?: string;
+  tipo_mantenimiento: MaintenanceType;
+  fecha_intervencion?: string;
+  descripcion: string;
+  actividades_realizadas?: string;
+  resultado?: MaintenanceResult;
+  observaciones?: string;
+  proxima_fecha_sugerida?: string;
+  costo_estimado_usd?: number;
+  id_alerta_relacionada?: string;
+  estado?: MaintenanceStatus;
+}
+
+export async function fetchDeviceFichaTecnica(id: string): Promise<DeviceFichaTecnicaDTO> {
+  const res = await fetch(`/api/dispositivos/${encodeURIComponent(id)}/ficha-tecnica`, {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar la ficha técnica del dispositivo.');
+  }
+  return data as DeviceFichaTecnicaDTO;
+}
+
+export async function fetchDeviceMaintenances(
+  id: string
+): Promise<{ items: MantenimientoDTO[]; total: number }> {
+  const res = await fetch(`/api/dispositivos/${encodeURIComponent(id)}/mantenimientos`, {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar el historial de mantenimientos.');
+  }
+  return data;
+}
+
+export async function createDeviceMaintenance(
+  id: string,
+  payload: CreateMantenimientoPayload
+): Promise<{ message: string; mantenimiento: MantenimientoDTO }> {
+  const res = await fetch(`/api/dispositivos/${encodeURIComponent(id)}/mantenimientos`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildMutationHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'No fue posible registrar la intervención técnica.');
+  }
+  return data;
+}
+
+export async function patchDeviceTechnicalConfig(
+  id: string,
+  payload: UpdateDeviceTechnicalPayload
+): Promise<{ message: string; dispositivo: DispositivoDTO }> {
+  const res = await fetch(`/api/dispositivos/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: buildMutationHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'No fue posible actualizar los parámetros técnicos.');
+  }
+  return data;
+}
+
+export async function fetchAllMaintenances(params?: {
+  dispositivo_id?: string;
+  tipo?: string;
+}): Promise<{ items: MantenimientoDTO[]; total: number }> {
+  const query = new URLSearchParams();
+  if (params?.dispositivo_id && params.dispositivo_id !== 'ALL') {
+    query.set('dispositivo_id', params.dispositivo_id);
+  }
+  if (params?.tipo && params.tipo !== 'ALL') {
+    query.set('tipo', params.tipo);
+  }
+  const qs = query.toString();
+  const res = await fetch(`/api/mantenimientos${qs ? `?${qs}` : ''}`, {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar mantenimientos.');
+  }
+  return data;
+}
+
+export async function createGlobalMaintenance(
+  payload: CreateMantenimientoPayload
+): Promise<{ message: string; mantenimiento: MantenimientoDTO }> {
+  const res = await fetch('/api/mantenimientos', {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildMutationHeaders(),
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'No fue posible registrar el mantenimiento.');
   }
   return data;
 }

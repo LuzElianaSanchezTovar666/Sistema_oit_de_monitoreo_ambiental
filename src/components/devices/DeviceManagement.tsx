@@ -15,9 +15,11 @@ import {
   RefreshCw,
   Clock,
   ShieldAlert,
+  FileText,
 } from 'lucide-react';
 import { Dispositivo, Sensor, Ubicacion, Usuario, UserRole } from '../../types/iot';
 import { useDebounce } from '../../hooks/useDebounce';
+import { DeviceFichaTecnicaModal } from './DeviceFichaTecnicaModal';
 import {
   createDispositivo,
   deactivateDispositivo,
@@ -112,6 +114,15 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
     // Modal Desactivación Lógica (RN-03)
     const [deactivateTarget, setDeactivateTarget] = useState<DispositivoDTO | null>(null);
     const [deactivating, setDeactivating] = useState(false);
+
+    // Modal Ficha Técnica Detallada (RF-20 / RN-22)
+    const [fichaModalOpen, setFichaModalOpen] = useState(false);
+    const [selectedFichaDeviceId, setSelectedFichaDeviceId] = useState<string | null>(null);
+
+    const handleOpenFicha = (devId: string) => {
+      setSelectedFichaDeviceId(devId);
+      setFichaModalOpen(true);
+    };
 
     const loadInventory = useCallback(async () => {
       setLoading(true);
@@ -576,6 +587,14 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                         <td className="py-3.5 px-4 text-right">
                           <div className="inline-flex items-center gap-2">
                             <button
+                              onClick={() => handleOpenFicha(dev.id_dispositivo)}
+                              title="Ver ficha técnica detallada e historial por dispositivo (RF-20)"
+                              className="px-3 py-1.5 rounded-[56px] bg-obsidian-shell border border-emerald-500/30 text-emerald-400 hover:border-emerald-400 hover:bg-emerald-500/10 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>Ficha técnica</span>
+                            </button>
+                            <button
                               onClick={() => openDetailModal(dev)}
                               className="px-3 py-1.5 rounded-[56px] bg-obsidian-shell border border-graphite-fill text-pure-white hover:border-neon-pulse text-xs inline-flex items-center gap-1.5 cursor-pointer"
                             >
@@ -795,12 +814,26 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                   </p>
                   <h2 className="text-lg font-medium mt-0.5">Detalle del dispositivo IoT</h2>
                 </div>
-                <button
-                  onClick={() => setDetailDevice(null)}
-                  className="text-slate-text hover:text-pure-white cursor-pointer"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const id = detailDevice.id_dispositivo;
+                      setDetailDevice(null);
+                      handleOpenFicha(id);
+                    }}
+                    title="Abrir Ficha Técnica Detallada (RF-20)"
+                    className="px-3 py-1.5 rounded-[56px] bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Ficha Técnica</span>
+                  </button>
+                  <button
+                    onClick={() => setDetailDevice(null)}
+                    className="text-slate-text hover:text-pure-white cursor-pointer p-1"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               {loadingDetail ? (
@@ -1170,6 +1203,21 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
               </div>
             </div>
           </div>
+        )}
+        {/* Modal: Ficha Técnica e Historial (RF-20 / RN-22) */}
+        {fichaModalOpen && selectedFichaDeviceId && (
+          <DeviceFichaTecnicaModal
+            deviceId={selectedFichaDeviceId}
+            isOpen={fichaModalOpen}
+            onClose={() => {
+              setFichaModalOpen(false);
+              setSelectedFichaDeviceId(null);
+            }}
+            currentUserRole={currentUserRole}
+            locations={activeUbicaciones}
+            onNotify={onNotify}
+            onDeviceUpdated={() => void loadInventory()}
+          />
         )}
       </div>
     );
