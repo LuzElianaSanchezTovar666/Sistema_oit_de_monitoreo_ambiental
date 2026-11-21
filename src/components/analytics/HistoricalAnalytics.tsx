@@ -20,7 +20,7 @@ import { SkeletonBox } from '../common/SkeletonLoader';
 import { TrendChartPanel } from './TrendChartPanel';
 import { fetchUbicaciones, UbicacionDTO } from '../../services/locationService';
 import { DispositivoDTO, fetchDispositivos } from '../../services/deviceService';
-import { downloadEnvironmentalReport } from '../../services/reportService';
+import { downloadEnvironmentalReport, downloadCsvExport } from '../../services/reportService';
 import {
   fetchHistoricalMeasurements,
   fetchHistoricalTrends,
@@ -59,9 +59,10 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
   const [trendData, setTrendData] = useState<HistoricalTrendResponseDTO | null>(null);
   const [liveFollow, setLiveFollow] = useState<boolean>(false);
 
-  // RF-16: Estados de generación y descarga de reportes
+  // RF-16 y RF-17: Estados de generación y descarga de reportes y exportación CSV
   const [reportFormat, setReportFormat] = useState<'pdf' | 'excel'>('pdf');
   const [reportLoading, setReportLoading] = useState<boolean>(false);
+  const [csvLoading, setCsvLoading] = useState<boolean>(false);
   const [reportStatus, setReportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [reportMessage, setReportMessage] = useState<string>('');
 
@@ -352,6 +353,49 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
     }
   };
 
+  const handleExportCsv = async () => {
+    if (csvLoading || reportLoading) return;
+    const rangeErr = validateHistoricalDateRange(fechaInicio, fechaFin);
+    if (rangeErr) {
+      setReportStatus('error');
+      setReportMessage(rangeErr);
+      return;
+    }
+    if (result && result.estadisticas.total_registros_filtrados === 0) {
+      setReportStatus('error');
+      setReportMessage('No hay mediciones disponibles para exportar con los filtros seleccionados');
+      return;
+    }
+
+    setCsvLoading(true);
+    setReportStatus('idle');
+    setReportMessage('Generando y descargando exportación CSV estándar...');
+    try {
+      const res = await downloadCsvExport({
+        fecha_inicio: fechaInicio || undefined,
+        fecha_fin: fechaFin || undefined,
+        ubicacion_id: ubicacionId || undefined,
+        dispositivo_id: dispositivoId || undefined,
+        sensor_id: sensorId || undefined,
+      });
+      setReportStatus('success');
+      setReportMessage(
+        `Exportación CSV descargada exitosamente (${res.filename}${
+          res.totalRecords !== undefined ? ` · ${res.totalRecords} registros` : ''
+        }).`
+      );
+      setTimeout(() => {
+        setReportStatus('idle');
+        setReportMessage('');
+      }, 5000);
+    } catch (err: any) {
+      setReportStatus('error');
+      setReportMessage(err?.message || 'Error al exportar mediciones a CSV.');
+    } finally {
+      setCsvLoading(false);
+    }
+  };
+
   const stats = result?.estadisticas;
   const tempStats = stats?.temperatura;
   const humStats = stats?.humedad;
@@ -525,18 +569,18 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
         )}
       </form>
 
-      {/* RF-16: Sección de Exportación y Descarga de Reportes Ambientales */}
+      {/* RF-16 y RF-17: Sección de Exportación y Descarga de Reportes Ambientales */}
       <div className="bg-sheet-white rounded-[16px] p-5 border border-sage-mist/60 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="apple-badge-blue text-[10px]">RF-16 · RN-18</span>
+              <span className="apple-badge-blue text-[10px]">RF-16 · RF-17 · RN-18 · RN-19</span>
               <h2 className="text-sm font-semibold text-bark">
-                Generación y Descarga de Reportes Ambientales
+                Reportes y Exportación de Mediciones
               </h2>
             </div>
             <p className="text-xs text-slate mt-0.5">
-              Genera documentos certificados en PDF o Excel consolidando el 100% de los datos filtrados, estadísticas muestrales e incidencias de RF-14.
+              Descarga reportes estadísticos en PDF o Excel (RF-16) o exporta todas las mediciones filtradas a CSV estándar (RF-17).
             </p>
           </div>
 
@@ -571,8 +615,9 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
             <button
               type="button"
               onClick={handleGenerateReport}
-              disabled={reportLoading || loading}
-              className="apple-blue-pill px-5 py-2 text-xs font-semibold inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              disabled={reportLoading || csvLoading || loading}
+              className="apple-blue-pill px-4 py-2 text-xs font-semibold inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              title="Descargar reporte ambiental estadístico consolidado"
             >
               {reportLoading ? (
                 <>
@@ -582,7 +627,27 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
               ) : (
                 <>
                   <Download className="w-3.5 h-3.5" />
-                  <span>Generar reporte</span>
+                  <span>Descargar {reportFormat.toUpperCase()}</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              disabled={reportLoading || csvLoading || loading}
+              className="px-4 py-2 rounded-[56px] bg-cream-paper border border-sage-mist hover:border-canopy text-bark text-xs font-semibold inline-flex items-center gap-2 cursor-pointer disabled:opacity-50 transition-colors"
+              title="Exportar todas las mediciones filtradas en formato tabular CSV estándar"
+            >
+              {csvLoading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-canopy" />
+                  <span>Exportando CSV...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5 text-canopy" />
+                  <span>Exportar CSV</span>
                 </>
               )}
             </button>
@@ -602,7 +667,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
           >
             {reportStatus === 'error' && <AlertCircle className="w-4 h-4 shrink-0" />}
             {reportStatus === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />}
-            {reportLoading && <Loader2 className="w-4 h-4 shrink-0 animate-spin text-sky-600" />}
+            {(reportLoading || csvLoading) && <Loader2 className="w-4 h-4 shrink-0 animate-spin text-sky-600" />}
             <span>{reportMessage}</span>
           </div>
         )}
