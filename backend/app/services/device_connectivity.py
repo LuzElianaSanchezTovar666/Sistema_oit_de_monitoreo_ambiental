@@ -31,7 +31,9 @@ def classify_contact(last_contact: datetime | None, now: datetime, normal: int, 
     return "OFFLINE"
 
 
-def _change_state(cursor: Any, row: dict, new: str, reason: str, now: datetime, contact: datetime | None) -> None:
+def _change_state(
+    cursor: Any, row: dict, new: str, reason: str, now: datetime, contact: datetime | None, rssi: int | None = None
+) -> None:
     previous = row["estado"]
     if previous == new:
         return
@@ -50,20 +52,21 @@ def _change_state(cursor: Any, row: dict, new: str, reason: str, now: datetime, 
         """,
         (new, new, new, new, now, now, reading_cutoff, row["id_dispositivo"]),
     )
+    rssi_to_log = rssi if rssi is not None else row.get("rssi_dbm")
     cursor.execute(
         """
         INSERT INTO historial_conectividad_dispositivos
-          (dispositivo_id, estado_anterior, estado_nuevo, motivo, fecha_cambio_utc, ultimo_ping)
-        VALUES (%s, %s, %s, %s, %s, %s)
+          (dispositivo_id, estado_anterior, estado_nuevo, motivo, fecha_cambio_utc, ultimo_ping, rssi_dbm)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
-        (row["id_dispositivo"], previous, new, reason, now, contact),
+        (row["id_dispositivo"], previous, new, reason, now, contact, rssi_to_log),
     )
 
 
 def lock_device(cursor: Any, device_id: str) -> dict | None:
     cursor.execute(
         """
-        SELECT id_dispositivo, estado, activo_administrativamente, ultimo_ping, ultima_evidencia_origen
+        SELECT id_dispositivo, estado, activo_administrativamente, ultimo_ping, ultima_evidencia_origen, rssi_dbm
         FROM dispositivos WHERE id_dispositivo = %s FOR UPDATE
         """,
         (device_id,),
@@ -78,6 +81,7 @@ def deactivate_device(cursor: Any, row: dict) -> None:
 def record_contact(
     cursor: Any, row: dict | None, *, captured: datetime, received: datetime, reason: str,
     now: datetime | None = None,
+    rssi: int | None = None,
 ) -> bool:
     settings = get_settings()
     if not row or not row["activo_administrativamente"]:
@@ -93,29 +97,49 @@ def record_contact(
         return False
 
     now = now if now is not None else utc_now()
+    rssi_val = None
+    if rssi is not None:
+        try:
+            val = int(rssi)
+            if -130 <= val <= 0:
+                rssi_val = val
+        except (TypeError, ValueError):
+            rssi_val = None
+
     cursor.execute(
         """
         UPDATE dispositivos
-        SET ultimo_ping = %s, ultima_evidencia_origen = %s, fecha_actualizacion = fecha_actualizacion
+        SET ultimo_ping = %s, ultima_evidencia_origen = %s,
+            rssi_dbm = COALESCE(%s, rssi_dbm),
+            fecha_actualizacion = fecha_actualizacion
         WHERE id_dispositivo = %s
         """,
-        (received, captured, row["id_dispositivo"]),
+        (received, captured, rssi_val, row["id_dispositivo"]),
     )
+    if rssi_val is not None:
+        row["rssi_dbm"] = rssi_val
     new = classify_contact(received, now, settings.rf15_normal_seconds, settings.rf15_max_silence_seconds)
-    _change_state(cursor, row, new, reason, now, received)
+    _change_state(cursor, row, new, reason, now, received, rssi=rssi_val)
     return True
 
 
 def serialize_connectivity(row: dict, now: datetime) -> dict:
     contact = row.get("ultimo_ping")
+    silence = max(0, int((now - contact).total_seconds())) if contact else None
+    rssi = row.get("rssi_dbm")
+    # RF-19: Advertencia preventiva si RSSI < -80 dBm. Si es >= -80 dBm, no se muestra advertencia.
+    alerta_senal_debil = bool(rssi is not None and rssi < -80)
     return {
         "estado": row["estado"],
         "activo_administrativamente": bool(row.get("activo_administrativamente", row["estado"] != "INACTIVO")),
         "estado_conectividad": row.get("estado_conectividad"),
         "ultimo_ping": utc_iso(contact),
         "fecha_cambio_conectividad": utc_iso(row.get("fecha_cambio_conectividad")),
-        "silencio_segundos": max(0, int((now - contact).total_seconds())) if contact else None,
+        "silencio_segundos": silence,
+        "tiempo_silencio_segundos": silence,
         "tolerancia_maxima_segundos": get_settings().rf15_max_silence_seconds,
+        "rssi_dbm": rssi,
+        "alerta_senal_debil": alerta_senal_debil,
     }
 
 
@@ -136,7 +160,7 @@ def _read_inventory() -> list[dict]:
             SELECT d.id_dispositivo, d.codigo, d.nombre, d.ubicacion_id, d.estado,
                    COALESCE(u.nombre, d.ubicacion) AS ubicacion,
                    d.activo_administrativamente, d.estado_conectividad,
-                   d.ultimo_ping, d.fecha_cambio_conectividad
+                   d.ultimo_ping, d.fecha_cambio_conectividad, d.rssi_dbm
             FROM dispositivos d LEFT JOIN ubicaciones u ON u.ubicacion_id = d.ubicacion_id
             ORDER BY d.id_dispositivo
             """

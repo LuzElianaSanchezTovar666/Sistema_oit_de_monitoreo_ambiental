@@ -24,7 +24,7 @@ logger = logging.getLogger("simoa.mqtt")
 
 TOPIC_WILDCARD = "simoa/dispositivos/+/telemetria"
 HEARTBEAT_WILDCARD = "simoa/dispositivos/+/heartbeat"
-RESERVED_PAYLOAD_KEYS = {"codigo", "timestamp", "sensor_id", "identificador", "unidades", "mqtt_client_id"}
+RESERVED_PAYLOAD_KEYS = {"codigo", "timestamp", "sensor_id", "identificador", "unidades", "mqtt_client_id", "rssi", "rssi_dbm", "wifi_rssi"}
 SENSITIVE_KEYS = ("password", "pass", "token", "secret", "authorization", "clave")
 MAX_DLQ_ROWS = 5000
 
@@ -70,6 +70,7 @@ class NormalizedTelemetryEvent:
     unidades: Dict[str, str]
     route_targets: Tuple[str, ...] = ("RF-07", "RF-13")
     connectivity_evidence: bool = False
+    rssi: Optional[int] = None
 
 
 @dataclass
@@ -77,6 +78,7 @@ class Heartbeat:
     device_id: str
     captured: datetime
     received: datetime
+    rssi: Optional[int] = None
 
 
 @dataclass
@@ -564,7 +566,9 @@ class MqttIngestionService:
         )
         retained = bool(getattr(msg, "retain", False))
         if topic.endswith("/heartbeat"):
-            if not trusted or retained or set(payload) != {"codigo", "timestamp", "mqtt_client_id"} or (
+            allowed_hb = {"codigo", "timestamp", "mqtt_client_id", "rssi", "rssi_dbm"}
+            payload_keys = set(payload.keys())
+            if not trusted or retained or not ({"codigo", "timestamp", "mqtt_client_id"} <= payload_keys <= allowed_hb) or (
                 payload["mqtt_client_id"] != device.mqtt_client_id
             ):
                 self._enqueue_rejection(
@@ -572,8 +576,16 @@ class MqttIngestionService:
                     "El latido debe ser no retenido e identificar el cliente MQTT registrado.", raw_bytes,
                 )
                 return
+            hb_rssi = None
+            for rk in ("rssi", "rssi_dbm"):
+                if rk in payload:
+                    try:
+                        hb_rssi = int(payload[rk])
+                    except (TypeError, ValueError):
+                        pass
+                    break
             try:
-                self.telemetry_queue.put_nowait(Heartbeat(device.id_dispositivo, captured_dt, received))
+                self.telemetry_queue.put_nowait(Heartbeat(device.id_dispositivo, captured_dt, received, rssi=hb_rssi))
             except queue.Full:
                 self._enqueue_rejection(topic, topic_code, "COLA_SATURADA", "Cola MQTT saturada.", raw_bytes)
             return
@@ -700,6 +712,15 @@ class MqttIngestionService:
 
         # 8. Normalización a unidades estándar y enrutamiento no bloqueante hacia cola
         elapsed_ms = (time.perf_counter() - t_start) * 1000.0
+        ev_rssi = None
+        for rk in ("rssi", "rssi_dbm", "wifi_rssi"):
+            if rk in payload:
+                try:
+                    ev_rssi = int(payload[rk])
+                except (TypeError, ValueError):
+                    pass
+                break
+
         event = NormalizedTelemetryEvent(
             event_id=f"evt-{uuid.uuid4().hex[:12]}",
             topic=topic,
@@ -716,6 +737,7 @@ class MqttIngestionService:
             magnitudes=magnitudes,
             unidades={k: enabled_vars[k] for k in magnitudes},
             connectivity_evidence=trusted and not retained,
+            rssi=ev_rssi,
         )
 
         try:
@@ -747,7 +769,7 @@ class MqttIngestionService:
                         with db_cursor() as cursor:
                             device = lock_device(cursor, event.device_id)
                             record_contact(
-                                cursor, device, captured=event.captured, received=event.received, reason="HEARTBEAT"
+                                cursor, device, captured=event.captured, received=event.received, reason="HEARTBEAT", rssi=event.rssi
                             )
                     except pymysql.MySQLError as exc:
                         logger.warning("No se pudo registrar el latido MQTT (%s).", type(exc).__name__)

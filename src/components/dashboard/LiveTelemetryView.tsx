@@ -57,6 +57,19 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
     [activeAlerts, currentLocation]
   );
 
+  const globalConnectivityStats = useMemo(() => {
+    if (!connectivity) return null;
+    let online = 0;
+    let totalActivos = 0;
+    for (const d of connectivity) {
+      if (d.estado !== 'INACTIVO' && d.activo_administrativamente !== false) {
+        totalActivos++;
+        if (d.estado === 'ONLINE') online++;
+      }
+    }
+    return { online, totalActivos };
+  }, [connectivity]);
+
   const [selectedMysqlDeviceId, setSelectedMysqlDeviceId] = useState('ALL');
   const [mysqlMediciones, setMysqlMediciones] = useState<DashboardMedicionDTO[]>([]);
   const [mysqlResumen, setMysqlResumen] = useState<DashboardUbicacionResumenDTO[]>([]);
@@ -262,6 +275,20 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
             <span className="apple-badge-orange font-mono">
               {currentLocation?.codigo_area}
             </span>
+            {globalConnectivityStats && (
+              <span
+                role="status"
+                aria-label={`Red IoT: ${globalConnectivityStats.online} de ${globalConnectivityStats.totalActivos} dispositivos conectados`}
+                title="Contador global de nodos IoT conectados al sistema"
+                className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cream-paper border border-sage-mist text-xs font-medium text-bark"
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-semibold text-canopy">{globalConnectivityStats.online}</span>
+                <span className="text-slate font-normal">de</span>
+                <span className="font-semibold">{globalConnectivityStats.totalActivos}</span>
+                <span className="text-slate">conectados</span>
+              </span>
+            )}
           </div>
           <p className="text-[14px] text-slate mt-1">
             {currentLocation?.descripcion}

@@ -12,7 +12,7 @@ from ..config import get_settings
 from ..database import db_cursor
 from ..dependencies import require_roles
 from ..security import hash_password
-from ..services.device_connectivity import deactivate_device, lock_device, serialize_connectivity, utc_now
+from ..services.device_connectivity import deactivate_device, lock_device, record_contact, serialize_connectivity, utc_now
 
 router = APIRouter(prefix="/api/dispositivos", tags=["Dispositivos IoT (RF-02 y RF-03)"])
 
@@ -162,13 +162,82 @@ _DEVICE_SELECT = """
       d.id_dispositivo, d.id_usuario, d.codigo, d.nombre, d.mac_address, d.tipo,
       d.ubicacion_id, d.ubicacion, u.nombre AS ubicacion_nombre, u.codigo_area,
       d.estado, d.firmware_version, d.observacion_tecnica, d.activo_administrativamente,
-      d.estado_conectividad, d.ultimo_ping, d.fecha_cambio_conectividad,
+      d.estado_conectividad, d.ultimo_ping, d.fecha_cambio_conectividad, d.rssi_dbm,
       d.mqtt_client_id, d.mqtt_topic, d.mqtt_username, d.fecha_registro, d.fecha_actualizacion,
       COUNT(m.id_medicion) AS historial_mediciones_count
     FROM dispositivos d
     LEFT JOIN ubicaciones u ON u.ubicacion_id = d.ubicacion_id
     LEFT JOIN mediciones m ON m.dispositivo_id = d.id_dispositivo
 """
+
+
+class PingSimulatorRequest(BaseModel):
+    rssi_dbm: Optional[int] = Field(default=None, ge=-130, le=0)
+
+
+@router.get("/resumen-conectividad")
+def resumen_conectividad(
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Operador", "Técnico", "Supervisor")
+    ),
+) -> Dict[str, Any]:
+    """RF-19: Resumen global de conectividad de nodos IoT en tiempo real."""
+    with db_cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT id_dispositivo, estado, activo_administrativamente, estado_conectividad, ultimo_ping, rssi_dbm
+            FROM dispositivos
+            """
+        )
+        rows = cursor.fetchall()
+
+    online = 0
+    offline = 0
+    advertencia = 0
+    error_cnt = 0
+    pendiente = 0
+    inactivo = 0
+    senal_debil = 0
+
+    for r in rows:
+        est = (r.get("estado") or "PENDIENTE").upper()
+        activo = bool(r.get("activo_administrativamente", est != "INACTIVO"))
+        rssi = r.get("rssi_dbm")
+        if rssi is not None and rssi < -80:
+            senal_debil += 1
+
+        if not activo or est == "INACTIVO":
+            inactivo += 1
+        elif est == "ONLINE":
+            online += 1
+        elif est == "OFFLINE":
+            offline += 1
+        elif est == "ADVERTENCIA":
+            advertencia += 1
+        elif est == "ERROR":
+            error_cnt += 1
+        elif est == "PENDIENTE":
+            pendiente += 1
+        else:
+            inactivo += 1
+
+    total_activos = online + offline + advertencia + error_cnt + pendiente
+    total_registrados = len(rows)
+    pct = round((online / total_activos) * 100, 1) if total_activos > 0 else 0.0
+
+    return {
+        "online": online,
+        "offline": offline,
+        "advertencia": advertencia,
+        "error": error_cnt,
+        "pendiente": pendiente,
+        "inactivo": inactivo,
+        "senal_debil": senal_debil,
+        "total_activos": total_activos,
+        "total_registrados": total_registrados,
+        "porcentaje_online": pct,
+        "texto_resumen": f"{online} de {total_activos} dispositivos conectados",
+    }
 
 
 @router.get("")
@@ -248,6 +317,33 @@ def get_dispositivo(
     return {
         "dispositivo": _serialize_device(row),
         **_check_mqtt_broker_status(),
+    }
+
+
+@router.post("/{id_dispositivo}/ping")
+def simular_ping_dispositivo(
+    id_dispositivo: str,
+    payload: PingSimulatorRequest,
+    _current_user: Dict[str, Any] = Depends(
+        require_roles("Administrador", "Técnico")
+    ),
+) -> Dict[str, Any]:
+    """RF-19: Registro manual / simulación de contacto y nivel de señal RSSI."""
+    now = utc_now()
+    with db_cursor() as cursor:
+        device = lock_device(cursor, id_dispositivo)
+        if not device:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dispositivo no encontrado.")
+        if not device.get("activo_administrativamente"):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Dispositivo administrativamente inactivo.")
+        recorded = record_contact(
+            cursor, device, captured=now, received=now, reason="MANUAL_PING", rssi=payload.rssi_dbm
+        )
+    return {
+        "message": "Ping registrado correctamente.",
+        "id_dispositivo": id_dispositivo,
+        "rssi_dbm": payload.rssi_dbm,
+        "exito": recorded,
     }
 
 

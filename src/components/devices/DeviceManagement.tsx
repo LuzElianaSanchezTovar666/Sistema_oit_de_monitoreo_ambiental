@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Plus,
   Cpu,
@@ -28,12 +28,15 @@ import {
   fetchDispositivoDetail,
   fetchDispositivos,
   formatLastContact,
+  formatRelativeTime,
+  evaluateRssi,
+  fetchConnectivitySummary,
   INVALID_MAC_MESSAGE,
   isValidMacFormat,
   MqttCredentialsOnce,
   updateDispositivo,
 } from '../../services/deviceService';
-import { DeviceConnectivityBadge } from './DeviceConnectivity';
+import { DeviceConnectivityBadge, DeviceRssiBadge } from './DeviceConnectivity';
 import {
   assignDispositivoUbicacion,
   fetchHistorialUbicaciones,
@@ -139,8 +142,49 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
       loadInventory();
     }, [loadInventory]);
 
-    const statusById = new Map(connectivity?.map((device) => [device.id_dispositivo, device]));
-    const visibleItems = items.filter((device) => estadoFilter === 'ALL' || statusById.get(device.id_dispositivo)?.estado === estadoFilter);
+    const statusById = useMemo(
+      () => new Map(connectivity?.map((device) => [device.id_dispositivo, device])),
+      [connectivity]
+    );
+
+    const stats = useMemo(() => {
+      let online = 0;
+      let offline = 0;
+      let warning = 0;
+      let errorCnt = 0;
+      let weakSignal = 0;
+      let totalActivos = 0;
+
+      for (const dev of items) {
+        const live = statusById.get(dev.id_dispositivo) ?? dev;
+        const isInactive = (live.estado ?? dev.estado) === 'INACTIVO' || dev.activo_administrativamente === false;
+        if (!isInactive) {
+          totalActivos++;
+          const st = live.estado ?? dev.estado;
+          if (st === 'ONLINE') online++;
+          else if (st === 'ADVERTENCIA') warning++;
+          else if (st === 'OFFLINE') offline++;
+          else if (st === 'ERROR') errorCnt++;
+        }
+        const rssi = live.rssi_dbm ?? dev.rssi_dbm;
+        if (rssi !== null && rssi !== undefined && rssi < -80) {
+          weakSignal++;
+        }
+      }
+      const pct = totalActivos > 0 ? Math.round((online / totalActivos) * 100) : 0;
+      return { online, offline, warning, errorCnt, weakSignal, totalActivos, totalRegistrados: items.length, pct };
+    }, [items, statusById]);
+
+    const visibleItems = items.filter((device) => {
+      const live = statusById.get(device.id_dispositivo) ?? device;
+      if (estadoFilter === 'ALL') return true;
+      if (estadoFilter === 'WEAK_SIGNAL') {
+        const rssi = live.rssi_dbm ?? device.rssi_dbm;
+        return rssi !== null && rssi !== undefined && rssi < -80;
+      }
+      return (live.estado ?? device.estado) === estadoFilter;
+    });
+
     const detailStatus = detailDevice ? statusById.get(detailDevice.id_dispositivo) : undefined;
 
     const handleCopy = (key: string, value: string) => {
@@ -360,6 +404,49 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
           </div>
         )}
 
+        {/* KPI: Contador Global de Conectividad (RF-19) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="p-3.5 rounded-[16px] bg-deep-abyss border border-graphite-fill">
+            <span className="text-[11px] font-mono text-slate-text uppercase block">Nodos Conectados</span>
+            <div className="text-xl font-bold text-pure-white mt-0.5 flex items-baseline gap-1">
+              <span className="text-neon-pulse">{stats.online}</span>
+              <span className="text-xs text-slate-text font-normal">/ {stats.totalActivos} activos</span>
+            </div>
+            <span className="text-[11px] text-slate-text font-mono mt-0.5 block">{stats.pct}% disponibilidad</span>
+          </div>
+
+          <div className="p-3.5 rounded-[16px] bg-deep-abyss border border-graphite-fill">
+            <span className="text-[11px] font-mono text-slate-text uppercase block">Desconectados (OFFLINE)</span>
+            <div className="text-xl font-bold text-pure-white mt-0.5 flex items-baseline gap-1">
+              <span className={stats.offline > 0 ? "text-red-400" : "text-pure-white"}>{stats.offline}</span>
+              <span className="text-xs text-slate-text font-normal">nodos</span>
+            </div>
+            <span className="text-[11px] text-slate-text font-mono mt-0.5 block">Silencio superado</span>
+          </div>
+
+          <div className="p-3.5 rounded-[16px] bg-deep-abyss border border-graphite-fill">
+            <span className="text-[11px] font-mono text-slate-text uppercase block">Advertencia / Error</span>
+            <div className="text-xl font-bold text-pure-white mt-0.5 flex items-baseline gap-1">
+              <span className={stats.warning + stats.errorCnt > 0 ? "text-signal-yellow" : "text-pure-white"}>
+                {stats.warning + stats.errorCnt}
+              </span>
+              <span className="text-xs text-slate-text font-normal">nodos</span>
+            </div>
+            <span className="text-[11px] text-slate-text font-mono mt-0.5 block">Retraso o fallo</span>
+          </div>
+
+          <div className="p-3.5 rounded-[16px] bg-deep-abyss border border-graphite-fill">
+            <span className="text-[11px] font-mono text-slate-text uppercase block">Señal Débil (&lt; -80 dBm)</span>
+            <div className="text-xl font-bold text-pure-white mt-0.5 flex items-baseline gap-1">
+              <span className={stats.weakSignal > 0 ? "text-signal-yellow" : "text-pure-white"}>
+                {stats.weakSignal}
+              </span>
+              <span className="text-xs text-slate-text font-normal">nodos</span>
+            </div>
+            <span className="text-[11px] text-slate-text font-mono mt-0.5 block">Riesgo preventivo</span>
+          </div>
+        </div>
+
         {/* Barra de Búsqueda y Filtros */}
         <div className="bg-deep-abyss border border-graphite-fill/50 rounded-[20px] p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
           <div className="md:col-span-2 relative">
@@ -380,10 +467,13 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
             aria-label="Filtrar por estado"
           >
             <option value="ALL">Todos los estados</option>
+            <option value="ONLINE">ONLINE (Conectados)</option>
+            <option value="ADVERTENCIA">ADVERTENCIA (Retraso)</option>
+            <option value="OFFLINE">OFFLINE (Desconectados)</option>
+            <option value="ERROR">ERROR</option>
             <option value="PENDIENTE">PENDIENTE</option>
-            <option value="ONLINE">ONLINE</option>
-            <option value="OFFLINE">OFFLINE</option>
             <option value="INACTIVO">INACTIVO</option>
+            <option value="WEAK_SIGNAL">SEÑAL DÉBIL (&lt; -80 dBm)</option>
           </select>
 
           <select
@@ -433,16 +523,19 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                   <tr className="border-b border-graphite-fill/60 text-[11px] uppercase tracking-wider text-slate-text">
                     <th className="py-3.5 px-4">Dispositivo</th>
                     <th className="py-3.5 px-4">Código</th>
-                    <th className="py-3.5 px-4">MAC</th>
-                    <th className="py-3.5 px-4">Tipo</th>
+                    <th className="py-3.5 px-4">MAC / Tipo</th>
                     <th className="py-3.5 px-4">Ubicación</th>
-                    <th className="py-3.5 px-4">Estado</th>
+                    <th className="py-3.5 px-4">Señal WiFi (RSSI)</th>
+                    <th className="py-3.5 px-4">Estado / Último Ping</th>
                     <th className="py-3.5 px-4 text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-graphite-fill/40">
                   {visibleItems.map((dev) => {
                     const live = statusById.get(dev.id_dispositivo);
+                    const effectiveState = live?.estado ?? dev.estado;
+                    const effectiveRssi = live?.rssi_dbm ?? dev.rssi_dbm;
+                    const effectivePing = live?.ultimo_ping ?? dev.ultimo_ping;
                     return (
                       <tr key={dev.id_dispositivo} className="hover:bg-obsidian-shell/60 transition-colors">
                         <td className="py-3.5 px-4">
@@ -454,16 +547,31 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                         <td className="py-3.5 px-4 font-mono text-xs text-neon-pulse">
                           {dev.codigo || dev.id_dispositivo}
                         </td>
-                        <td className="py-3.5 px-4 font-mono text-xs text-pure-white">
-                          {dev.mac_address}
+                        <td className="py-3.5 px-4 text-xs">
+                          <div className="font-mono text-pure-white">{dev.mac_address}</div>
+                          <div className="text-[11px] text-slate-text">{dev.tipo}</div>
                         </td>
-                        <td className="py-3.5 px-4 text-xs text-pure-white">{dev.tipo}</td>
                         <td className="py-3.5 px-4 text-xs text-slate-text">{dev.ubicacion}</td>
                         <td className="py-3.5 px-4">
-                          <DeviceConnectivityBadge state={live?.estado} />
-                          <p className="mt-1 text-[11px] text-slate-text">Último contacto · {formatLastContact(live?.ultimo_ping ?? dev.ultimo_ping)}</p>
-                          {live?.estado === 'ADVERTENCIA' && <p className="text-xs text-signal-yellow">Retraso en la comunicación</p>}
-                          {live?.estado === 'OFFLINE' && <p className="text-xs text-red-300">Comunicación interrumpida</p>}
+                          <DeviceRssiBadge
+                            rssi={effectiveRssi}
+                            isOffline={effectiveState === 'OFFLINE'}
+                          />
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <DeviceConnectivityBadge state={effectiveState} />
+                          <p
+                            className="mt-1 text-[11px] text-slate-text font-mono"
+                            title={`Último ping registrado: ${formatLastContact(effectivePing)}`}
+                          >
+                            {formatRelativeTime(effectivePing)}
+                          </p>
+                          {effectiveState === 'ADVERTENCIA' && (
+                            <p className="text-xs text-signal-yellow">Retraso en la comunicación</p>
+                          )}
+                          {effectiveState === 'OFFLINE' && (
+                            <p className="text-xs text-red-300">Comunicación interrumpida</p>
+                          )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="inline-flex items-center gap-2">
@@ -705,15 +813,49 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                   <div className="grid grid-cols-2 gap-3 p-3.5 rounded-[12px] bg-obsidian-shell border border-graphite-fill text-xs">
                     <div>
                       <span className="text-slate-text block">Estado</span>
-                      <DeviceConnectivityBadge state={detailStatus?.estado} />
-                      <p className="mt-1 text-slate-text">Último contacto · {formatLastContact(detailStatus?.ultimo_ping ?? detailDevice.ultimo_ping)}</p>
+                      <DeviceConnectivityBadge state={detailStatus?.estado ?? detailDevice.estado} />
+                      <p className="mt-1 text-slate-text font-mono">
+                        Último contacto: {formatRelativeTime(detailStatus?.ultimo_ping ?? detailDevice.ultimo_ping)}
+                      </p>
+                      <p className="text-[10px] text-slate-text/80 font-mono">
+                        {formatLastContact(detailStatus?.ultimo_ping ?? detailDevice.ultimo_ping)}
+                      </p>
                     </div>
+
+                    <div>
+                      <span className="text-slate-text block">Intensidad WiFi (RSSI)</span>
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <DeviceRssiBadge
+                          rssi={detailStatus?.rssi_dbm ?? detailDevice.rssi_dbm}
+                          isOffline={(detailStatus?.estado ?? detailDevice.estado) === 'OFFLINE'}
+                        />
+                      </div>
+                      {(detailStatus?.rssi_dbm ?? detailDevice.rssi_dbm) !== null &&
+                        (detailStatus?.rssi_dbm ?? detailDevice.rssi_dbm) !== undefined &&
+                        (detailStatus?.rssi_dbm ?? detailDevice.rssi_dbm)! < -80 && (
+                          <p className="mt-1 text-signal-yellow text-[10px] font-mono">
+                            Advertencia: &lt; -80 dBm (cobertura débil)
+                          </p>
+                        )}
+                    </div>
+
                     <div>
                       <span className="text-slate-text block">Historial de mediciones (RN-03)</span>
                       <span className="font-mono font-medium text-neon-pulse">
                         {detailDevice.historial_mediciones_count} registros
                       </span>
                     </div>
+
+                    <div>
+                      <span className="text-slate-text block">Silencio Transcurrido</span>
+                      <span className="font-mono text-pure-white">
+                        {(detailStatus?.silencio_segundos ?? detailDevice.silencio_segundos) !== null &&
+                        (detailStatus?.silencio_segundos ?? detailDevice.silencio_segundos) !== undefined
+                          ? `${detailStatus?.silencio_segundos ?? detailDevice.silencio_segundos} segundos`
+                          : 'Sin silencio registrado'}
+                      </span>
+                    </div>
+
                     <div className="col-span-2">
                       <span className="text-slate-text block">Tópico MQTT</span>
                       <span className="font-mono text-pure-white break-all">

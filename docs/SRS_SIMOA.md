@@ -724,13 +724,13 @@ A continuación se presenta un diagrama UML individual por cada una de las 13 hi
 | **¿Crítico?:** | Sí |
 | **Prioridad:** | Alta |
 | **Requerimientos asociados:** | RF-02, RF-15, RF-20 |
-| **Descripción:** | El sistema debe mostrar en tiempo real el estado de conectividad de cada nodo (`ONLINE`, `OFFLINE`, `ADVERTENCIA`, `ERROR`), junto con su intensidad de señal WiFi (`RSSI dBm`) y última marca de ping. |
-| **Entradas:** | Estado actual del dispositivo, `rssi_dbm` y `ultimo_ping`. |
-| **Salidas:** | Insignias visuales de color diferenciado, barra o indicador de señal WiFi y contador global de nodos conectados. |
-| **Flujo Principal:** | 1. El operador o técnico abre el Dashboard o la vista de Dispositivos.<br>2. El sistema renderiza el estado de cada nodo ESP32.<br>3. Muestra el nivel de señal WiFi en dBm y la hora del último latido.<br>4. Actualiza la insignia al instante cuando cambia el estado del nodo. |
-| **Manejo Anormal:** | - Señal débil (`RSSI < -80 dBm`): Resaltar advertencia preventiva de cobertura inalámbrica. |
-| **Reglas de Negocio:** | RN-21: Los estados deben diferenciarse por texto e ícono, no únicamente por color, para cumplir accesibilidad. |
-| **Criterios de Aceptación:** | 1. El técnico identifica en menos de 3 segundos qué nodos están en línea o desconectados. |
+| **Descripción:** | El sistema muestra en tiempo real el estado de conectividad de cada nodo (`ONLINE`, `OFFLINE`, `ADVERTENCIA`, `ERROR`, junto con los administrativos `PENDIENTE` e `INACTIVO`), su intensidad de señal WiFi en dBm (`rssi_dbm`), el último contacto registrado en UTC y tiempo relativo, y el contador global de nodos conectados. |
+| **Entradas:** | Estado de conectividad evaluado por RF-15, nivel de señal WiFi (`rssi_dbm`), marca de tiempo `ultimo_ping` UTC y tiempo transcurrido de silencio. |
+| **Salidas:** | Insignias accesibles (texto e ícono según RN-21), badge de señal WiFi en dBm con advertencia preventiva ante señal débil, tiempo relativo ("Hace 35s") y contador global ("X de Y dispositivos conectados"). |
+| **Flujo Principal:** | 1. El operador, técnico o supervisor accede al Dashboard o a Gestión de Dispositivos.<br>2. El sistema renderiza la conectividad en vivo mediante canal SSE sincronizado post-COMMIT o sondeo reactivo.<br>3. Se visualiza el nivel de señal WiFi en dBm, el estado del nodo y el último ping en formato relativo.<br>4. Se actualiza automáticamente la interfaz sin requerir recarga manual de página. |
+| **Manejo Anormal:** | - Señal débil (`RSSI < -80 dBm`): Se resalta automáticamente con badge de advertencia preventiva de cobertura.<br>- Señal en límite (`RSSI == -80 dBm`): No se clasifica como señal débil según la regla estricta.<br>- Señal no disponible (`RSSI is null`): Se presenta como "Señal no disponible" sin asumir valores artificiales.<br>- Dispositivo desconectado (`OFFLINE`): Se indica la última señal conocida claramente identificada como histórico. |
+| **Reglas de Negocio:** | RN-21: Los estados de conectividad y alertas técnicas deben diferenciarse obligatoriamente mediante etiqueta textual visible E icono gráfico representativo, nunca exclusivamente por color, garantizando accesibilidad WCAG. |
+| **Criterios de Aceptación:** | 1. El Dashboard y la vista de Dispositivos reflejan la conectividad en tiempo real de todos los nodos.<br>2. Se visualiza la señal WiFi en dBm y el último ping relativo.<br>3. Contador global visible ("X de Y dispositivos conectados") considerando únicamente nodos ONLINE sobre el total de activos.<br>4. El técnico de mantenimiento identifica en menos de 3 segundos qué nodos están desconectados mediante la barra de filtros rápidos.<br>5. Pruebas automatizadas ejecutadas y aprobadas. |
 
 ##### Ficha RF-20: Ficha Técnica Detallada e Historial por Dispositivo
 | Campo | Especificación |

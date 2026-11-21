@@ -19,7 +19,10 @@ export interface DeviceConnectivity {
   ultimo_ping?: string | null;
   fecha_cambio_conectividad?: string | null;
   silencio_segundos?: number | null;
+  tiempo_silencio_segundos?: number | null;
   tolerancia_maxima_segundos?: number;
+  rssi_dbm?: number | null;
+  alerta_senal_debil?: boolean;
 }
 
 export interface DispositivoDTO extends DeviceConnectivity {
@@ -174,6 +177,115 @@ export function watchDeviceConnectivity(onSnapshot: (items: DeviceConnectivity[]
     window.clearInterval(interval);
     stream?.close();
   };
+}
+
+export interface ConnectivitySummaryDTO {
+  online: number;
+  offline: number;
+  advertencia: number;
+  error: number;
+  pendiente: number;
+  inactivo: number;
+  senal_debil: number;
+  total_activos: number;
+  total_registrados: number;
+  porcentaje_online: number;
+  texto_resumen: string;
+}
+
+export interface RssiEvaluation {
+  raw: number | null;
+  text: string;
+  isWeak: boolean;
+  qualityLabel: string;
+  qualityColor: string;
+  isAvailable: boolean;
+}
+
+export function evaluateRssi(rssi?: number | null, isOffline = false): RssiEvaluation {
+  if (rssi === null || rssi === undefined || isNaN(Number(rssi))) {
+    return {
+      raw: null,
+      text: 'Señal no disponible',
+      isWeak: false,
+      qualityLabel: 'No disponible',
+      qualityColor: 'text-slate-text bg-graphite-fill/40 border-graphite-fill',
+      isAvailable: false,
+    };
+  }
+  const val = Math.round(Number(rssi));
+  const isWeak = val < -80; // RN-21 / RF-19: Advertencia preventiva si RSSI < -80 dBm. >= -80 no es advertencia.
+  let label = 'Excelente';
+  let color = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+  if (val < -85) {
+    label = 'Muy Débil';
+    color = 'text-red-400 bg-red-500/10 border-red-500/30';
+  } else if (val < -80) {
+    label = 'Débil (Preventiva)';
+    color = 'text-signal-yellow bg-signal-yellow/10 border-signal-yellow/30';
+  } else if (val < -70) {
+    label = 'Aceptable';
+    color = 'text-sky-300 bg-sky-500/10 border-sky-500/30';
+  } else if (val < -60) {
+    label = 'Buena';
+    color = 'text-emerald-300 bg-emerald-500/10 border-emerald-500/30';
+  }
+
+  const prefix = isOffline ? 'Última: ' : '';
+  const suffix = isWeak ? ' · Señal Débil' : '';
+  return {
+    raw: val,
+    text: `${prefix}${val} dBm${suffix}`,
+    isWeak,
+    qualityLabel: label,
+    qualityColor: color,
+    isAvailable: true,
+  };
+}
+
+export function formatRelativeTime(dateOrIso?: string | null): string {
+  if (!dateOrIso) return 'Sin comunicación registrada';
+  const dt = new Date(dateOrIso);
+  if (isNaN(dt.getTime())) return 'Sin comunicación registrada';
+  const diffSec = Math.max(0, Math.floor((Date.now() - dt.getTime()) / 1000));
+  if (diffSec < 10) return 'Hace unos segundos';
+  if (diffSec < 60) return `Hace ${diffSec}s`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `Hace ${diffMin}m`;
+  const diffHrs = Math.floor(diffMin / 60);
+  if (diffHrs < 24) return `Hace ${diffHrs}h`;
+  const diffDays = Math.floor(diffHrs / 24);
+  return `Hace ${diffDays}d`;
+}
+
+export async function fetchConnectivitySummary(): Promise<ConnectivitySummaryDTO> {
+  const res = await fetch('/api/dispositivos/resumen-conectividad', {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al consultar resumen de conectividad.');
+  }
+  return data as ConnectivitySummaryDTO;
+}
+
+export async function simulateDevicePing(
+  id: string,
+  rssi_dbm?: number | null
+): Promise<{ message: string; exito: boolean }> {
+  const res = await fetch(`/api/dispositivos/${encodeURIComponent(id)}/ping`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildMutationHeaders(),
+    body: JSON.stringify({ rssi_dbm: rssi_dbm ?? null }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.detail || 'Error al simular ping del dispositivo.');
+  }
+  return data;
 }
 
 export function formatLastContact(value?: string | null): string {

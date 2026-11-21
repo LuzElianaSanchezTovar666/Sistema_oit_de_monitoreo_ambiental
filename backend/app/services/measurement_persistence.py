@@ -270,6 +270,10 @@ class MeasurementPersistenceService:
             "recepcion_confiable": (
                 event.received_at if getattr(event, "connectivity_evidence", False) else None
             ),
+            "rssi": (
+                getattr(event, "rssi", None) if hasattr(event, "rssi")
+                else (event.get("rssi") if isinstance(event, dict) else None)
+            ),
         }
 
     def _insert_atomic_mysql(self, rec: Dict[str, Any]) -> Tuple[Optional[int], bool, Optional[bool]]:
@@ -387,7 +391,12 @@ class MeasurementPersistenceService:
 
                 if receipt:
                     record_contact(
-                        cursor, device, captured=fecha_dt, received=_to_utc_naive(receipt), reason="TELEMETRIA"
+                        cursor,
+                        device,
+                        captured=fecha_dt,
+                        received=_to_utc_naive(receipt),
+                        reason="TELEMETRIA",
+                        rssi=rec.get("rssi"),
                     )
                 elapsed_ms = (time.perf_counter() - t0) * 1000.0
                 with self._lock:

@@ -720,7 +720,7 @@ async def _connectivity_events(request: Request):
         try:
             rows = await asyncio.to_thread(inventory_snapshot)
             # El tiempo en silencio se deriva del último contacto y no es un cambio de estado.
-            signature = [{key: value for key, value in row.items() if key != "silencio_segundos"} for row in rows]
+            signature = [{key: value for key, value in row.items() if key not in ("silencio_segundos", "tiempo_silencio_segundos")} for row in rows]
             if unavailable or signature != previous:
                 yield f"event: conectividad\ndata: {json.dumps(rows, ensure_ascii=False)}\n\n"
                 previous = signature
