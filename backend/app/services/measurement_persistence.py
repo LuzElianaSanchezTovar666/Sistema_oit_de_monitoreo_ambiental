@@ -315,16 +315,38 @@ class MeasurementPersistenceService:
             es_fuera_de_umbral: Optional[bool] = out_of_range if evaluated_any else None
             es_fuera_db = (1 if out_of_range else 0) if evaluated_any else None
 
+            # RF-18: Evaluación desacoplada de anomalías con Machine Learning (RN-20)
+            ai_eval = None
+            valor_anomalo_db: Optional[int] = None
+            score_ia_db: Optional[float] = None
+            try:
+                from .anomaly_detector import anomaly_service
+                ai_eval = anomaly_service.evaluate_measurement(
+                    sensor_id=rec["sensor_id"],
+                    target_medicion={
+                        "temperatura": rec["temperatura"],
+                        "humedad": rec["humedad"],
+                        "fecha_hora": fecha_dt,
+                        "dispositivo_id": rec["dispositivo_id"],
+                        "ubicacion_id": rec["ubicacion_id"],
+                    },
+                )
+                if ai_eval.is_anomaly is not None:
+                    valor_anomalo_db = 1 if ai_eval.is_anomaly else 0
+                    score_ia_db = ai_eval.score
+            except Exception as ai_err:
+                logger.warning("Fallo no bloqueante en evaluación de anomalía IA (RN-20): %s", ai_err)
+
             try:
                 cursor.execute(
                     """
                     INSERT INTO mediciones (
                       dispositivo_id, sensor_id, ubicacion_id,
                       temperatura, humedad, presion,
-                      alerta_generada, es_fuera_de_umbral, score_anomalia_ia,
+                      alerta_generada, es_fuera_de_umbral, valor_anomalo, score_anomalia_ia,
                       configuracion_id, variables_activas_snapshot, clave_idempotencia, fecha_hora
                     )
-                    VALUES (%s, %s, %s, %s, %s, %s, 0, %s, NULL, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s, %s, 0, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         rec["dispositivo_id"],
@@ -334,6 +356,8 @@ class MeasurementPersistenceService:
                         rec["humedad"],
                         rec["presion"],
                         es_fuera_db,
+                        valor_anomalo_db,
+                        score_ia_db,
                         rec["configuracion_id"],
                         rec["variables_activas_snapshot"],
                         rec["clave_idempotencia"],
@@ -341,6 +365,26 @@ class MeasurementPersistenceService:
                     ),
                 )
                 med_id = int(cursor.lastrowid)
+
+                if med_id and ai_eval:
+                    try:
+                        from .anomaly_detector import anomaly_service
+                        anomaly_service.record_evaluation(
+                            medicion_id=med_id,
+                            sensor_id=rec["sensor_id"],
+                            target_medicion={
+                                "temperatura": rec["temperatura"],
+                                "humedad": rec["humedad"],
+                                "fecha_hora": fecha_dt,
+                                "dispositivo_id": rec["dispositivo_id"],
+                                "ubicacion_id": rec["ubicacion_id"],
+                            },
+                            eval_result=ai_eval,
+                            cursor=cursor,
+                        )
+                    except Exception as rec_err:
+                        logger.warning("Fallo no bloqueante al registrar evaluación IA: %s", rec_err)
+
                 if receipt:
                     record_contact(
                         cursor, device, captured=fecha_dt, received=_to_utc_naive(receipt), reason="TELEMETRIA"

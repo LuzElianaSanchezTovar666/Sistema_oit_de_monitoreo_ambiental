@@ -369,7 +369,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                     <span className="text-slate">Estado: {activeCoord.point.estado_evaluacion}</span>
                   </div>
                 </div>
-                {activeCoord.point.score_anomalia_ia !== null && (
+                {activeCoord.point.score_anomalia_ia !== null && activeCoord.point.score_anomalia_ia !== undefined && (
                   <span className="px-2 py-0.5 rounded-[5px] bg-[#7C3AED]/15 text-[#7C3AED] font-semibold">
                     IA Score: {activeCoord.point.score_anomalia_ia.toFixed(3)}
                     {activeCoord.point.es_anomalia_ia ? ' (Anomalía)' : ''}

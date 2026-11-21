@@ -105,6 +105,14 @@ def _serialize_medicion(row: Dict[str, Any]) -> Dict[str, Any]:
         "es_fuera_de_umbral": (
             bool(row["es_fuera_de_umbral"]) if row.get("es_fuera_de_umbral") is not None else None
         ),
+        "valor_anomalo": (
+            bool(row["valor_anomalo"]) if row.get("valor_anomalo") is not None else None
+        ),
+        "es_anomalia_ia": (
+            bool(row["valor_anomalo"])
+            if row.get("valor_anomalo") is not None
+            else bool(row.get("score_anomalia_ia") is not None and float(row["score_anomalia_ia"]) >= 0.7)
+        ),
         "score_anomalia_ia": (
             float(row["score_anomalia_ia"]) if row.get("score_anomalia_ia") is not None else None
         ),
@@ -167,7 +175,7 @@ def list_mediciones(
             f"""
             SELECT id_medicion, dispositivo_id, sensor_id, ubicacion_id,
                    temperatura, humedad, presion,
-                   alerta_generada, es_fuera_de_umbral, score_anomalia_ia,
+                   alerta_generada, es_fuera_de_umbral, valor_anomalo, score_anomalia_ia,
                    configuracion_id, variables_activas_snapshot, fecha_hora
             FROM mediciones
             {where_clause}
@@ -280,6 +288,7 @@ def get_historico_mediciones(
                       m.presion,
                       m.es_fuera_de_umbral,
                       m.alerta_generada,
+                      m.valor_anomalo,
                       m.score_anomalia_ia,
                       m.configuracion_id,
                       m.fecha_hora
@@ -393,7 +402,7 @@ def _downsample_preserving_extremes(rows: List[Dict[str, Any]], max_points: int)
         min_t_idx = max_t_idx = min_h_idx = max_h_idx = None
         for idx in range(start, end):
             r = rows[idx]
-            if r.get("es_fuera_de_umbral") == 1 or (
+            if r.get("es_fuera_de_umbral") == 1 or r.get("valor_anomalo") == 1 or (
                 r.get("score_anomalia_ia") is not None and float(r["score_anomalia_ia"]) >= 0.7
             ):
                 selected_indices.add(idx)
@@ -481,6 +490,7 @@ def get_tendencias_mediciones(
                   m.temperatura,
                   m.humedad,
                   m.es_fuera_de_umbral,
+                  m.valor_anomalo,
                   m.score_anomalia_ia,
                   m.fecha_hora
                 FROM mediciones m
@@ -560,9 +570,10 @@ def get_tendencias_mediciones(
             else str(fh)
         )
         score_ia = float(r["score_anomalia_ia"]) if r.get("score_anomalia_ia") is not None else None
-        if score_ia is not None:
+        valor_anomalo = bool(r["valor_anomalo"]) if r.get("valor_anomalo") is not None else None
+        if score_ia is not None or valor_anomalo is not None:
             anomalias_ia_disponibles = True
-        es_anomalia_ia = bool(score_ia is not None and score_ia >= 0.7)
+        es_anomalia_ia = valor_anomalo if valor_anomalo is not None else bool(score_ia is not None and score_ia >= 0.7)
         es_fuera = bool(r["es_fuera_de_umbral"]) if r.get("es_fuera_de_umbral") is not None else None
         series.append(
             {
@@ -655,7 +666,7 @@ def get_medicion_by_id(
             """
             SELECT id_medicion, dispositivo_id, sensor_id, ubicacion_id,
                    temperatura, humedad, presion,
-                   alerta_generada, es_fuera_de_umbral, score_anomalia_ia,
+                   alerta_generada, es_fuera_de_umbral, valor_anomalo, score_anomalia_ia,
                    configuracion_id, variables_activas_snapshot, fecha_hora
             FROM mediciones
             WHERE id_medicion = %s
