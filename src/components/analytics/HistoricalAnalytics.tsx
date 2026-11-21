@@ -9,12 +9,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Database,
+  FileText,
+  FileSpreadsheet,
+  Download,
+  CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import { Ubicacion, Dispositivo, Sensor, Medicion } from '../../types/iot';
 import { SkeletonBox } from '../common/SkeletonLoader';
 import { TrendChartPanel } from './TrendChartPanel';
 import { fetchUbicaciones, UbicacionDTO } from '../../services/locationService';
 import { DispositivoDTO, fetchDispositivos } from '../../services/deviceService';
+import { downloadEnvironmentalReport } from '../../services/reportService';
 import {
   fetchHistoricalMeasurements,
   fetchHistoricalTrends,
@@ -52,6 +58,12 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
   const [result, setResult] = useState<HistoricalQueryResponseDTO | null>(null);
   const [trendData, setTrendData] = useState<HistoricalTrendResponseDTO | null>(null);
   const [liveFollow, setLiveFollow] = useState<boolean>(false);
+
+  // RF-16: Estados de generación y descarga de reportes
+  const [reportFormat, setReportFormat] = useState<'pdf' | 'excel'>('pdf');
+  const [reportLoading, setReportLoading] = useState<boolean>(false);
+  const [reportStatus, setReportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [reportMessage, setReportMessage] = useState<string>('');
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -300,6 +312,46 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
     executeQuery(1, newSize);
   };
 
+  const handleGenerateReport = async () => {
+    if (reportLoading) return;
+    const rangeErr = validateHistoricalDateRange(fechaInicio, fechaFin);
+    if (rangeErr) {
+      setReportStatus('error');
+      setReportMessage(rangeErr);
+      return;
+    }
+    if (result && result.estadisticas.total_registros_filtrados === 0) {
+      setReportStatus('error');
+      setReportMessage('No se encontraron mediciones para el período y los filtros seleccionados.');
+      return;
+    }
+
+    setReportLoading(true);
+    setReportStatus('idle');
+    setReportMessage('Preparando y generando reporte ambiental consolidado...');
+    try {
+      const res = await downloadEnvironmentalReport({
+        formato: reportFormat,
+        fecha_inicio: fechaInicio || undefined,
+        fecha_fin: fechaFin || undefined,
+        ubicacion_id: ubicacionId || undefined,
+        dispositivo_id: dispositivoId || undefined,
+        sensor_id: sensorId || undefined,
+      });
+      setReportStatus('success');
+      setReportMessage(`Reporte descargado correctamente (${res.filename}).`);
+      setTimeout(() => {
+        setReportStatus('idle');
+        setReportMessage('');
+      }, 5000);
+    } catch (err: any) {
+      setReportStatus('error');
+      setReportMessage(err?.message || 'Error al generar el reporte.');
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
   const stats = result?.estadisticas;
   const tempStats = stats?.temperatura;
   const humStats = stats?.humedad;
@@ -472,6 +524,89 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
           </div>
         )}
       </form>
+
+      {/* RF-16: Sección de Exportación y Descarga de Reportes Ambientales */}
+      <div className="bg-sheet-white rounded-[16px] p-5 border border-sage-mist/60 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="apple-badge-blue text-[10px]">RF-16 · RN-18</span>
+              <h2 className="text-sm font-semibold text-bark">
+                Generación y Descarga de Reportes Ambientales
+              </h2>
+            </div>
+            <p className="text-xs text-slate mt-0.5">
+              Genera documentos certificados en PDF o Excel consolidando el 100% de los datos filtrados, estadísticas muestrales e incidencias de RF-14.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex rounded-[8px] bg-cream-paper border border-sage-mist p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setReportFormat('pdf')}
+                className={`px-3 py-1.5 rounded-[6px] font-medium transition-all inline-flex items-center gap-1.5 ${
+                  reportFormat === 'pdf'
+                    ? 'bg-canopy text-pure-white shadow-sm'
+                    : 'text-slate hover:text-bark'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => setReportFormat('excel')}
+                className={`px-3 py-1.5 rounded-[6px] font-medium transition-all inline-flex items-center gap-1.5 ${
+                  reportFormat === 'excel'
+                    ? 'bg-canopy text-pure-white shadow-sm'
+                    : 'text-slate hover:text-bark'
+                }`}
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                Excel (.xlsx)
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGenerateReport}
+              disabled={reportLoading || loading}
+              className="apple-blue-pill px-5 py-2 text-xs font-semibold inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {reportLoading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Generando reporte...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Generar reporte</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {reportMessage && (
+          <div
+            role="status"
+            className={`p-2.5 rounded-[8px] text-xs flex items-center gap-2 animate-fadeIn ${
+              reportStatus === 'error'
+                ? 'bg-[#DC2626]/10 border border-[#DC2626]/30 text-[#DC2626]'
+                : reportStatus === 'success'
+                ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                : 'bg-sky-50 border border-sky-200 text-sky-800'
+            }`}
+          >
+            {reportStatus === 'error' && <AlertCircle className="w-4 h-4 shrink-0" />}
+            {reportStatus === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />}
+            {reportLoading && <Loader2 className="w-4 h-4 shrink-0 animate-spin text-sky-600" />}
+            <span>{reportMessage}</span>
+          </div>
+        )}
+      </div>
 
       {/* Tarjetas KPI Consolidadas (sobre todos los registros filtrados) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
