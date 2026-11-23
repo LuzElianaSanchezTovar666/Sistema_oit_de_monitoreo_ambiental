@@ -48,7 +48,7 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
   const [editing, setEditing] = useState<UbicacionDTO | null>(null);
   const [nombre, setNombre] = useState('');
   const [codigoArea, setCodigoArea] = useState('');
-  const [tipo, setTipo] = useState('Laboratorio');
+  const [tipo, setTipo] = useState('Cultivo');
   const [descripcion, setDescripcion] = useState('');
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -84,7 +84,7 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
     setEditing(null);
     setNombre('');
     setCodigoArea('');
-    setTipo('Laboratorio');
+    setTipo('Cultivo');
     setDescripcion('');
     setFormError('');
     setFormOpen(true);
@@ -177,10 +177,10 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
         <div>
           <p className="sauce-eyebrow text-neon-pulse">RF-03 · CATÁLOGO MYSQL</p>
           <h1 className="text-2xl font-medium text-pure-white mt-1">
-            Ubicaciones Físicas y Áreas de Monitoreo
+            Zonas del Invernadero y Áreas de Monitoreo
           </h1>
           <p className="text-sm text-slate-text mt-0.5">
-            Administra recintos físicos, códigos de área y dispositivos asignados con reglas RN-04.
+            Administra las zonas del invernadero, códigos de área y dispositivos asignados con reglas RN-04.
           </p>
         </div>
 
@@ -362,7 +362,7 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
                     required
                     value={tipo}
                     onChange={(e) => setTipo(e.target.value)}
-                    placeholder="Laboratorio"
+                    placeholder="Cultivo / Germinación"
                     className="apple-pill-input w-full py-2"
                   />
                 </div>

@@ -96,11 +96,11 @@ def test_rf02_registro_exitoso_estado_pendiente_y_credenciales_mqtt():
         res = client.post(
             "/api/dispositivos",
             json={
-                "nombre": "Nodo Bioterio Norte",
+                "nombre": "Nodo Cultivo Norte",
                 "mac_address": "aa:11:22:33:44:55",
                 "tipo": "ESP32",
                 "firmware_version": "v2.4.1",
-                "ubicacion": "Bioterio",
+                "ubicacion": "Zona de Cultivo Hidropónico",
             },
             headers={"Authorization": f"Bearer {adm_token}"},
         )
@@ -145,7 +145,7 @@ def test_rf02_rechaza_mac_formato_invalido_y_mac_duplicada():
                     "mac_address": bad_mac_val,
                     "tipo": "ESP8266",
                     "firmware_version": "v1.0.0",
-                    "ubicacion": "Laboratorio",
+                    "ubicacion": "Zona de Germinación y Semilleros",
                 },
                 headers={"Authorization": f"Bearer {adm_token}"},
             )
@@ -160,7 +160,7 @@ def test_rf02_rechaza_mac_formato_invalido_y_mac_duplicada():
                 "mac_address": "AA:11:22:33:44:55",
                 "tipo": "Gateway",
                 "firmware_version": "v1.0.0",
-                "ubicacion": "Bodega",
+                "ubicacion": "Área de Fertirriego y Nutrientes",
             },
             headers={"Authorization": f"Bearer {adm_token}"},
         )
@@ -207,18 +207,18 @@ def test_rf02_consulta_inventario_detalle_y_actualizacion():
         upd_res = client.put(
             f"/api/dispositivos/{target['id_dispositivo']}",
             json={
-                "nombre": "Nodo Bioterio Actualizado",
+                "nombre": "Nodo Cultivo Actualizado",
                 "mac_address": "BB:11:22:33:44:66",
                 "tipo": "Gateway",
                 "firmware_version": "v3.0.0",
-                "ubicacion": "Cámara fría",
+                "ubicacion": "Zona de Ventilación y Nebulización",
                 "observacion_tecnica": "Migrado a Gateway",
             },
             headers={"Authorization": f"Bearer {adm_token}"},
         )
         assert upd_res.status_code == 200
         updated = upd_res.json()["dispositivo"]
-        assert updated["nombre"] == "Nodo Bioterio Actualizado"
+        assert updated["nombre"] == "Nodo Cultivo Actualizado"
         assert updated["mac_address"] == "BB:11:22:33:44:66"
         assert updated["tipo"] == "Gateway"
         assert updated["firmware_version"] == "v3.0.0"
@@ -276,7 +276,7 @@ def test_rf02_rbac_solo_admin_registra_edita_y_desactiva():
             "mac_address": "CC:11:22:33:44:77",
             "tipo": "ESP32",
             "firmware_version": "v1.0.0",
-            "ubicacion": "Laboratorio",
+            "ubicacion": "Zona de Germinación y Semilleros",
         }
         for tok in (op_token, tec_token, sup_token):
             assert (

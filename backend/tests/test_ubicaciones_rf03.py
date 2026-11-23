@@ -88,11 +88,16 @@ def test_rf03_catalogo_ubicaciones_registro_duplicado_y_campos_obligatorios():
     with TestClient(app) as client:
         adm_token = _login_token(client, "admin.rf03@simoa-ejemplo.org", "AdminPass123!")
 
-        # Catálogo inicial contiene Laboratorio, Bioterio, Cámara fría, Bodega
+        # Catálogo inicial contiene las 4 zonas del invernadero
         cat_res = client.get("/api/ubicaciones", headers={"Authorization": f"Bearer {adm_token}"})
         assert cat_res.status_code == 200
         names = {u["nombre"] for u in cat_res.json()["items"]}
-        assert {"Laboratorio", "Bioterio", "Cámara fría", "Bodega"}.issubset(names)
+        assert {
+            "Zona de Germinación y Semilleros",
+            "Zona de Cultivo Hidropónico",
+            "Zona de Ventilación y Nebulización",
+            "Área de Fertirriego y Nutrientes",
+        }.issubset(names)
 
         # Registro exitoso de nueva ubicación
         create_res = client.post(
@@ -115,7 +120,7 @@ def test_rf03_catalogo_ubicaciones_registro_duplicado_y_campos_obligatorios():
             json={
                 "nombre": "Otro Recinto",
                 "codigo_area": "AREA-91",
-                "tipo": "Bodega",
+                "tipo": "Fertirriego",
             },
             headers={"Authorization": f"Bearer {adm_token}"},
         )
@@ -149,7 +154,7 @@ def test_rf03_asignacion_reasignacion_historial_mediciones_y_rn04():
         )
         assert deact_ubi.status_code == 200
 
-        # Registrar dispositivo asignado a Laboratorio (ubi-lab-01)
+        # Registrar dispositivo asignado a Zona de Germinación y Semilleros (ubi-lab-01)
         dev_res = client.post(
             "/api/dispositivos",
             json={
@@ -164,7 +169,7 @@ def test_rf03_asignacion_reasignacion_historial_mediciones_y_rn04():
         assert dev_res.status_code == 201
         disp_id = dev_res.json()["dispositivo"]["id_dispositivo"]
         assert dev_res.json()["dispositivo"]["ubicacion_id"] == "ubi-lab-01"
-        assert dev_res.json()["dispositivo"]["ubicacion"] == "Laboratorio"
+        assert dev_res.json()["dispositivo"]["ubicacion"] == "Zona de Germinación y Semilleros"
 
         # Insertar medición histórica mientras el dispositivo estaba en Laboratorio (ubi-lab-01)
         with db_cursor() as cursor:
@@ -199,7 +204,7 @@ def test_rf03_asignacion_reasignacion_historial_mediciones_y_rn04():
         )
         assert block_deact.status_code == 409
 
-        # Reasignar dispositivo a Bioterio (ubi-bio-02)
+        # Reasignar dispositivo a Zona de Cultivo Hidropónico (ubi-bio-02)
         reas_res = client.put(
             f"/api/dispositivos/{disp_id}/ubicacion",
             json={"ubicacion_id": "ubi-bio-02", "motivo": "Traslado operativo"},
@@ -207,7 +212,7 @@ def test_rf03_asignacion_reasignacion_historial_mediciones_y_rn04():
         )
         assert reas_res.status_code == 200
         assert reas_res.json()["dispositivo"]["ubicacion_id"] == "ubi-bio-02"
-        assert reas_res.json()["dispositivo"]["ubicacion"] == "Bioterio"
+        assert reas_res.json()["dispositivo"]["ubicacion"] == "Zona de Cultivo Hidropónico"
 
         # Verificar historial de cambios de ubicación + usuario responsable
         hist_res = client.get(
@@ -236,7 +241,7 @@ def test_rf03_asignacion_reasignacion_historial_mediciones_y_rn04():
         assert by_ubi.status_code == 200
         assert any(d["id_dispositivo"] == disp_id for d in by_ubi.json()["items"])
 
-        # Filtrar Dashboard por Laboratorio: la medición histórica debe conservar ubi-lab-01
+        # Filtrar Dashboard por Zona de Germinación y Semilleros: la medición histórica debe conservar ubi-lab-01
         dash_lab = client.get(
             "/api/ubicaciones/dashboard/mediciones?ubicacion_id=ubi-lab-01",
             headers={"Authorization": f"Bearer {adm_token}"},
@@ -244,10 +249,10 @@ def test_rf03_asignacion_reasignacion_historial_mediciones_y_rn04():
         assert dash_lab.status_code == 200
         lab_meds = [m for m in dash_lab.json()["mediciones"] if m["dispositivo_id"] == disp_id]
         assert len(lab_meds) == 1
-        assert lab_meds[0]["ubicacion_nombre"] == "Laboratorio"
+        assert lab_meds[0]["ubicacion_nombre"] == "Zona de Germinación y Semilleros"
         assert lab_meds[0]["temperatura"] == 21.4
 
-        # Filtrar Dashboard por Bioterio: la nueva medición pertenece a ubi-bio-02
+        # Filtrar Dashboard por Zona de Cultivo Hidropónico: la nueva medición pertenece a ubi-bio-02
         dash_bio = client.get(
             "/api/ubicaciones/dashboard/mediciones?ubicacion_id=ubi-bio-02",
             headers={"Authorization": f"Bearer {adm_token}"},
@@ -255,7 +260,7 @@ def test_rf03_asignacion_reasignacion_historial_mediciones_y_rn04():
         assert dash_bio.status_code == 200
         bio_meds = [m for m in dash_bio.json()["mediciones"] if m["dispositivo_id"] == disp_id]
         assert len(bio_meds) == 1
-        assert bio_meds[0]["ubicacion_nombre"] == "Bioterio"
+        assert bio_meds[0]["ubicacion_nombre"] == "Zona de Cultivo Hidropónico"
         assert bio_meds[0]["temperatura"] == 24.8
 
 
