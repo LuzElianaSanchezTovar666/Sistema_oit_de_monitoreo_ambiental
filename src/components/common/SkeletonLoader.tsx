@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 export const SkeletonBox: React.FC<{
   className?: string;

@@ -10,13 +10,19 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, '.'),
+        react: path.resolve(import.meta.dirname, 'node_modules/react'),
+        'react-dom': path.resolve(import.meta.dirname, 'node_modules/react-dom'),
       },
+      dedupe: ['react', 'react-dom'],
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'lucide-react', 'three'],
     },
     build: {
       target: 'es2022',
       cssCodeSplit: true,
       chunkSizeWarningLimit: 600,
-      rolldownOptions: {
+      rollupOptions: {
         output: {
           manualChunks(id: string) {
             if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {

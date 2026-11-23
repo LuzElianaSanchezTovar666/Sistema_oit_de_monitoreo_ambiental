@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { resolveCdnAsset } from '../../services/performanceEngine';
 
 interface OptimizedImageProps {

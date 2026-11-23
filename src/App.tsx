@@ -56,7 +56,7 @@ const FIELD_SIMULATOR_ENABLED = import.meta.env.DEV && import.meta.env.VITE_ENAB
 // ErrorBoundary para evitar pantallas vacías si falla un chunk o vista
 class SystemErrorBoundary extends React.Component<
   { children: React.ReactNode; onReset: () => void },
-  { hasError: boolean; message: string }
+  { hasError: boolean; message: string; componentStack?: string }
 > {
   constructor(props: { children: React.ReactNode; onReset: () => void }) {
     super(props);
@@ -65,18 +65,27 @@ class SystemErrorBoundary extends React.Component<
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, message: error.message };
   }
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('SystemErrorBoundary caught error:', error, errorInfo);
+    this.setState({ componentStack: errorInfo.componentStack || error.stack });
+  }
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-8 bg-sheet-white border border-sage-mist rounded-[16px] text-center space-y-4">
-          <h3 className="text-lg font-semibold text-bark">Ocurrió un error al cargar el módulo</h3>
-          <p className="text-sm text-slate">{this.state.message}</p>
+        <div className="p-8 bg-[#f0fdf4] border border-[#86efac] rounded-[16px] text-center space-y-4">
+          <h3 className="text-lg font-semibold text-[#0d1310]">Ocurrió un error al cargar el módulo</h3>
+          <p className="text-sm text-[#14532d] font-mono">{this.state.message}</p>
+          {this.state.componentStack && (
+            <pre className="text-[11px] text-left overflow-auto max-h-40 p-3 bg-white border border-[#bbf7d0] rounded text-[#334155] font-mono whitespace-pre-wrap">
+              {this.state.componentStack}
+            </pre>
+          )}
           <button
             onClick={() => {
               this.setState({ hasError: false, message: '' });
               this.props.onReset();
             }}
-            className="apple-blue-pill px-5 py-2 text-xs font-semibold"
+            className="oryzo-pill-btn px-6 py-2.5 text-xs font-semibold cursor-pointer"
           >
             Volver al inicio
           </button>
