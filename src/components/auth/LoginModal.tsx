@@ -12,9 +12,56 @@ import {
   ShieldCheck,
   AlertCircle,
   ArrowLeft,
+  Shield,
+  Wrench,
+  Activity,
+  UserCheck,
 } from 'lucide-react';
 import { Usuario } from '../../types/iot';
 import { fetchCurrentUser, loginWithCredentials } from '../../services/authService';
+
+export const DEMO_ROLE_CREDENTIALS = [
+  {
+    role: 'Administrador',
+    title: 'Administrador',
+    email: 'admin@simoa.org',
+    password: 'AdminPassword123!',
+    desc: 'Acceso total y configuración',
+    color: 'border-blue-200 bg-blue-50/80 text-blue-950 hover:bg-blue-100',
+    badge: 'bg-blue-700 text-white',
+    icon: Shield,
+  },
+  {
+    role: 'Técnico',
+    title: 'Técnico',
+    email: 'tecnico@simoa.org',
+    password: 'TecnicoPassword123!',
+    desc: 'Mantenimiento y sensores',
+    color: 'border-amber-200 bg-amber-50/80 text-amber-950 hover:bg-amber-100',
+    badge: 'bg-amber-600 text-white',
+    icon: Wrench,
+  },
+  {
+    role: 'Operador',
+    title: 'Operador',
+    email: 'operador@simoa.org',
+    password: 'OperadorPassword123!',
+    desc: 'Monitoreo en tiempo real',
+    color: 'border-emerald-200 bg-emerald-50/80 text-emerald-950 hover:bg-emerald-100',
+    badge: 'bg-emerald-700 text-white',
+    icon: Activity,
+  },
+  {
+    role: 'Supervisor',
+    title: 'Supervisor',
+    email: 'supervisor@simoa.org',
+    password: 'SupervisorPassword123!',
+    desc: 'Supervisión y reportes',
+    color: 'border-purple-200 bg-purple-50/80 text-purple-950 hover:bg-purple-100',
+    badge: 'bg-purple-700 text-white',
+    icon: UserCheck,
+  },
+];
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -224,7 +271,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-5 rounded-[10px] bg-gradient-to-r from-[#17376a] to-[#0369A1] hover:opacity-95 disabled:opacity-60 text-[#ffffff] text-sm font-medium flex items-center justify-center gap-2 transition-opacity cursor-pointer"
+              className="w-full py-3 px-5 rounded-[10px] bg-gradient-to-r from-[#17376a] to-[#0369A1] hover:opacity-95 disabled:opacity-60 text-[#ffffff] text-sm font-medium flex items-center justify-center gap-2 transition-opacity cursor-pointer shadow-sm"
             >
               {loading ? (
                 <>
@@ -239,6 +286,57 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               )}
             </button>
           </form>
+
+          {/* Selector de Acceso Rápido por Rol */}
+          <div className="pt-4 border-t border-[#E2E8F0] space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#475569]">
+                Acceso Rápido por Rol (Demostración)
+              </span>
+              <span className="text-[10px] text-[#64748B]">
+                Clic para autorrellenar
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              {DEMO_ROLE_CREDENTIALS.map((demo) => {
+                const IconComponent = demo.icon;
+                const isSelected = email === demo.email;
+                return (
+                  <button
+                    key={demo.role}
+                    type="button"
+                    onClick={() => {
+                      setEmail(demo.email);
+                      setPassword(demo.password);
+                      setError('');
+                    }}
+                    className={`p-2.5 rounded-[12px] border text-left transition-all cursor-pointer flex flex-col justify-between ${demo.color} ${
+                      isSelected
+                        ? 'ring-2 ring-offset-1 ring-[#0284C7] shadow-sm'
+                        : 'shadow-none'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1 w-full">
+                      <div className="flex items-center gap-1.5">
+                        <IconComponent className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                        <span className="text-xs font-semibold">{demo.title}</span>
+                      </div>
+                      <span
+                        className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${demo.badge}`}
+                      >
+                        {demo.role}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 text-[10px] space-y-0.5">
+                      <p className="font-mono truncate">{demo.email}</p>
+                      <p className="text-[9px] opacity-75">{demo.desc}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {!fullPage && onClose && (
             <button
