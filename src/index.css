@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  /* ORYZO AI Style Reference — Colors */
-  --color-warm-cream: #ffedd7;
-  --color-walnut-shadow: #100904;
-  --color-bark-brown: #382416;
-  --color-cork-border: #40372e;
-  --color-driftwood: #6c5f51;
-  --color-ember-accent: #dc5000;
+  /* Paleta Verdes Claros Contrastados con Tonos Oscuros (Estilo Editorial) */
+  --color-warm-cream: #ecfdf5;
+  --color-walnut-shadow: #09140e;
+  --color-bark-brown: #12261b;
+  --color-cork-border: #2d543c;
+  --color-driftwood: #52796f;
+  --color-ember-accent: #52b788;
   --color-pure-black: #000000;
 
-  /* Mapped Console Tokens (ORYZO Warm-Dark Editorial System) */
-  --color-obsidian-shell: #100904;
-  --color-pure-white: #ffedd7;
-  --color-mint-frost: #382416;
-  --color-deep-abyss: #382416;
-  --color-charcoal: #100904;
-  --color-fog-border: #40372e;
-  --color-stone-border: #6c5f51;
-  --color-slate-text: #d6c3ae;
-  --color-graphite-fill: #40372e;
-  --color-neon-pulse: #dc5000;
-  --color-mint-whisper: #ffedd7;
-  --color-signal-yellow: #dc5000;
+  /* Mapped Console Tokens */
+  --color-obsidian-shell: #09140e;
+  --color-pure-white: #ecfdf5;
+  --color-mint-frost: #dcfce7;
+  --color-deep-abyss: #12261b;
+  --color-charcoal: #050c08;
+  --color-fog-border: #86efac;
+  --color-stone-border: #52b788;
+  --color-slate-text: #a7d7b8;
+  --color-graphite-fill: #1f3d2b;
+  --color-neon-pulse: #86efac;
+  --color-mint-whisper: #bbf7d0;
+  --color-signal-yellow: #86efac;
 
   /* Typography — Font Families */
   --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -51,121 +51,55 @@
   --font-weight-regular: 400;
   --font-weight-medium: 500;
 
-  /* Spacing */
-  --spacing-6: 6px;
-  --spacing-8: 8px;
-  --spacing-9: 9px;
-  --spacing-10: 10px;
-  --spacing-12: 12px;
-  --spacing-14: 14px;
-  --spacing-18: 18px;
-  --spacing-24: 24px;
-  --spacing-31: 31px;
-  --spacing-41: 41px;
-  --spacing-45: 45px;
-  --spacing-68: 68px;
-  --spacing-204: 204px;
-
-  /* Layout */
-  --page-max-width: 1200px;
-  --section-gap: 80px;
-  --card-padding: 24px;
-  --element-gap: 18px;
-
   /* Border Radius */
   --radius-xl: 12px;
   --radius-2xl: 22.5px;
   --radius-3xl: 36px;
   --radius-full: 9999px;
-
-  /* Named Radii */
-  --radius-cards: 12px;
-  --radius-inputs: 0px;
-  --radius-full-round: 9999px;
-  --radius-buttons-pill: 36px;
-  --radius-buttons-outlined: 22.5px;
-
-  /* Surfaces */
-  --surface-walnut-shadow: #100904;
-  --surface-bark-brown: #382416;
-  --surface-cork-border: #40372e;
-  --surface-warm-cream: #ffedd7;
 }
 
 @theme {
-  /* ORYZO AI Tokens */
-  --color-warm-cream: #ffedd7;
-  --color-walnut-shadow: #100904;
-  --color-bark-brown: #382416;
-  --color-cork-border: #40372e;
-  --color-driftwood: #6c5f51;
-  --color-ember-accent: #dc5000;
+  /* Tokens Verdes Claros + Oscuros */
+  --color-warm-cream: #ecfdf5;
+  --color-walnut-shadow: #09140e;
+  --color-bark-brown: #12261b;
+  --color-cork-border: #2d543c;
+  --color-driftwood: #52796f;
+  --color-ember-accent: #52b788;
   --color-pure-black: #000000;
 
   /* Mapped Console Tokens */
-  --color-obsidian-shell: #100904;
-  --color-pure-white: #ffedd7;
-  --color-mint-frost: #382416;
-  --color-deep-abyss: #382416;
-  --color-charcoal: #100904;
-  --color-fog-border: #40372e;
-  --color-stone-border: #6c5f51;
-  --color-slate-text: #d6c3ae;
-  --color-graphite-fill: #40372e;
-  --color-neon-pulse: #dc5000;
-  --color-mint-whisper: #ffedd7;
-  --color-signal-yellow: #dc5000;
+  --color-obsidian-shell: #09140e;
+  --color-pure-white: #ecfdf5;
+  --color-mint-frost: #dcfce7;
+  --color-deep-abyss: #12261b;
+  --color-charcoal: #050c08;
+  --color-fog-border: #86efac;
+  --color-stone-border: #52b788;
+  --color-slate-text: #a7d7b8;
+  --color-graphite-fill: #1f3d2b;
+  --color-neon-pulse: #86efac;
+  --color-mint-whisper: #bbf7d0;
+  --color-signal-yellow: #86efac;
 
   /* Legacy semantic aliases */
-  --color-cream-paper: #100904;
-  --color-sheet-white: #382416;
-  --color-canopy: #dc5000;
-  --color-bark: #ffedd7;
-  --color-ink: #ffedd7;
-  --color-slate: #d6c3ae;
-  --color-sage-mist: #40372e;
-  --color-pale-sage: #40372e;
-  --color-muted-slate: #d6c3ae;
-  --color-mint-pulse: #dc5000;
-  --color-orb-violet: #dc5000;
+  --color-cream-paper: #09140e;
+  --color-sheet-white: #12261b;
+  --color-canopy: #86efac;
+  --color-bark: #ecfdf5;
+  --color-ink: #ecfdf5;
+  --color-slate: #a7d7b8;
+  --color-sage-mist: #2d543c;
+  --color-pale-sage: #2d543c;
+  --color-muted-slate: #a7d7b8;
+  --color-mint-pulse: #86efac;
+  --color-orb-violet: #52b788;
 
   /* Typography */
   --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-arial: 'Arial', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-aeonik: var(--font-halyard-display-variable);
   --font-aeonikfono: var(--font-halyard-display-variable);
-
-  /* Typography — Scale */
-  --text-subheading: 18px;
-  --leading-subheading: 1;
-  --tracking-subheading: 0px;
-  --text-heading-sm: 24px;
-  --leading-heading-sm: 1.09;
-  --tracking-heading-sm: 0px;
-  --text-body: 29px;
-  --leading-body: 1.26;
-  --tracking-body: 0px;
-  --text-heading: 41px;
-  --leading-heading: 0.9;
-  --tracking-heading: 0px;
-  --text-display: 51px;
-  --leading-display: 0.9;
-  --tracking-display: 0px;
-
-  /* Spacing */
-  --spacing-6: 6px;
-  --spacing-8: 8px;
-  --spacing-9: 9px;
-  --spacing-10: 10px;
-  --spacing-12: 12px;
-  --spacing-14: 14px;
-  --spacing-18: 18px;
-  --spacing-24: 24px;
-  --spacing-31: 31px;
-  --spacing-41: 41px;
-  --spacing-45: 45px;
-  --spacing-68: 68px;
-  --spacing-204: 204px;
 
   /* Border Radius */
   --radius-xl: 12px;
@@ -214,9 +148,7 @@
 }
 
 /* ============================================================================
-   ORYZO EDITORIAL DARKROOM SYSTEM UTILITIES
-   Walnut Shadow (#100904) · Bark Brown (#382416) · Cork Border (#40372e)
-   Warm Cream (#ffedd7) · Ember Accent (#dc5000) · Zero drop-shadows
+   SISTEMA EDITORIAL VERDE CLARO + OSCURO PARA INVERNADERO SIMOA
    ============================================================================ */
 
 .oryzo-divider {
@@ -227,7 +159,7 @@
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
   font-size: clamp(36px, 5vw, 51px);
-  line-height: 0.9;
+  line-height: 0.95;
   letter-spacing: 0px;
   text-transform: uppercase;
   color: var(--color-warm-cream);
@@ -237,10 +169,10 @@
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
   font-size: clamp(26px, 3.6vw, 41px);
-  line-height: 0.9;
+  line-height: 0.95;
   letter-spacing: 0px;
   text-transform: uppercase;
-  color: var(--color-warm-cream);
+  color: inherit;
 }
 
 .sauce-eyebrow {
@@ -250,7 +182,6 @@
   line-height: 1.2;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-ember-accent);
 }
 
 .sauce-stat-value {
@@ -258,14 +189,14 @@
   font-weight: 500;
   font-size: clamp(32px, 3.5vw, 41px);
   line-height: 0.95;
-  color: var(--color-warm-cream);
+  color: #86efac;
   font-variant-numeric: tabular-nums;
 }
 
 .sauce-btn-primary {
-  background-color: var(--color-bark-brown);
-  color: var(--color-warm-cream);
-  border: 1px solid var(--color-cork-border);
+  background-color: #86efac;
+  color: #09140e;
+  border: 1px solid #bbf7d0;
   border-radius: 36px;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
@@ -273,18 +204,17 @@
   letter-spacing: 0.02em;
   text-transform: uppercase;
   padding: 14px 24px;
-  transition: border-color 0.18s ease, background-color 0.18s ease;
+  transition: filter 0.18s ease, background-color 0.18s ease;
 }
 
 .sauce-btn-primary:hover {
-  border-color: var(--color-warm-cream);
-  background-color: #452d1c;
+  background-color: #a7f3d0;
 }
 
 .sauce-btn-ghost {
   background-color: transparent;
   color: var(--color-warm-cream);
-  border: 1px solid var(--color-warm-cream);
+  border: 1px solid #86efac;
   border-radius: 22.5px;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
@@ -295,13 +225,13 @@
 }
 
 .sauce-btn-ghost:hover {
-  background-color: rgba(255, 237, 215, 0.08);
+  background-color: rgba(134, 239, 172, 0.12);
 }
 
 .sauce-card-mint {
-  background-color: var(--color-bark-brown);
-  color: var(--color-warm-cream);
-  border: 1px dashed var(--color-cork-border);
+  background-color: #dcfce7;
+  color: #09140e;
+  border: 1px dashed #52b788;
   border-radius: 12px;
   box-shadow: none;
 }
@@ -315,21 +245,20 @@
 }
 
 .sauce-input {
-  background-color: transparent;
-  border: none;
-  border-bottom: 1px solid var(--color-warm-cream);
-  color: var(--color-warm-cream);
-  border-radius: 0px;
+  background-color: #ffffff;
+  border: 1px solid #52b788;
+  color: #09140e;
+  border-radius: 10px;
   font-family: var(--font-halyard-display-variable);
   font-size: 15px;
 }
 
 .sauce-input:focus {
   outline: none;
-  border-bottom-color: var(--color-ember-accent);
+  border-color: #1b4332;
 }
 
-/* Console component utilities mapped to ORYZO tokens */
+/* Console component utilities */
 .apple-card-heading {
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
@@ -344,7 +273,7 @@
   font-weight: 500;
   font-size: clamp(28px, 3vw, 41px);
   line-height: 0.95;
-  color: var(--color-warm-cream);
+  color: #86efac;
   font-variant-numeric: tabular-nums;
 }
 
@@ -353,29 +282,28 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 1.35;
-  color: #d6c3ae;
+  color: #a7d7b8;
 }
 
 .apple-blue-pill {
-  background-color: var(--color-bark-brown);
-  color: var(--color-warm-cream);
-  border: 1px solid var(--color-cork-border);
+  background-color: #86efac;
+  color: #09140e;
+  border: 1px solid #bbf7d0;
   border-radius: 36px;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
   text-transform: uppercase;
-  transition: border-color 0.18s ease, background-color 0.18s ease;
+  transition: background-color 0.18s ease;
 }
 
 .apple-blue-pill:hover {
-  border-color: var(--color-warm-cream);
-  background-color: #452d1c;
+  background-color: #a7f3d0;
 }
 
 .apple-white-outline-pill {
   background-color: transparent;
   color: var(--color-warm-cream);
-  border: 1px solid var(--color-warm-cream);
+  border: 1px solid #86efac;
   border-radius: 22.5px;
   padding-left: 16px;
   padding-right: 16px;
@@ -386,18 +314,17 @@
 }
 
 .apple-white-outline-pill:hover {
-  background-color: rgba(255, 237, 215, 0.08);
+  background-color: rgba(134, 239, 172, 0.12);
 }
 
 .apple-pill-input,
 .apple-pill-select {
-  background-color: transparent;
-  border: none;
-  border-bottom: 1px solid var(--color-cork-border);
+  background-color: var(--color-bark-brown);
+  border: 1px solid var(--color-cork-border);
   color: var(--color-warm-cream);
-  border-radius: 0px;
-  padding-left: 4px;
-  padding-right: 8px;
+  border-radius: 10px;
+  padding-left: 12px;
+  padding-right: 12px;
   font-family: var(--font-halyard-display-variable);
   font-size: 14px;
 }
@@ -405,13 +332,13 @@
 .apple-pill-input:focus,
 .apple-pill-select:focus {
   outline: none;
-  border-bottom-color: var(--color-warm-cream);
+  border-color: #86efac;
 }
 
 .apple-badge-orange {
-  background-color: rgba(220, 80, 0, 0.14);
-  border: 1px dashed var(--color-ember-accent);
-  color: var(--color-ember-accent);
+  background-color: rgba(134, 239, 172, 0.14);
+  border: 1px dashed #86efac;
+  color: #86efac;
   border-radius: 36px;
   padding: 2px 10px;
   font-family: var(--font-halyard-display-variable);
@@ -422,7 +349,7 @@
 }
 
 .apple-inline-link {
-  color: var(--color-ember-accent);
+  color: #86efac;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
   text-transform: uppercase;
