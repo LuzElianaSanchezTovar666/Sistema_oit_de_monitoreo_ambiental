@@ -43,17 +43,17 @@ export const EnvironmentalThreeBackground: React.FC = () => {
     window.addEventListener('resize', resize);
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Nodos de sensores distribuidos en zonas del invernadero
+    // Nodos de sensores distribuidos en zonas del invernadero (Paleta ORYZO)
     const sensorNodes = [
-      { rx: 0.14, ry: 0.34, label: '23.6 °C · Germinación', color: '#53d5f4', phase: 0.0 },
-      { rx: 0.38, ry: 0.52, label: '68 %RH · Cultivo A1', color: '#52B788', phase: 1.4 },
-      { rx: 0.64, ry: 0.38, label: '22.1 °C · Climatización', color: '#76a9ff', phase: 2.7 },
-      { rx: 0.84, ry: 0.60, label: '74 %RH · Fertirriego', color: '#74C69D', phase: 4.1 },
+      { rx: 0.14, ry: 0.34, label: '23.6 °C · GERMINACIÓN', color: '#dc5000', phase: 0.0 },
+      { rx: 0.38, ry: 0.52, label: '68 %RH · CULTIVO A1', color: '#ffedd7', phase: 1.4 },
+      { rx: 0.64, ry: 0.38, label: '22.1 °C · CLIMATIZACIÓN', color: '#dc5000', phase: 2.7 },
+      { rx: 0.84, ry: 0.60, label: '74 %RH · FERTIRRIEGO', color: '#ffedd7', phase: 4.1 },
     ];
 
     const drawGreenhouseSilhouette = (cx: number, baseY: number, w: number, h: number, alpha: number) => {
       ctx.save();
-      ctx.strokeStyle = `rgba(116, 198, 157, ${alpha})`;
+      ctx.strokeStyle = `rgba(255, 237, 215, ${alpha})`;
       ctx.lineWidth = 1.2;
 
       const x0 = cx - w / 2;
@@ -72,7 +72,7 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       ctx.stroke();
 
       // Costillas internas / paneles
-      ctx.strokeStyle = `rgba(118, 169, 255, ${alpha * 0.7})`;
+      ctx.strokeStyle = `rgba(108, 95, 81, ${alpha * 1.4})`;
       ctx.lineWidth = 0.8;
       for (let i = 1; i <= 3; i++) {
         const px = x0 + (w * i) / 4;
@@ -165,9 +165,9 @@ export const EnvironmentalThreeBackground: React.FC = () => {
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Retícula sutil de gráfica agrometeorológica
+      // 1. Retícula sutil de gráfica agrometeorológica (Cork Border)
       ctx.save();
-      ctx.strokeStyle = 'rgba(118, 169, 255, 0.06)';
+      ctx.strokeStyle = 'rgba(108, 95, 81, 0.14)';
       ctx.lineWidth = 1;
       const gridSize = 64;
       const offsetX = (mouse.x * -12) % gridSize;
@@ -192,29 +192,29 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       drawGreenhouseSilhouette(width * 0.52 + mouse.x * 14, height * 0.88 + mouse.y * 8, 320, 180, 0.11);
       drawGreenhouseSilhouette(width * 0.80 + mouse.x * 10, height * 0.85 + mouse.y * 6, 240, 140, 0.13);
 
-      // 3. Curva de Humedad Relativa (%RH - verde esmeralda/salvia)
+      // 3. Curva de Humedad Relativa (%RH - Warm Cream)
       drawTelemetryWave(
         elapsed,
         height * 0.62,
         34,
         3.2,
         0.55,
-        'rgba(82, 183, 136, 0.38)',
-        'rgba(82, 183, 136, 0.10)',
-        'rgba(82, 183, 136, 0.0)',
+        'rgba(255, 237, 215, 0.34)',
+        'rgba(255, 237, 215, 0.08)',
+        'rgba(255, 237, 215, 0.0)',
         mouse.y * 12
       );
 
-      // 4. Curva de Temperatura (°C - azul cyan telemetría)
+      // 4. Curva de Temperatura (°C - Ember Accent)
       drawTelemetryWave(
         elapsed,
         height * 0.48,
         28,
         2.6,
         0.75,
-        'rgba(83, 213, 244, 0.36)',
-        'rgba(118, 169, 255, 0.09)',
-        'rgba(118, 169, 255, 0.0)',
+        'rgba(220, 80, 0, 0.48)',
+        'rgba(220, 80, 0, 0.12)',
+        'rgba(220, 80, 0, 0.0)',
         mouse.y * 18
       );
 
@@ -226,8 +226,8 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         y: n.ry * height + Math.sin(elapsed * 0.9 + n.phase) * 8 + mouse.y * 10,
       }));
 
-      // Enlaces punteados entre nodos
-      ctx.strokeStyle = 'rgba(180, 213, 255, 0.14)';
+      // Enlaces punteados entre nodos (Cork / Driftwood)
+      ctx.strokeStyle = 'rgba(255, 237, 215, 0.15)';
       ctx.setLineDash([4, 6]);
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -244,7 +244,7 @@ export const EnvironmentalThreeBackground: React.FC = () => {
 
         ctx.beginPath();
         ctx.arc(node.x, node.y, pulseRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = `${node.color}33`;
+        ctx.strokeStyle = `${node.color}44`;
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
@@ -254,8 +254,8 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         ctx.fill();
 
         // Etiqueta discreta junto al nodo
-        ctx.font = '500 11px ui-monospace, SFMono-Regular, Menlo, monospace';
-        ctx.fillStyle = 'rgba(226, 232, 240, 0.48)';
+        ctx.font = '500 10px ui-monospace, SFMono-Regular, Menlo, monospace';
+        ctx.fillStyle = 'rgba(255, 237, 215, 0.52)';
         ctx.fillText(node.label, node.x + 12, node.y + 4);
       });
       ctx.restore();

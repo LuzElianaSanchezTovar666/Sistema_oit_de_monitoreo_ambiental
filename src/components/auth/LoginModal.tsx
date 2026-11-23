@@ -27,8 +27,8 @@ export const DEMO_ROLE_CREDENTIALS = [
     email: 'admin@simoa.org',
     password: 'AdminPassword123!',
     desc: 'Acceso total y configuración',
-    color: 'border-blue-200 bg-blue-50/80 text-blue-950 hover:bg-blue-100',
-    badge: 'bg-blue-700 text-white',
+    color: 'border-[#40372e] bg-[#100904] text-[#ffedd7] hover:border-[#ffedd7]',
+    badge: 'bg-[#382416] text-[#ffedd7]',
     icon: Shield,
   },
   {
@@ -37,8 +37,8 @@ export const DEMO_ROLE_CREDENTIALS = [
     email: 'tecnico@simoa.org',
     password: 'TecnicoPassword123!',
     desc: 'Mantenimiento y sensores',
-    color: 'border-amber-200 bg-amber-50/80 text-amber-950 hover:bg-amber-100',
-    badge: 'bg-amber-600 text-white',
+    color: 'border-[#40372e] bg-[#100904] text-[#ffedd7] hover:border-[#ffedd7]',
+    badge: 'bg-[#382416] text-[#ffedd7]',
     icon: Wrench,
   },
   {
@@ -47,8 +47,8 @@ export const DEMO_ROLE_CREDENTIALS = [
     email: 'operador@simoa.org',
     password: 'OperadorPassword123!',
     desc: 'Monitoreo en tiempo real',
-    color: 'border-emerald-200 bg-emerald-50/80 text-emerald-950 hover:bg-emerald-100',
-    badge: 'bg-emerald-700 text-white',
+    color: 'border-[#40372e] bg-[#100904] text-[#ffedd7] hover:border-[#ffedd7]',
+    badge: 'bg-[#382416] text-[#ffedd7]',
     icon: Activity,
   },
   {
@@ -57,8 +57,8 @@ export const DEMO_ROLE_CREDENTIALS = [
     email: 'supervisor@simoa.org',
     password: 'SupervisorPassword123!',
     desc: 'Supervisión y reportes',
-    color: 'border-purple-200 bg-purple-50/80 text-purple-950 hover:bg-purple-100',
-    badge: 'bg-purple-700 text-white',
+    color: 'border-[#40372e] bg-[#100904] text-[#ffedd7] hover:border-[#ffedd7]',
+    badge: 'bg-[#382416] text-[#ffedd7]',
     icon: UserCheck,
   },
 ];
@@ -119,49 +119,51 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const containerClass = fullPage
-    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-obsidian-shell via-[#153760] to-deep-abyss'
-    : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-deep-abyss/75 backdrop-blur-sm';
+    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-[#100904]'
+    : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#100904]/85 backdrop-blur-sm';
 
   return (
     <div className={containerClass}>
-      <div className="w-full max-w-4xl bg-[#ffffff] text-[#0F172A] rounded-[24px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-[#CBD5E1]">
-        {/* Panel izquierdo — Identidad de SIMOA */}
-        <div className="md:col-span-5 bg-gradient-to-br from-[#17376a] via-[#1e4f91] to-[#0369A1] text-[#ffffff] p-7 sm:p-9 flex flex-col justify-between space-y-8">
+      <div className="w-full max-w-4xl bg-[#382416] text-[#ffedd7] rounded-[12px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-dashed border-[#40372e]">
+        {/* Panel izquierdo — Identidad de SIMOA (ORYZO Editorial) */}
+        <div className="md:col-span-5 bg-[#100904] text-[#ffedd7] p-7 sm:p-9 flex flex-col justify-between space-y-8 border-b md:border-b-0 md:border-r border-dashed border-[#40372e]">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#ffffff]/15 text-[#ffffff] text-[11px] font-medium tracking-wide uppercase">
-              <Leaf className="w-3.5 h-3.5 text-[#b4d5ff]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[22.5px] border border-[#40372e] text-[#ffedd7] text-[10px] font-medium tracking-wide uppercase">
+              <Leaf className="w-3.5 h-3.5 text-[#dc5000]" />
               <span>Monitoreo de Invernadero</span>
             </div>
 
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-[#ffffff]">SIMOA</h1>
-              <p className="text-sm text-[#E0F2FE] mt-1 font-normal">
+              <h1 className="text-[41px] font-medium uppercase leading-[0.9] text-[#ffedd7]">SIMOA</h1>
+              <p className="text-xs uppercase font-medium tracking-wide text-[#dc5000] mt-2">
                 Control Ambiental para tu Invernadero
               </p>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#E2E8F0] leading-relaxed">
-              Supervisa en tiempo real el clima de tus cultivos, recibe alertas oportunas ante
-              cambios bruscos y mantén el control de cada zona desde un solo lugar.
-            </p>
+            <div className="border-t border-dashed border-[#40372e] pt-4">
+              <p className="text-sm text-[#d6c3ae] leading-relaxed font-normal">
+                Supervisa en tiempo real el clima de tus cultivos, recibe alertas oportunas ante
+                cambios bruscos y mantén el control de cada zona desde un solo lugar.
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-3 text-xs text-[#eaf3ff]">
+          <div className="space-y-3 text-xs text-[#ffedd7]">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[10px] bg-[#ffffff]/15 flex items-center justify-center shrink-0">
-                <Leaf className="w-4 h-4 text-[#b4d5ff]" />
+              <div className="w-8 h-8 rounded-[12px] border border-dashed border-[#40372e] bg-[#382416] flex items-center justify-center shrink-0">
+                <Leaf className="w-4 h-4 text-[#dc5000]" />
               </div>
               <span>Zonas de Germinación, Cultivo, Climatización y Fertirriego</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[10px] bg-[#ffffff]/15 flex items-center justify-center shrink-0">
-                <Thermometer className="w-4 h-4 text-[#7DD3FC]" />
+              <div className="w-8 h-8 rounded-[12px] border border-dashed border-[#40372e] bg-[#382416] flex items-center justify-center shrink-0">
+                <Thermometer className="w-4 h-4 text-[#ffedd7]" />
               </div>
               <span>Temperatura, humedad y alertas tempranas en tiempo real</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[10px] bg-[#ffffff]/15 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-4 h-4 text-[#b4d5ff]" />
+              <div className="w-8 h-8 rounded-[12px] border border-dashed border-[#40372e] bg-[#382416] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4 text-[#dc5000]" />
               </div>
               <span>Acceso seguro personalizado según tu perfil</span>
             </div>
@@ -169,20 +171,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         </div>
 
         {/* Panel derecho — Formulario de Inicio de Sesión */}
-        <div className="md:col-span-7 p-7 sm:p-10 bg-[#ffffff] flex flex-col justify-center space-y-6">
+        <div className="md:col-span-7 p-7 sm:p-10 bg-[#382416] flex flex-col justify-center space-y-6">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 px-3 py-1.5 rounded-[12px] bg-[#ffedd7]">
               <img
                 src="/assets/images/simoa-logo.webp"
                 alt="SIMOA"
-                className="h-10 w-auto object-contain"
+                className="h-8 w-auto object-contain"
               />
             </div>
             {onBackToLanding && (
               <button
                 type="button"
                 onClick={onBackToLanding}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-[#0369A1] hover:text-obsidian-shell cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase text-[#ffedd7] hover:text-[#dc5000] underline underline-offset-4 cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Volver al inicio
@@ -191,10 +193,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           </div>
 
           <div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-[#0F172A]">
+            <h2 className="text-2xl font-medium uppercase leading-[0.95] text-[#ffedd7]">
               Iniciar sesión
             </h2>
-            <p className="text-xs sm:text-sm text-[#475569] mt-1">
+            <p className="text-xs sm:text-sm text-[#d6c3ae] mt-2 font-normal">
               Ingresa tus credenciales registradas para acceder a tu panel de control.
             </p>
           </div>
@@ -203,24 +205,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <div>
               <label
                 htmlFor="simoa-login-email"
-                className="block text-xs font-medium text-[#1E293B] mb-1.5"
+                className="block text-[11px] font-medium uppercase tracking-wide text-[#ffedd7] mb-1.5"
               >
                 Correo electrónico
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 absolute left-3.5 top-3 text-[#64748B]" />
+                <Mail className="w-4 h-4 absolute left-1 top-3 text-[#d6c3ae]" />
                 <input
                   id="simoa-login-email"
                   type="email"
                   required
                   autoComplete="email"
-                  placeholder="usuario@organizacion.org"
+                  placeholder="usuario@invernadero.org"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
                     if (error) setError('');
                   }}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-[10px] text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20"
+                  className="w-full pl-8 pr-4 py-2.5 text-sm bg-transparent border-b border-[#ffedd7] rounded-none text-[#ffedd7] placeholder-[#6c5f51] focus:outline-none focus:border-[#dc5000]"
                 />
               </div>
             </div>
@@ -228,12 +230,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <div>
               <label
                 htmlFor="simoa-login-password"
-                className="block text-xs font-medium text-[#1E293B] mb-1.5"
+                className="block text-[11px] font-medium uppercase tracking-wide text-[#ffedd7] mb-1.5"
               >
                 Contraseña
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3.5 top-3 text-[#64748B]" />
+                <Lock className="w-4 h-4 absolute left-1 top-3 text-[#d6c3ae]" />
                 <input
                   id="simoa-login-password"
                   type={showPassword ? 'text' : 'password'}
@@ -245,13 +247,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     setPassword(e.target.value);
                     if (error) setError('');
                   }}
-                  className="w-full pl-10 pr-11 py-2.5 text-sm bg-[#F8FAFC] border border-[#CBD5E1] rounded-[10px] text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:border-[#0284C7] focus:ring-2 focus:ring-[#0284C7]/20"
+                  className="w-full pl-8 pr-11 py-2.5 text-sm bg-transparent border-b border-[#ffedd7] rounded-none text-[#ffedd7] placeholder-[#6c5f51] focus:outline-none focus:border-[#dc5000]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  className="absolute right-3 top-2.5 p-1 text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+                  className="absolute right-1 top-2.5 p-1 text-[#d6c3ae] hover:text-[#ffedd7] cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -261,9 +263,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             {error && (
               <div
                 role="alert"
-                className="flex items-start gap-2 p-3 rounded-[10px] bg-[#FEF2F2] border border-[#FECACA] text-[#B91C1C] text-xs font-medium"
+                className="flex items-start gap-2 p-3 rounded-[12px] bg-[#100904] border border-dashed border-[#dc5000] text-[#ffedd7] text-xs font-medium"
               >
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#dc5000]" />
                 <span>{error}</span>
               </div>
             )}
@@ -271,7 +273,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-5 rounded-[10px] bg-gradient-to-r from-[#17376a] to-[#0369A1] hover:opacity-95 disabled:opacity-60 text-[#ffffff] text-sm font-medium flex items-center justify-center gap-2 transition-opacity cursor-pointer shadow-sm"
+              className="w-full py-3.5 px-6 rounded-[36px] bg-[#100904] border border-[#40372e] hover:border-[#ffedd7] disabled:opacity-60 text-[#ffedd7] text-xs font-medium uppercase tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               {loading ? (
                 <>
@@ -288,12 +290,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           </form>
 
           {/* Selector de Acceso Rápido por Rol */}
-          <div className="pt-4 border-t border-[#E2E8F0] space-y-2.5">
+          <div className="pt-4 border-t border-dashed border-[#40372e] space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#475569]">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-[#ffedd7]">
                 Acceso Rápido por Rol (Demostración)
               </span>
-              <span className="text-[10px] text-[#64748B]">
+              <span className="text-[10px] uppercase text-[#dc5000]">
                 Clic para autorrellenar
               </span>
             </div>
@@ -311,19 +313,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       setPassword(demo.password);
                       setError('');
                     }}
-                    className={`p-2.5 rounded-[12px] border text-left transition-all cursor-pointer flex flex-col justify-between ${demo.color} ${
+                    className={`p-2.5 rounded-[12px] border border-dashed text-left transition-colors cursor-pointer flex flex-col justify-between ${demo.color} ${
                       isSelected
-                        ? 'ring-2 ring-offset-1 ring-[#0284C7] shadow-sm'
-                        : 'shadow-none'
+                        ? 'border-[#dc5000]'
+                        : ''
                     }`}
                   >
                     <div className="flex items-center gap-1.5 w-full">
-                      <IconComponent className="w-3.5 h-3.5 shrink-0 opacity-80" />
-                      <span className="text-xs font-semibold">{demo.title}</span>
+                      <IconComponent className="w-3.5 h-3.5 shrink-0 text-[#dc5000]" />
+                      <span className="text-xs font-medium uppercase">{demo.title}</span>
                     </div>
                     <div className="mt-1.5 text-[10px] space-y-0.5">
-                      <p className="font-mono truncate">{demo.email}</p>
-                      <p className="text-[9px] opacity-75">{demo.desc}</p>
+                      <p className="font-mono truncate text-[#ffedd7]">{demo.email}</p>
+                      <p className="text-[9px] text-[#d6c3ae]">{demo.desc}</p>
                     </div>
                   </button>
                 );
@@ -335,7 +337,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-full text-center text-xs text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+              className="w-full text-center text-xs uppercase text-[#d6c3ae] hover:text-[#ffedd7] cursor-pointer"
             >
               Cancelar
             </button>

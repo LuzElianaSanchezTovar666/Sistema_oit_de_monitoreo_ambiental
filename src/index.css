@@ -1,168 +1,206 @@
 @import "tailwindcss";
 
 :root {
-  /* Sauce Labs Design System — Colors */
-  --color-obsidian-shell: #10213d;
-  --color-pure-white: #ffffff;
-  --color-mint-frost: #eaf3ff;
-  --color-deep-abyss: #0a172e;
-  --color-charcoal: #070f20;
-  --color-fog-border: #ccdaed;
-  --color-stone-border: #9eb2ce;
-  --color-slate-text: #a6b8d2;
-  --color-graphite-fill: #354d70;
+  /* ORYZO AI Style Reference — Colors */
+  --color-warm-cream: #ffedd7;
+  --color-walnut-shadow: #100904;
+  --color-bark-brown: #382416;
+  --color-cork-border: #40372e;
+  --color-driftwood: #6c5f51;
+  --color-ember-accent: #dc5000;
   --color-pure-black: #000000;
-  --color-neon-pulse: #76a9ff;
-  --color-mint-whisper: #b4d5ff;
-  --color-signal-yellow: #ffcd48;
+
+  /* Mapped Console Tokens (ORYZO Warm-Dark Editorial System) */
+  --color-obsidian-shell: #100904;
+  --color-pure-white: #ffedd7;
+  --color-mint-frost: #382416;
+  --color-deep-abyss: #382416;
+  --color-charcoal: #100904;
+  --color-fog-border: #40372e;
+  --color-stone-border: #6c5f51;
+  --color-slate-text: #d6c3ae;
+  --color-graphite-fill: #40372e;
+  --color-neon-pulse: #dc5000;
+  --color-mint-whisper: #ffedd7;
+  --color-signal-yellow: #dc5000;
 
   /* Typography — Font Families */
-  --font-aeonik: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-aeonikfono: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-arial: 'Arial', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-aeonik: var(--font-halyard-display-variable);
+  --font-aeonikfono: var(--font-halyard-display-variable);
 
   /* Typography — Scale */
-  --text-body-sm: 14px;
-  --leading-body-sm: 1.45;
-  --text-body: 16px;
-  --leading-body: 1.5;
-  --tracking-body: -0.08px;
-  --text-body-lg: 18px;
-  --leading-body-lg: 1.45;
-  --text-subheading: 24px;
-  --leading-subheading: 1.4;
-  --tracking-subheading: 0.96px;
-  --text-heading-sm: 32px;
-  --leading-heading-sm: 1.22;
-  --text-heading: 40px;
-  --leading-heading: 1.2;
-  --text-heading-lg: 48px;
-  --leading-heading-lg: 1.12;
-  --text-display: 64px;
-  --leading-display: 1.1;
+  --text-subheading: 18px;
+  --leading-subheading: 1;
+  --tracking-subheading: 0px;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.09;
+  --tracking-heading-sm: 0px;
+  --text-body: 29px;
+  --leading-body: 1.26;
+  --tracking-body: 0px;
+  --text-heading: 41px;
+  --leading-heading: 0.9;
+  --tracking-heading: 0px;
+  --text-display: 51px;
+  --leading-display: 0.9;
+  --tracking-display: 0px;
 
   /* Typography — Weights */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
 
   /* Spacing */
-  --spacing-unit: 8px;
+  --spacing-6: 6px;
   --spacing-8: 8px;
-  --spacing-16: 16px;
+  --spacing-9: 9px;
+  --spacing-10: 10px;
+  --spacing-12: 12px;
+  --spacing-14: 14px;
+  --spacing-18: 18px;
   --spacing-24: 24px;
-  --spacing-32: 32px;
-  --spacing-40: 40px;
-  --spacing-48: 48px;
-  --spacing-56: 56px;
-  --spacing-64: 64px;
-  --spacing-72: 72px;
-  --spacing-80: 80px;
-  --spacing-96: 96px;
+  --spacing-31: 31px;
+  --spacing-41: 41px;
+  --spacing-45: 45px;
+  --spacing-68: 68px;
+  --spacing-204: 204px;
 
   /* Layout */
   --page-max-width: 1200px;
   --section-gap: 80px;
   --card-padding: 24px;
-  --element-gap: 24px;
+  --element-gap: 18px;
 
   /* Border Radius */
-  --radius-lg: 10px;
-  --radius-2xl: 16px;
-  --radius-2xl-2: 20px;
-  --radius-3xl: 32px;
-  --radius-full: 50px;
-  --radius-full-2: 56px;
-  --radius-full-3: 60px;
-  --radius-full-4: 80px;
+  --radius-xl: 12px;
+  --radius-2xl: 22.5px;
+  --radius-3xl: 36px;
+  --radius-full: 9999px;
 
   /* Named Radii */
-  --radius-tabs: 56px;
-  --radius-cards: 20px;
-  --radius-buttons: 56px;
-  --radius-largecards: 60px;
-  --radius-smallelements: 10px;
-
-  /* Shadows */
-  --shadow-md: rgba(0, 0, 0, 0.04) 1px 0px 9px 2px;
+  --radius-cards: 12px;
+  --radius-inputs: 0px;
+  --radius-full-round: 9999px;
+  --radius-buttons-pill: 36px;
+  --radius-buttons-outlined: 22.5px;
 
   /* Surfaces */
-  --surface-obsidian-canvas: #10213d;
-  --surface-deep-card: #0a172e;
-  --surface-mint-card: #eaf3ff;
-  --surface-white-panel: #ffffff;
+  --surface-walnut-shadow: #100904;
+  --surface-bark-brown: #382416;
+  --surface-cork-border: #40372e;
+  --surface-warm-cream: #ffedd7;
 }
 
 @theme {
-  /* Colors */
-  --color-obsidian-shell: #10213d;
-  --color-pure-white: #ffffff;
-  --color-mint-frost: #eaf3ff;
-  --color-deep-abyss: #0a172e;
-  --color-charcoal: #070f20;
-  --color-fog-border: #ccdaed;
-  --color-stone-border: #9eb2ce;
-  --color-slate-text: #a6b8d2;
-  --color-graphite-fill: #354d70;
+  /* ORYZO AI Tokens */
+  --color-warm-cream: #ffedd7;
+  --color-walnut-shadow: #100904;
+  --color-bark-brown: #382416;
+  --color-cork-border: #40372e;
+  --color-driftwood: #6c5f51;
+  --color-ember-accent: #dc5000;
   --color-pure-black: #000000;
-  --color-neon-pulse: #76a9ff;
-  --color-mint-whisper: #b4d5ff;
-  --color-signal-yellow: #ffcd48;
 
-  /* Legacy semantic aliases mapped to Sauce Labs dark/light tokens so all modules update cleanly */
-  --color-cream-paper: #10213d;
-  --color-sheet-white: #0a172e;
-  --color-canopy: #76a9ff;
-  --color-bark: #ffffff;
-  --color-ink: #ffffff;
-  --color-slate: #a6b8d2;
-  --color-sage-mist: #354d70;
-  --color-pale-sage: #354d70;
-  --color-muted-slate: #a6b8d2;
-  --color-mint-pulse: #76a9ff;
-  --color-orb-violet: #ffcd48;
+  /* Mapped Console Tokens */
+  --color-obsidian-shell: #100904;
+  --color-pure-white: #ffedd7;
+  --color-mint-frost: #382416;
+  --color-deep-abyss: #382416;
+  --color-charcoal: #100904;
+  --color-fog-border: #40372e;
+  --color-stone-border: #6c5f51;
+  --color-slate-text: #d6c3ae;
+  --color-graphite-fill: #40372e;
+  --color-neon-pulse: #dc5000;
+  --color-mint-whisper: #ffedd7;
+  --color-signal-yellow: #dc5000;
+
+  /* Legacy semantic aliases */
+  --color-cream-paper: #100904;
+  --color-sheet-white: #382416;
+  --color-canopy: #dc5000;
+  --color-bark: #ffedd7;
+  --color-ink: #ffedd7;
+  --color-slate: #d6c3ae;
+  --color-sage-mist: #40372e;
+  --color-pale-sage: #40372e;
+  --color-muted-slate: #d6c3ae;
+  --color-mint-pulse: #dc5000;
+  --color-orb-violet: #dc5000;
 
   /* Typography */
-  --font-aeonik: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-aeonikfono: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-arial: 'Arial', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-aeonik: var(--font-halyard-display-variable);
+  --font-aeonikfono: var(--font-halyard-display-variable);
+
+  /* Typography — Scale */
+  --text-subheading: 18px;
+  --leading-subheading: 1;
+  --tracking-subheading: 0px;
+  --text-heading-sm: 24px;
+  --leading-heading-sm: 1.09;
+  --tracking-heading-sm: 0px;
+  --text-body: 29px;
+  --leading-body: 1.26;
+  --tracking-body: 0px;
+  --text-heading: 41px;
+  --leading-heading: 0.9;
+  --tracking-heading: 0px;
+  --text-display: 51px;
+  --leading-display: 0.9;
+  --tracking-display: 0px;
+
+  /* Spacing */
+  --spacing-6: 6px;
+  --spacing-8: 8px;
+  --spacing-9: 9px;
+  --spacing-10: 10px;
+  --spacing-12: 12px;
+  --spacing-14: 14px;
+  --spacing-18: 18px;
+  --spacing-24: 24px;
+  --spacing-31: 31px;
+  --spacing-41: 41px;
+  --spacing-45: 45px;
+  --spacing-68: 68px;
+  --spacing-204: 204px;
 
   /* Border Radius */
-  --radius-lg: 10px;
-  --radius-2xl: 16px;
-  --radius-2xl-2: 20px;
-  --radius-3xl: 32px;
-  --radius-full: 50px;
-  --radius-full-2: 56px;
-  --radius-full-3: 60px;
-  --radius-full-4: 80px;
-
-  /* Shadows */
-  --shadow-md: rgba(0, 0, 0, 0.04) 1px 0px 9px 2px;
+  --radius-xl: 12px;
+  --radius-2xl: 22.5px;
+  --radius-3xl: 36px;
+  --radius-full: 9999px;
 }
 
 @layer base {
   html {
-    background-color: var(--color-obsidian-shell);
-    color: var(--color-pure-white);
-    font-family: var(--font-aeonik);
-    font-feature-settings: "ss01" on, "cv11" on;
+    background-color: var(--color-walnut-shadow);
+    color: var(--color-warm-cream);
+    font-family: var(--font-halyard-display-variable);
+    font-feature-settings: "ss01" on;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--color-obsidian-shell);
-    color: var(--color-pure-white);
-    font-family: var(--font-aeonik);
+    background-color: var(--color-walnut-shadow);
+    color: var(--color-warm-cream);
+    font-family: var(--font-halyard-display-variable);
     font-weight: 400;
     font-size: 16px;
-    line-height: 1.5;
-    letter-spacing: -0.08px;
-    font-feature-settings: "ss01" on, "cv11" on;
+    line-height: 1.45;
+    letter-spacing: 0px;
+    font-feature-settings: "ss01" on;
   }
 
   h1, h2, h3, .font-display {
-    font-family: var(--font-aeonikfono);
-    font-feature-settings: "ss01" on, "cv11" on;
+    font-family: var(--font-halyard-display-variable);
+    font-weight: 500;
+    letter-spacing: 0px;
+    font-feature-settings: "ss01" on;
   }
 
   code, kbd, samp, pre, .font-mono {
@@ -170,193 +208,213 @@
   }
 
   select option {
-    background-color: var(--color-deep-abyss);
-    color: #ffffff;
+    background-color: var(--color-bark-brown);
+    color: var(--color-warm-cream);
   }
 }
 
 /* ============================================================================
-   SAUCE LABS CONSOLE DESIGN SYSTEM UTILITIES
-   Obsidian Shell (#10213d) · Deep Abyss (#0a172e) · Mint Frost (#eaf3ff) · Neon Pulse (#76a9ff)
+   ORYZO EDITORIAL DARKROOM SYSTEM UTILITIES
+   Walnut Shadow (#100904) · Bark Brown (#382416) · Cork Border (#40372e)
+   Warm Cream (#ffedd7) · Ember Accent (#dc5000) · Zero drop-shadows
    ============================================================================ */
 
+.oryzo-divider {
+  border-top: 1px dashed var(--color-cork-border);
+}
+
 .sauce-display {
-  font-family: var(--font-aeonikfono);
+  font-family: var(--font-halyard-display-variable);
   font-weight: 500;
-  font-size: clamp(38px, 5.2vw, 64px);
-  line-height: 1.1;
-  color: var(--color-pure-white);
+  font-size: clamp(36px, 5vw, 51px);
+  line-height: 0.9;
+  letter-spacing: 0px;
+  text-transform: uppercase;
+  color: var(--color-warm-cream);
 }
 
 .sauce-heading {
-  font-family: var(--font-aeonikfono);
+  font-family: var(--font-halyard-display-variable);
   font-weight: 500;
-  font-size: clamp(28px, 3.6vw, 40px);
-  line-height: 1.2;
+  font-size: clamp(26px, 3.6vw, 41px);
+  line-height: 0.9;
+  letter-spacing: 0px;
+  text-transform: uppercase;
+  color: var(--color-warm-cream);
 }
 
 .sauce-eyebrow {
-  font-family: var(--font-aeonikfono);
-  font-weight: 400;
+  font-family: var(--font-halyard-display-variable);
+  font-weight: 500;
   font-size: 10px;
   line-height: 1.2;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: var(--color-ember-accent);
 }
 
 .sauce-stat-value {
-  font-family: var(--font-aeonikfono);
+  font-family: var(--font-halyard-display-variable);
   font-weight: 500;
-  font-size: clamp(32px, 3.5vw, 48px);
-  line-height: 1.12;
-  color: var(--color-neon-pulse);
+  font-size: clamp(32px, 3.5vw, 41px);
+  line-height: 0.95;
+  color: var(--color-warm-cream);
   font-variant-numeric: tabular-nums;
 }
 
 .sauce-btn-primary {
-  background-color: var(--color-neon-pulse);
-  color: var(--color-obsidian-shell);
-  border-radius: 56px;
-  font-family: var(--font-aeonik);
-  font-weight: 400;
-  font-size: 16px;
-  letter-spacing: -0.08px;
-  padding: 14px 28px;
-  transition: filter 0.18s ease;
+  background-color: var(--color-bark-brown);
+  color: var(--color-warm-cream);
+  border: 1px solid var(--color-cork-border);
+  border-radius: 36px;
+  font-family: var(--font-halyard-display-variable);
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 14px 24px;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
 }
 
 .sauce-btn-primary:hover {
-  filter: brightness(1.06);
+  border-color: var(--color-warm-cream);
+  background-color: #452d1c;
 }
 
 .sauce-btn-ghost {
   background-color: transparent;
-  color: var(--color-pure-white);
-  border: 1.5px solid var(--color-pure-white);
-  border-radius: 56px;
-  font-family: var(--font-aeonik);
-  font-weight: 400;
-  font-size: 16px;
-  padding: 14px 28px;
+  color: var(--color-warm-cream);
+  border: 1px solid var(--color-warm-cream);
+  border-radius: 22.5px;
+  font-family: var(--font-halyard-display-variable);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 7.5px 18px;
   transition: background-color 0.18s ease;
 }
 
 .sauce-btn-ghost:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 237, 215, 0.08);
 }
 
 .sauce-card-mint {
-  background-color: var(--color-mint-frost);
-  color: var(--color-obsidian-shell);
-  border-radius: 40px;
-  box-shadow: var(--shadow-md);
-}
-
-@media (min-width: 1024px) {
-  .sauce-card-mint {
-    border-radius: 60px;
-  }
+  background-color: var(--color-bark-brown);
+  color: var(--color-warm-cream);
+  border: 1px dashed var(--color-cork-border);
+  border-radius: 12px;
+  box-shadow: none;
 }
 
 .sauce-card-dark {
-  background-color: var(--color-deep-abyss);
-  color: var(--color-pure-white);
-  border-radius: 20px;
+  background-color: var(--color-bark-brown);
+  color: var(--color-warm-cream);
+  border: 1px dashed var(--color-cork-border);
+  border-radius: 12px;
+  box-shadow: none;
 }
 
 .sauce-input {
-  background-color: #ffffff;
-  border: 1px solid var(--color-fog-border);
-  color: var(--color-obsidian-shell);
-  border-radius: 10px;
-  font-family: var(--font-aeonik);
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-warm-cream);
+  color: var(--color-warm-cream);
+  border-radius: 0px;
+  font-family: var(--font-halyard-display-variable);
   font-size: 15px;
 }
 
 .sauce-input:focus {
   outline: none;
-  border-color: var(--color-neon-pulse);
+  border-bottom-color: var(--color-ember-accent);
 }
 
-/* Backwards-compatible aliases mapped strictly to Sauce Labs console tokens */
+/* Console component utilities mapped to ORYZO tokens */
 .apple-card-heading {
-  font-family: var(--font-aeonikfono);
+  font-family: var(--font-halyard-display-variable);
   font-weight: 500;
-  font-size: 20px;
-  line-height: 1.25;
-  color: var(--color-pure-white);
+  font-size: 18px;
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--color-warm-cream);
 }
 
 .apple-metric-display {
-  font-family: var(--font-aeonikfono);
+  font-family: var(--font-halyard-display-variable);
   font-weight: 500;
-  font-size: clamp(28px, 3vw, 36px);
-  line-height: 1.1;
+  font-size: clamp(28px, 3vw, 41px);
+  line-height: 0.95;
+  color: var(--color-warm-cream);
   font-variant-numeric: tabular-nums;
 }
 
 .apple-body {
-  font-family: var(--font-aeonik);
+  font-family: var(--font-halyard-display-variable);
   font-weight: 400;
   font-size: 16px;
-  line-height: 1.5;
-  color: var(--color-slate-text);
+  line-height: 1.35;
+  color: #d6c3ae;
 }
 
 .apple-blue-pill {
-  background-color: var(--color-neon-pulse);
-  color: var(--color-obsidian-shell);
-  border-radius: 56px;
-  font-family: var(--font-aeonik);
+  background-color: var(--color-bark-brown);
+  color: var(--color-warm-cream);
+  border: 1px solid var(--color-cork-border);
+  border-radius: 36px;
+  font-family: var(--font-halyard-display-variable);
   font-weight: 500;
-  transition: filter 0.18s ease;
+  text-transform: uppercase;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
 }
 
 .apple-blue-pill:hover {
-  filter: brightness(1.06);
+  border-color: var(--color-warm-cream);
+  background-color: #452d1c;
 }
 
 .apple-white-outline-pill {
   background-color: transparent;
-  color: var(--color-pure-white);
-  border: 1.5px solid var(--color-pure-white);
-  border-radius: 56px;
+  color: var(--color-warm-cream);
+  border: 1px solid var(--color-warm-cream);
+  border-radius: 22.5px;
   padding-left: 16px;
   padding-right: 16px;
-  font-family: var(--font-aeonik);
-  font-weight: 400;
+  font-family: var(--font-halyard-display-variable);
+  font-weight: 500;
+  text-transform: uppercase;
   transition: background-color 0.18s ease;
 }
 
 .apple-white-outline-pill:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 237, 215, 0.08);
 }
 
 .apple-pill-input,
 .apple-pill-select {
-  background-color: var(--color-deep-abyss);
-  border: 1px solid var(--color-graphite-fill);
-  color: #ffffff;
-  border-radius: 10px;
-  padding-left: 12px;
-  padding-right: 12px;
-  font-family: var(--font-aeonik);
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-cork-border);
+  color: var(--color-warm-cream);
+  border-radius: 0px;
+  padding-left: 4px;
+  padding-right: 8px;
+  font-family: var(--font-halyard-display-variable);
   font-size: 14px;
 }
 
 .apple-pill-input:focus,
 .apple-pill-select:focus {
   outline: none;
-  border-color: var(--color-neon-pulse);
+  border-bottom-color: var(--color-warm-cream);
 }
 
 .apple-badge-orange {
-  background-color: rgba(255, 205, 72, 0.15);
-  border: 1px solid #ffcd48;
-  color: #ffcd48;
-  border-radius: 56px;
+  background-color: rgba(220, 80, 0, 0.14);
+  border: 1px dashed var(--color-ember-accent);
+  color: var(--color-ember-accent);
+  border-radius: 36px;
   padding: 2px 10px;
-  font-family: var(--font-aeonikfono);
+  font-family: var(--font-halyard-display-variable);
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.05em;
@@ -364,8 +422,10 @@
 }
 
 .apple-inline-link {
-  color: var(--color-neon-pulse);
-  font-family: var(--font-aeonik);
+  color: var(--color-ember-accent);
+  font-family: var(--font-halyard-display-variable);
+  font-weight: 500;
+  text-transform: uppercase;
 }
 
 .apple-inline-link:hover {
