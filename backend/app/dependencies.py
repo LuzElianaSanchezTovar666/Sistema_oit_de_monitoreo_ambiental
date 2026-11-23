@@ -1,14 +1,27 @@
 from typing import Any, Callable, Dict, Tuple
 from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 import jwt
 
 from .database import db_cursor
 from .security import decode_access_token
 
 SAFE_MUTATING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+_BEARER_SCHEME = HTTPBearer(
+    scheme_name="SIMOA Bearer",
+    description="JWT devuelto por POST /api/auth/login.",
+    bearerFormat="JWT",
+    auto_error=False,
+)
 
 
-def _extract_token_and_source(request: Request) -> Tuple[str, str]:
+def _extract_token_and_source(
+    request: Request, credentials: HTTPAuthorizationCredentials | None
+) -> Tuple[str, str]:
+    if credentials and credentials.credentials.strip():
+        return credentials.credentials.strip(), "bearer"
+
+    # Conserva el tratamiento de encabezados malformados antes de usar la cookie.
     auth_header = request.headers.get("Authorization", "").strip()
     if auth_header:
         parts = auth_header.split(" ", 1)
@@ -31,8 +44,11 @@ def _extract_token_and_source(request: Request) -> Tuple[str, str]:
     )
 
 
-def get_current_user(request: Request) -> Dict[str, Any]:
-    token, source = _extract_token_and_source(request)
+def get_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(_BEARER_SCHEME),
+) -> Dict[str, Any]:
+    token, source = _extract_token_and_source(request, credentials)
 
     # Protección CSRF Double-Submit cuando la sesión viaja en cookie HttpOnly en métodos mutantes
     if source == "cookie" and request.method.upper() in SAFE_MUTATING_METHODS:

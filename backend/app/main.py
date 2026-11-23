@@ -27,9 +27,10 @@ async def lifespan(_app: FastAPI):
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
-        title="SIMOA API · Autenticación y Control de Acceso (RF-01)",
+        title="SIMOA API · Monitoreo ambiental",
         version="1.0.0",
-        description="Backend FastAPI con MySQL, bcrypt, JWT HS256 (8h) y RBAC para SIMOA.",
+        description="API de autenticación, inventario IoT, telemetría, alertas y reportes. "
+        "Las operaciones privadas aceptan el JWT de inicio de sesión.",
         lifespan=lifespan,
     )
 
