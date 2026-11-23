@@ -1,341 +1,285 @@
 import React, { useEffect, useRef } from 'react';
-import * as THREE from 'three';
 
 /**
- * Fondo interactivo 3D con Three.js para la Landing Page de SIMOA:
- * - Figuras geométricas ecológicas dispersas (icosaedros, octaedros, anillos y nodos IoT)
- * - Campo de partículas ambientales flotantes (moléculas de aire / señales)
- * - Líneas de conexión sutiles entre nodos cercanos
- * - Interacción fluida con el cursor (parallax 3D, atracción de partículas y rotación reactiva)
+ * Fondo interactivo de gráficas de sensores e invernadero para SIMOA:
+ * - Retícula milimetrada estilo estación agrometeorológica
+ * - Siluetas vectoriales sutiles de naves de invernadero
+ * - Curvas animadas en tiempo real de Temperatura (°C) y Humedad Relativa (%RH)
+ * - Nodos de sensores pulsantes con lecturas ambientales y flujo de datos
+ * - Parallax suave con el cursor y soporte para prefers-reduced-motion
  */
 export const EnvironmentalThreeBackground: React.FC = () => {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
-
-    let renderer: THREE.WebGLRenderer | null = null;
     let animationFrameId = 0;
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    try {
-      const scene = new THREE.Scene();
+    const resize = () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
 
-      const camera = new THREE.PerspectiveCamera(
-        55,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        100
+    const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
+    const handleMouseMove = (e: MouseEvent) => {
+      mouse.targetX = (e.clientX / Math.max(width, 1) - 0.5) * 2;
+      mouse.targetY = (e.clientY / Math.max(height, 1) - 0.5) * 2;
+    };
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+
+    // Nodos de sensores distribuidos en zonas del invernadero
+    const sensorNodes = [
+      { rx: 0.14, ry: 0.34, label: '23.6 °C · Germinación', color: '#53d5f4', phase: 0.0 },
+      { rx: 0.38, ry: 0.52, label: '68 %RH · Cultivo A1', color: '#52B788', phase: 1.4 },
+      { rx: 0.64, ry: 0.38, label: '22.1 °C · Climatización', color: '#76a9ff', phase: 2.7 },
+      { rx: 0.84, ry: 0.60, label: '74 %RH · Fertirriego', color: '#74C69D', phase: 4.1 },
+    ];
+
+    const drawGreenhouseSilhouette = (cx: number, baseY: number, w: number, h: number, alpha: number) => {
+      ctx.save();
+      ctx.strokeStyle = `rgba(116, 198, 157, ${alpha})`;
+      ctx.lineWidth = 1.2;
+
+      const x0 = cx - w / 2;
+      const x1 = cx + w / 2;
+      const wallTopY = baseY - h * 0.55;
+      const peakY = baseY - h;
+
+      // Estructura principal a dos aguas del invernadero
+      ctx.beginPath();
+      ctx.moveTo(x0, baseY);
+      ctx.lineTo(x0, wallTopY);
+      ctx.lineTo(cx, peakY);
+      ctx.lineTo(x1, wallTopY);
+      ctx.lineTo(x1, baseY);
+      ctx.closePath();
+      ctx.stroke();
+
+      // Costillas internas / paneles
+      ctx.strokeStyle = `rgba(118, 169, 255, ${alpha * 0.7})`;
+      ctx.lineWidth = 0.8;
+      for (let i = 1; i <= 3; i++) {
+        const px = x0 + (w * i) / 4;
+        const roofY = i <= 2
+          ? wallTopY - ((wallTopY - peakY) * i) / 2
+          : wallTopY - ((wallTopY - peakY) * (4 - i)) / 2;
+        ctx.beginPath();
+        ctx.moveTo(px, baseY);
+        ctx.lineTo(px, roofY);
+        ctx.stroke();
+      }
+
+      // Línea de cumbrera y viga horizontal
+      ctx.beginPath();
+      ctx.moveTo(x0, wallTopY);
+      ctx.lineTo(x1, wallTopY);
+      ctx.stroke();
+
+      ctx.restore();
+    };
+
+    const drawTelemetryWave = (
+      t: number,
+      baseY: number,
+      amp: number,
+      freq: number,
+      speed: number,
+      strokeColor: string,
+      fillTop: string,
+      fillBottom: string,
+      parallaxY: number
+    ) => {
+      ctx.save();
+      const step = 16;
+      const points: Array<{ x: number; y: number }> = [];
+
+      for (let x = 0; x <= width + step; x += step) {
+        const normX = x / Math.max(width, 1);
+        const y =
+          baseY +
+          parallaxY +
+          Math.sin(normX * Math.PI * freq + t * speed) * amp +
+          Math.cos(normX * Math.PI * (freq * 1.7) - t * speed * 0.6) * (amp * 0.45);
+        points.push({ x, y });
+      }
+
+      // Área degradada bajo la curva de la gráfica
+      const grad = ctx.createLinearGradient(0, baseY - amp * 1.5, 0, height);
+      grad.addColorStop(0, fillTop);
+      grad.addColorStop(1, fillBottom);
+
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      for (let i = 0; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.lineTo(width, height);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Línea principal de la gráfica de sensor
+      ctx.beginPath();
+      for (let i = 0; i < points.length; i++) {
+        if (i === 0) ctx.moveTo(points[i].x, points[i].y);
+        else ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Puntos de muestreo sobre la curva
+      ctx.fillStyle = strokeColor;
+      for (let i = 4; i < points.length; i += 9) {
+        ctx.beginPath();
+        ctx.arc(points[i].x, points[i].y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    };
+
+    const startTime = performance.now();
+
+    const renderFrame = (now: number) => {
+      const elapsed = prefersReducedMotion ? 0 : (now - startTime) * 0.001;
+
+      mouse.x += (mouse.targetX - mouse.x) * 0.05;
+      mouse.y += (mouse.targetY - mouse.y) * 0.05;
+
+      ctx.clearRect(0, 0, width, height);
+
+      // 1. Retícula sutil de gráfica agrometeorológica
+      ctx.save();
+      ctx.strokeStyle = 'rgba(118, 169, 255, 0.06)';
+      ctx.lineWidth = 1;
+      const gridSize = 64;
+      const offsetX = (mouse.x * -12) % gridSize;
+      const offsetY = (mouse.y * -12) % gridSize;
+
+      for (let x = offsetX; x < width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = offsetY; y < height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 2. Siluetas arquitectónicas de invernaderos en el fondo
+      drawGreenhouseSilhouette(width * 0.22 + mouse.x * 10, height * 0.86 + mouse.y * 6, 260, 150, 0.14);
+      drawGreenhouseSilhouette(width * 0.52 + mouse.x * 14, height * 0.88 + mouse.y * 8, 320, 180, 0.11);
+      drawGreenhouseSilhouette(width * 0.80 + mouse.x * 10, height * 0.85 + mouse.y * 6, 240, 140, 0.13);
+
+      // 3. Curva de Humedad Relativa (%RH - verde esmeralda/salvia)
+      drawTelemetryWave(
+        elapsed,
+        height * 0.62,
+        34,
+        3.2,
+        0.55,
+        'rgba(82, 183, 136, 0.38)',
+        'rgba(82, 183, 136, 0.10)',
+        'rgba(82, 183, 136, 0.0)',
+        mouse.y * 12
       );
-      camera.position.z = 22;
 
-      renderer = new THREE.WebGLRenderer({
-        alpha: true,
-        antialias: true,
-        powerPreference: 'low-power',
-      });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-      renderer.setClearColor(0x000000, 0);
-      container.appendChild(renderer.domElement);
+      // 4. Curva de Temperatura (°C - azul cyan telemetría)
+      drawTelemetryWave(
+        elapsed,
+        height * 0.48,
+        28,
+        2.6,
+        0.75,
+        'rgba(83, 213, 244, 0.36)',
+        'rgba(118, 169, 255, 0.09)',
+        'rgba(118, 169, 255, 0.0)',
+        mouse.y * 18
+      );
 
-      // Iluminación ambiental suave
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-      scene.add(ambientLight);
+      // 5. Conexiones y nodos de sensores del invernadero
+      ctx.save();
+      const computedNodes = sensorNodes.map((n) => ({
+        ...n,
+        x: n.rx * width + mouse.x * 16,
+        y: n.ry * height + Math.sin(elapsed * 0.9 + n.phase) * 8 + mouse.y * 10,
+      }));
 
-      const dirLight = new THREE.DirectionalLight(0x76a9ff, 1.1);
-      dirLight.position.set(10, 15, 12);
-      scene.add(dirLight);
-
-      const cyanLight = new THREE.PointLight(0x53d5f4, 0.7, 40);
-      cyanLight.position.set(-12, -8, 10);
-      scene.add(cyanLight);
-
-      // Paleta azul de SIMOA
-      const ecoColors = [0x76a9ff, 0xb4d5ff, 0x53d5f4, 0x354d70, 0xffffff];
-
-      // 1. Figuras geométricas 3D dispersas (nodos, moléculas y anillos de sensores)
-      interface FloatingShape {
-        mesh: THREE.Mesh;
-        basePos: THREE.Vector3;
-        rotSpeed: THREE.Vector3;
-        floatSpeed: number;
-        floatAmp: number;
-        phase: number;
+      // Enlaces punteados entre nodos
+      ctx.strokeStyle = 'rgba(180, 213, 255, 0.14)';
+      ctx.setLineDash([4, 6]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 0; i < computedNodes.length - 1; i++) {
+        ctx.moveTo(computedNodes[i].x, computedNodes[i].y);
+        ctx.lineTo(computedNodes[i + 1].x, computedNodes[i + 1].y);
       }
+      ctx.stroke();
+      ctx.setLineDash([]);
 
-      const shapes: FloatingShape[] = [];
-      const geometries = [
-        new THREE.IcosahedronGeometry(1.1, 0),
-        new THREE.OctahedronGeometry(0.95, 0),
-        new THREE.DodecahedronGeometry(0.9, 0),
-        new THREE.TorusGeometry(0.9, 0.18, 12, 32),
-        new THREE.TetrahedronGeometry(0.85, 0),
-      ];
+      // Dibujar cada nodo con pulso suave y etiqueta de lectura
+      computedNodes.forEach((node) => {
+        const pulseRadius = 10 + Math.sin(elapsed * 2.2 + node.phase) * 4;
 
-      const shapeCount = 24;
-      for (let i = 0; i < shapeCount; i++) {
-        const geom = geometries[i % geometries.length];
-        const color = ecoColors[i % ecoColors.length];
-        const isWireframe = i % 2 === 0;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, pulseRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `${node.color}33`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
 
-        const mat = new THREE.MeshStandardMaterial({
-          color,
-          wireframe: isWireframe,
-          transparent: true,
-          opacity: isWireframe ? 0.28 : 0.16,
-          roughness: 0.35,
-          metalness: 0.1,
-        });
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = node.color;
+        ctx.fill();
 
-        const mesh = new THREE.Mesh(geom, mat);
-        const scale = 0.55 + Math.random() * 1.15;
-        mesh.scale.setScalar(scale);
+        // Etiqueta discreta junto al nodo
+        ctx.font = '500 11px ui-monospace, SFMono-Regular, Menlo, monospace';
+        ctx.fillStyle = 'rgba(226, 232, 240, 0.48)';
+        ctx.fillText(node.label, node.x + 12, node.y + 4);
+      });
+      ctx.restore();
 
-        // Dispersar por todo el ancho y alto del espacio visible
-        const x = (Math.random() - 0.5) * 40;
-        const y = (Math.random() - 0.5) * 26;
-        const z = (Math.random() - 0.5) * 14 - 2;
-
-        mesh.position.set(x, y, z);
-        mesh.rotation.set(
-          Math.random() * Math.PI,
-          Math.random() * Math.PI,
-          Math.random() * Math.PI
-        );
-
-        scene.add(mesh);
-        shapes.push({
-          mesh,
-          basePos: new THREE.Vector3(x, y, z),
-          rotSpeed: new THREE.Vector3(
-            (Math.random() - 0.5) * 0.008,
-            (Math.random() - 0.5) * 0.01,
-            (Math.random() - 0.5) * 0.006
-          ),
-          floatSpeed: 0.4 + Math.random() * 0.8,
-          floatAmp: 0.4 + Math.random() * 0.9,
-          phase: Math.random() * Math.PI * 2,
-        });
+      if (!prefersReducedMotion) {
+        animationFrameId = requestAnimationFrame(renderFrame);
       }
+    };
 
-      // 2. Campo de partículas flotantes interactivas con el cursor
-      const particleCount = 150;
-      const particlePositions = new Float32Array(particleCount * 3);
-      const particleBasePositions = new Float32Array(particleCount * 3);
-      const particleColors = new Float32Array(particleCount * 3);
-      const particleSpeeds = new Float32Array(particleCount);
+    animationFrameId = requestAnimationFrame(renderFrame);
 
-      for (let i = 0; i < particleCount; i++) {
-        const px = (Math.random() - 0.5) * 44;
-        const py = (Math.random() - 0.5) * 28;
-        const pz = (Math.random() - 0.5) * 12;
-
-        particlePositions[i * 3] = px;
-        particlePositions[i * 3 + 1] = py;
-        particlePositions[i * 3 + 2] = pz;
-
-        particleBasePositions[i * 3] = px;
-        particleBasePositions[i * 3 + 1] = py;
-        particleBasePositions[i * 3 + 2] = pz;
-
-        particleSpeeds[i] = 0.5 + Math.random() * 1.2;
-
-        const col = new THREE.Color(ecoColors[i % ecoColors.length]);
-        particleColors[i * 3] = col.r;
-        particleColors[i * 3 + 1] = col.g;
-        particleColors[i * 3 + 2] = col.b;
-      }
-
-      const particleGeometry = new THREE.BufferGeometry();
-      particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-      particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
-
-      const particleMaterial = new THREE.PointsMaterial({
-        size: 0.22,
-        vertexColors: true,
-        transparent: true,
-        opacity: 0.55,
-      });
-
-      const particles = new THREE.Points(particleGeometry, particleMaterial);
-      scene.add(particles);
-
-      // 3. Anillo / Aura interactiva que sigue suavemente al cursor en 3D
-      const cursorRingGeom = new THREE.TorusGeometry(1.3, 0.035, 12, 48);
-      const cursorRingMat = new THREE.MeshBasicMaterial({
-        color: 0x76a9ff,
-        transparent: true,
-        opacity: 0.35,
-      });
-      const cursorRing = new THREE.Mesh(cursorRingGeom, cursorRingMat);
-      cursorRing.position.z = 4;
-      scene.add(cursorRing);
-
-      const cursorCoreGeom = new THREE.OctahedronGeometry(0.32, 0);
-      const cursorCoreMat = new THREE.MeshBasicMaterial({
-        color: 0x53d5f4,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.55,
-      });
-      const cursorCore = new THREE.Mesh(cursorCoreGeom, cursorCoreMat);
-      cursorCore.position.z = 4;
-      scene.add(cursorCore);
-
-      // Seguimiento suave del cursor y scroll
-      const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
-      let scrollOffset = window.scrollY * 0.004;
-
-      const handleMouseMove = (e: MouseEvent) => {
-        mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
-        mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
-      };
-
-      const handleTouchMove = (e: TouchEvent) => {
-        if (e.touches.length > 0) {
-          mouse.targetX = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
-          mouse.targetY = -(e.touches[0].clientY / window.innerHeight) * 2 + 1;
-        }
-      };
-
-      const handleScroll = () => {
-        scrollOffset = window.scrollY * 0.004;
-      };
-
-      const handleResize = () => {
-        if (!renderer) return;
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      };
-
-      window.addEventListener('mousemove', handleMouseMove, { passive: true });
-      window.addEventListener('touchmove', handleTouchMove, { passive: true });
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      window.addEventListener('resize', handleResize);
-
-      const clock = new THREE.Clock();
-
-      const animate = () => {
-        animationFrameId = requestAnimationFrame(animate);
-        const elapsed = clock.getElapsedTime();
-
-        // Interpolación suave del cursor
-        mouse.x += (mouse.targetX - mouse.x) * 0.06;
-        mouse.y += (mouse.targetY - mouse.y) * 0.06;
-
-        // Parallax suave de cámara con cursor y scroll
-        camera.position.x += (mouse.x * 2.2 - camera.position.x) * 0.05;
-        camera.position.y += (mouse.y * 1.4 - scrollOffset * 0.35 - camera.position.y) * 0.05;
-        camera.lookAt(0, -scrollOffset * 0.25, 0);
-
-        // Posición 3D aproximada del cursor
-        const cursorWorldX = mouse.x * 16;
-        const cursorWorldY = mouse.y * 9 - scrollOffset * 0.35;
-
-        cursorRing.position.x += (cursorWorldX - cursorRing.position.x) * 0.1;
-        cursorRing.position.y += (cursorWorldY - cursorRing.position.y) * 0.1;
-        cursorRing.rotation.x = elapsed * 0.6 + mouse.y * 0.8;
-        cursorRing.rotation.y = elapsed * 0.8 + mouse.x * 0.8;
-
-        cursorCore.position.copy(cursorRing.position);
-        cursorCore.rotation.x = -elapsed * 1.1;
-        cursorCore.rotation.y = elapsed * 1.3;
-
-        // Animar figuras geométricas dispersas + reacción al cursor
-        for (let i = 0; i < shapes.length; i++) {
-          const s = shapes[i];
-          const floatY = Math.sin(elapsed * s.floatSpeed + s.phase) * s.floatAmp;
-          const floatX = Math.cos(elapsed * s.floatSpeed * 0.7 + s.phase) * (s.floatAmp * 0.4);
-
-          let targetX = s.basePos.x + floatX;
-          let targetY = s.basePos.y + floatY;
-
-          // Repulsión/desplazamiento sutil al acercar el cursor
-          const dx = targetX - cursorWorldX;
-          const dy = targetY - cursorWorldY;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 6.5 && dist > 0.01) {
-            const force = (6.5 - dist) / 6.5;
-            targetX += (dx / dist) * force * 2.2;
-            targetY += (dy / dist) * force * 2.2;
-            s.mesh.rotation.x += 0.025 * force;
-            s.mesh.rotation.y += 0.025 * force;
-          }
-
-          s.mesh.position.x += (targetX - s.mesh.position.x) * 0.06;
-          s.mesh.position.y += (targetY - s.mesh.position.y) * 0.06;
-          s.mesh.rotation.x += s.rotSpeed.x;
-          s.mesh.rotation.y += s.rotSpeed.y;
-          s.mesh.rotation.z += s.rotSpeed.z;
-        }
-
-        // Animar partículas flotantes y atraer suavemente hacia el cursor cercano
-        const posAttr = particleGeometry.getAttribute('position') as THREE.BufferAttribute;
-        const arr = posAttr.array as Float32Array;
-        for (let i = 0; i < particleCount; i++) {
-          const ix = i * 3;
-          const bx = particleBasePositions[ix] + Math.sin(elapsed * 0.4 * particleSpeeds[i] + i) * 0.7;
-          const by = particleBasePositions[ix + 1] + Math.cos(elapsed * 0.35 * particleSpeeds[i] + i) * 0.7;
-
-          const dx = cursorWorldX - bx;
-          const dy = cursorWorldY - by;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 5.5) {
-            const pull = (5.5 - dist) / 5.5;
-            arr[ix] += (bx + dx * 0.35 * pull - arr[ix]) * 0.08;
-            arr[ix + 1] += (by + dy * 0.35 * pull - arr[ix + 1]) * 0.08;
-          } else {
-            arr[ix] += (bx - arr[ix]) * 0.05;
-            arr[ix + 1] += (by - arr[ix + 1]) * 0.05;
-          }
-        }
-        posAttr.needsUpdate = true;
-
-        renderer?.render(scene, camera);
-      };
-
-      animate();
-
-      return () => {
-        cancelAnimationFrame(animationFrameId);
-        window.removeEventListener('mousemove', handleMouseMove);
-        window.removeEventListener('touchmove', handleTouchMove);
-        window.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('resize', handleResize);
-
-        geometries.forEach((g) => g.dispose());
-        shapes.forEach((s) => (s.mesh.material as THREE.Material).dispose());
-        particleGeometry.dispose();
-        particleMaterial.dispose();
-        cursorRingGeom.dispose();
-        cursorRingMat.dispose();
-        cursorCoreGeom.dispose();
-        cursorCoreMat.dispose();
-
-        if (renderer) {
-          renderer.dispose();
-          if (renderer.domElement.parentNode === container) {
-            container.removeChild(renderer.domElement);
-          }
-        }
-      };
-    } catch {
-      // Fallback silencioso si WebGL no está disponible
-    }
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
   }, []);
 
   return (
     <div
-      ref={containerRef}
       aria-hidden="true"
       className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
-    />
+    >
+      <canvas ref={canvasRef} className="block w-full h-full" />
+    </div>
   );
 };
-
