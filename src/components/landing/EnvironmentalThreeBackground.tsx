@@ -199,22 +199,22 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         34,
         3.2,
         0.55,
-        'rgba(134, 239, 172, 0.38)',
-        'rgba(82, 183, 136, 0.14)',
-        'rgba(11, 31, 20, 0.0)',
+        'rgba(134, 239, 172, 0.36)',
+        'rgba(82, 183, 136, 0.12)',
+        'rgba(13, 19, 16, 0.0)',
         mouse.y * 12
       );
 
-      // 4. Curva de Temperatura (°C - Verde salvia contrastado con oscuro)
+      // 4. Curva de Temperatura (°C - Blanco limpio contrastado con oscuro)
       drawTelemetryWave(
         elapsed,
         height * 0.48,
         28,
         2.6,
         0.75,
-        'rgba(167, 243, 208, 0.34)',
-        'rgba(45, 106, 79, 0.18)',
-        'rgba(16, 9, 4, 0.0)',
+        'rgba(255, 255, 255, 0.30)',
+        'rgba(255, 255, 255, 0.06)',
+        'rgba(13, 19, 16, 0.0)',
         mouse.y * 18
       );
 

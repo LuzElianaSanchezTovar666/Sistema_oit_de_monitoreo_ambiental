@@ -1,27 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  /* Paleta Verdes Claros Contrastados con Tonos Oscuros (Estilo Editorial) */
-  --color-warm-cream: #ecfdf5;
-  --color-walnut-shadow: #09140e;
-  --color-bark-brown: #12261b;
-  --color-cork-border: #2d543c;
-  --color-driftwood: #52796f;
+  /* Paleta Equilibrada: Oscuro Neutro + Blanco Puro + Verdes Claros */
+  --color-warm-cream: #ffffff;
+  --color-walnut-shadow: #0d1310;
+  --color-bark-brown: #151e19;
+  --color-cork-border: #2a3b32;
+  --color-driftwood: #6b7f74;
   --color-ember-accent: #52b788;
   --color-pure-black: #000000;
 
   /* Mapped Console Tokens */
-  --color-obsidian-shell: #09140e;
-  --color-pure-white: #ecfdf5;
-  --color-mint-frost: #dcfce7;
-  --color-deep-abyss: #12261b;
-  --color-charcoal: #050c08;
-  --color-fog-border: #86efac;
+  --color-obsidian-shell: #0d1310;
+  --color-pure-white: #ffffff;
+  --color-mint-frost: #f0fdf4;
+  --color-deep-abyss: #151e19;
+  --color-charcoal: #080c0a;
+  --color-fog-border: #bbf7d0;
   --color-stone-border: #52b788;
-  --color-slate-text: #a7d7b8;
-  --color-graphite-fill: #1f3d2b;
+  --color-slate-text: #d1dbd5;
+  --color-graphite-fill: #1f3529;
   --color-neon-pulse: #86efac;
-  --color-mint-whisper: #bbf7d0;
+  --color-mint-whisper: #ffffff;
   --color-signal-yellow: #86efac;
 
   /* Typography — Font Families */
@@ -59,39 +59,39 @@
 }
 
 @theme {
-  /* Tokens Verdes Claros + Oscuros */
-  --color-warm-cream: #ecfdf5;
-  --color-walnut-shadow: #09140e;
-  --color-bark-brown: #12261b;
-  --color-cork-border: #2d543c;
-  --color-driftwood: #52796f;
+  /* Tokens Oscuro Neutro + Blanco + Verdes Claros */
+  --color-warm-cream: #ffffff;
+  --color-walnut-shadow: #0d1310;
+  --color-bark-brown: #151e19;
+  --color-cork-border: #2a3b32;
+  --color-driftwood: #6b7f74;
   --color-ember-accent: #52b788;
   --color-pure-black: #000000;
 
   /* Mapped Console Tokens */
-  --color-obsidian-shell: #09140e;
-  --color-pure-white: #ecfdf5;
-  --color-mint-frost: #dcfce7;
-  --color-deep-abyss: #12261b;
-  --color-charcoal: #050c08;
-  --color-fog-border: #86efac;
+  --color-obsidian-shell: #0d1310;
+  --color-pure-white: #ffffff;
+  --color-mint-frost: #f0fdf4;
+  --color-deep-abyss: #151e19;
+  --color-charcoal: #080c0a;
+  --color-fog-border: #bbf7d0;
   --color-stone-border: #52b788;
-  --color-slate-text: #a7d7b8;
-  --color-graphite-fill: #1f3d2b;
+  --color-slate-text: #d1dbd5;
+  --color-graphite-fill: #1f3529;
   --color-neon-pulse: #86efac;
-  --color-mint-whisper: #bbf7d0;
+  --color-mint-whisper: #ffffff;
   --color-signal-yellow: #86efac;
 
   /* Legacy semantic aliases */
-  --color-cream-paper: #09140e;
-  --color-sheet-white: #12261b;
+  --color-cream-paper: #0d1310;
+  --color-sheet-white: #151e19;
   --color-canopy: #86efac;
-  --color-bark: #ecfdf5;
-  --color-ink: #ecfdf5;
-  --color-slate: #a7d7b8;
-  --color-sage-mist: #2d543c;
-  --color-pale-sage: #2d543c;
-  --color-muted-slate: #a7d7b8;
+  --color-bark: #ffffff;
+  --color-ink: #ffffff;
+  --color-slate: #d1dbd5;
+  --color-sage-mist: #2a3b32;
+  --color-pale-sage: #2a3b32;
+  --color-muted-slate: #d1dbd5;
   --color-mint-pulse: #86efac;
   --color-orb-violet: #52b788;
 
@@ -213,8 +213,8 @@
 
 .sauce-btn-ghost {
   background-color: transparent;
-  color: var(--color-warm-cream);
-  border: 1px solid #86efac;
+  color: #ffffff;
+  border: 1px solid #ffffff;
   border-radius: 22.5px;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
@@ -225,13 +225,13 @@
 }
 
 .sauce-btn-ghost:hover {
-  background-color: rgba(134, 239, 172, 0.12);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .sauce-card-mint {
-  background-color: #dcfce7;
-  color: #09140e;
-  border: 1px dashed #52b788;
+  background-color: #ffffff;
+  color: #0d1310;
+  border: 1px dashed #86efac;
   border-radius: 12px;
   box-shadow: none;
 }
