@@ -267,13 +267,13 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           {/* Líneas de Límites Operacionales de Temperatura */}
           {(metricMode === 'temp' || metricMode === 'dual') && (
             <>
-              {/* Límite Máximo (Pulse Red #DC2626) */}
+              {/* Límite Máximo (Pulse Red #15803d) */}
               <line
                 x1={padding.left}
                 y1={tempMaxY}
                 x2={width - padding.right}
                 y2={tempMaxY}
-                stroke="#DC2626"
+                stroke="#15803d"
                 strokeWidth="1.2"
                 strokeDasharray="4 4"
               />
@@ -281,7 +281,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 x={width - padding.right}
                 y={tempMaxY - 4}
                 textAnchor="end"
-                className="fill-[#DC2626] text-[9px] font-mono font-medium"
+                className="fill-[#15803d] text-[9px] font-mono font-medium"
               >
                 Máx {limites.temp_max}°C
               </text>
@@ -335,7 +335,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             />
           )}
 
-          {/* Puntos de anomalía destacados en el trazado (Pulse Red #DC2626) */}
+          {/* Puntos de anomalía destacados en el trazado (Pulse Red #15803d) */}
           {tempPoints.map((pt, i) => {
             if (!pt.reading.valor_anomalo) return null;
             return (
@@ -344,7 +344,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                   cx={pt.x}
                   cy={pt.y}
                   r="5.5"
-                  fill="#DC2626"
+                  fill="#15803d"
                   className="animate-pulse"
                 />
                 <circle cx={pt.x} cy={pt.y} r="2.5" fill="#ffffff" />
@@ -404,7 +404,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
               <p className="text-[10px] text-slate">Score IA: {activePoint.score_anomalia_ia}</p>
             )}
             {activePoint.valor_anomalo && (
-              <div className="flex items-center gap-1 text-[10px] text-[#DC2626] font-sans font-semibold pt-0.5">
+              <div className="flex items-center gap-1 text-[10px] text-[#15803d] font-sans font-semibold pt-0.5">
                 <AlertCircle className="w-3 h-3" />
                 <span>Lectura catalogada anómala</span>
               </div>
@@ -429,7 +429,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#DC2626]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#15803d]" />
             <span>Anomalía ML detectada</span>
           </div>
         </div>

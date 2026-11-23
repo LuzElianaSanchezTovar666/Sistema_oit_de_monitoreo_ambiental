@@ -50,7 +50,7 @@ interface SensorManagementViewProps {
 
 const ESTADO_STYLE: Record<SensorEstado, string> = {
   ACTIVO: 'bg-neon-pulse/20 text-neon-pulse border border-neon-pulse/50',
-  FALLA: 'bg-[#DC2626]/20 text-[#FCA5A5] border border-[#DC2626]/50',
+  FALLA: 'bg-[#15803d]/20 text-[#bbf7d0] border border-[#15803d]/50',
   CALIBRACION: 'bg-signal-yellow/20 text-signal-yellow border border-signal-yellow/50',
   INACTIVO: 'bg-graphite-fill/40 text-slate-text border border-graphite-fill',
 };
@@ -514,7 +514,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
       </div>
 
       {error && (
-        <div className="p-4 rounded-[20px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-sm flex items-center gap-2">
+        <div className="p-4 rounded-[20px] bg-[#15803d]/15 border border-[#15803d]/50 text-[#bbf7d0] text-sm flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -771,7 +771,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
               </div>
 
               {formError && (
-                <div className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-xs flex items-center gap-2">
+                <div className="p-3 rounded-[10px] bg-[#15803d]/15 border border-[#15803d]/50 text-[#bbf7d0] text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{formError}</span>
                 </div>
@@ -984,13 +984,13 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
                 )}
 
                 {cfgError && (
-                  <div className="p-3 rounded-[10px] bg-crimson-danger/15 border border-crimson-danger/40 text-xs text-crimson-danger flex items-center justify-between gap-2">
+                  <div className="p-3 rounded-[10px] bg-canopy/15 border border-canopy/40 text-xs text-canopy flex items-center justify-between gap-2">
                     <span>{cfgError}</span>
                     {cfgConflict && (
                       <button
                         type="button"
                         onClick={() => void loadThresholdForSensor(cfgModalSensor)}
-                        className="px-2.5 py-1 rounded-[8px] bg-crimson-danger text-pure-white font-medium cursor-pointer shrink-0"
+                        className="px-2.5 py-1 rounded-[8px] bg-canopy text-pure-white font-medium cursor-pointer shrink-0"
                       >
                         Recargar vigente
                       </button>
@@ -1300,7 +1300,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
                 )}
 
                 {varsError && (
-                  <div className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/40 text-xs text-[#FCA5A5] flex items-center gap-2">
+                  <div className="p-3 rounded-[10px] bg-[#15803d]/15 border border-[#15803d]/40 text-xs text-[#bbf7d0] flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{varsError}</span>
                   </div>

@@ -50,7 +50,7 @@ const ESTADO_LABEL: Record<string, string> = {
 };
 
 const ESTADO_STYLE: Record<string, string> = {
-  PENDIENTE: 'bg-[#DC2626]/15 text-[#DC2626] border border-[#DC2626]/40',
+  PENDIENTE: 'bg-[#15803d]/15 text-[#15803d] border border-[#15803d]/40',
   ATENDIDA: 'bg-[#D97706]/15 text-[#D97706] border border-[#D97706]/40',
   RESUELTA: 'bg-canopy/15 text-canopy border border-canopy/40',
 };
@@ -237,7 +237,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
-              <AlertTriangle className="w-6 h-6 text-[#DC2626]" />
+              <AlertTriangle className="w-6 h-6 text-[#15803d]" />
               <span>Gestor de Alertas</span>
             </h2>
             <p className="text-[14px] text-slate mt-1">
@@ -259,7 +259,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-sheet-white rounded-[16px] p-4">
             <span className="text-[11px] font-semibold text-slate uppercase tracking-wider">Pendientes</span>
-            <div className="apple-metric-display text-[#DC2626] mt-1 tabular-nums">{resumen.pendientes}</div>
+            <div className="apple-metric-display text-[#15803d] mt-1 tabular-nums">{resumen.pendientes}</div>
           </div>
           <div className="bg-sheet-white rounded-[16px] p-4">
             <span className="text-[11px] font-semibold text-slate uppercase tracking-wider">Atendidas</span>
@@ -271,7 +271,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
           </div>
           <div className="bg-sheet-white rounded-[16px] p-4">
             <span className="text-[11px] font-semibold text-slate uppercase tracking-wider">Críticas</span>
-            <div className="apple-metric-display text-[#DC2626] mt-1 tabular-nums">{resumen.criticas}</div>
+            <div className="apple-metric-display text-[#15803d] mt-1 tabular-nums">{resumen.criticas}</div>
           </div>
           <div className="bg-sheet-white rounded-[16px] p-4 col-span-2 sm:col-span-1">
             <span className="text-[11px] font-semibold text-slate uppercase tracking-wider">Activas</span>
@@ -399,7 +399,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
         </div>
 
         {loadError && (
-          <div className="p-4 rounded-[14px] bg-[#DC2626]/10 border border-[#DC2626]/40 text-xs text-[#DC2626] flex items-center gap-2">
+          <div className="p-4 rounded-[14px] bg-[#15803d]/10 border border-[#15803d]/40 text-xs text-[#15803d] flex items-center gap-2">
             <ShieldAlert className="w-4 h-4 shrink-0" />
             <span>{loadError}</span>
           </div>
@@ -430,7 +430,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                   key={alt.id_alerta}
                   className={`bg-sheet-white rounded-[16px] p-5 transition-all border ${
                     estadoNorm === 'PENDIENTE'
-                      ? 'border-[#DC2626]/40'
+                      ? 'border-[#15803d]/40'
                       : estadoNorm === 'ATENDIDA'
                       ? 'border-[#D97706]/40'
                       : 'border-sage-mist/60 opacity-90'
@@ -441,7 +441,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                           alt.nivel === 'CRITICA'
-                            ? 'bg-[#DC2626]/15 text-[#DC2626]'
+                            ? 'bg-[#15803d]/15 text-[#15803d]'
                             : 'bg-cream-paper text-[#D97706]'
                         }`}
                       >
@@ -457,7 +457,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                           <span
                             className={`text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-[5px] ${
                               alt.nivel === 'CRITICA'
-                                ? 'bg-[#DC2626] text-sheet-white'
+                                ? 'bg-[#15803d] text-sheet-white'
                                 : 'apple-badge-orange'
                             }`}
                           >
@@ -551,7 +551,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
               <div className="flex items-center justify-between border-b border-sage-mist pb-3">
                 <div>
                   <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
-                    <AlertOctagon className="w-5 h-5 text-[#DC2626]" />
+                    <AlertOctagon className="w-5 h-5 text-[#15803d]" />
                     <span>Detalle y Bitácora de Alerta ({selectedAlertForModal.id_alerta})</span>
                   </h3>
                   <p className="text-[11px] text-slate font-mono mt-0.5">
@@ -580,7 +580,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                     <div className="flex flex-wrap items-center gap-2">
                       <span
                         className={`text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-[5px] ${
-                          detailAlert.nivel === 'CRITICA' ? 'bg-[#DC2626] text-sheet-white' : 'apple-badge-orange'
+                          detailAlert.nivel === 'CRITICA' ? 'bg-[#15803d] text-sheet-white' : 'apple-badge-orange'
                         }`}
                       >
                         {detailAlert.nivel === 'CRITICA' ? 'CRÍTICA' : 'ADVERTENCIA'}
@@ -642,13 +642,13 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                       </h4>
 
                       {formError && (
-                        <div className="p-3 rounded-[10px] bg-[#DC2626]/10 border border-[#DC2626]/40 text-xs text-[#DC2626] flex items-center justify-between gap-2">
+                        <div className="p-3 rounded-[10px] bg-[#15803d]/10 border border-[#15803d]/40 text-xs text-[#15803d] flex items-center justify-between gap-2">
                           <span>{formError}</span>
                           {conflictDetected && (
                             <button
                               type="button"
                               onClick={() => void loadModalDetail(detailAlert.id_alerta)}
-                              className="px-2.5 py-1 rounded-[8px] bg-[#DC2626] text-sheet-white font-medium cursor-pointer shrink-0"
+                              className="px-2.5 py-1 rounded-[8px] bg-[#15803d] text-sheet-white font-medium cursor-pointer shrink-0"
                             >
                               Recargar
                             </button>

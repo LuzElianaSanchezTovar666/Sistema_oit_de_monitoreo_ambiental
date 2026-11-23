@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Diagnóstico IA',
       icon: <Sparkles className="w-4 h-4" />,
       badge: 'IA',
-      badgeStyle: 'bg-signal-yellow/20 text-signal-yellow rounded-[56px]',
+      badgeStyle: 'bg-neon-pulse/20 text-neon-pulse rounded-[56px]',
       allowedRoles: ['admin', 'cliente', 'supervisor'],
     },
     {
@@ -180,9 +180,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <ArrowRightLeft className="w-3 h-3 text-signal-yellow" /> IA Pipeline
+                <ArrowRightLeft className="w-3 h-3 text-neon-pulse" /> IA Pipeline
               </span>
-              <span className="text-signal-yellow">Isolation Forest</span>
+              <span className="text-neon-pulse">Isolation Forest</span>
             </div>
           </div>
         </div>

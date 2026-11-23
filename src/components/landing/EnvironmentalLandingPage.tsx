@@ -113,14 +113,14 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       desc: 'Control de latidos PINGREQ, validación de dirección MAC y estado Online/Offline.',
     },
     {
-      icon: <LineChart className="w-5 h-5 text-sky-300" />,
+      icon: <LineChart className="w-5 h-5 text-[#16a34a]" />,
       eyebrow: 'SERIES TEMPORALES',
       metric: '1 Hz',
       title: 'Históricos y gráficas dinámicas',
       desc: 'Series temporales con bandas de tolerancia, umbrales configurables y exportación CSV.',
     },
     {
-      icon: <AlertTriangle className="w-5 h-5 text-signal-yellow" />,
+      icon: <AlertTriangle className="w-5 h-5 text-[#16a34a]" />,
       eyebrow: 'SEGURIDAD OPERATIVA',
       metric: '5 min',
       title: 'Alertas con debouncing',

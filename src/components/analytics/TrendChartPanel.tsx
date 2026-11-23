@@ -213,7 +213,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                     y1={yToPx(limitMeta.max)}
                     x2={width - pad.right}
                     y2={yToPx(limitMeta.max)}
-                    stroke="#DC2626"
+                    stroke="#15803d"
                     strokeWidth="1.3"
                     strokeDasharray="5 4"
                   />
@@ -221,7 +221,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                     x={width - pad.right}
                     y={yToPx(limitMeta.max) - 4}
                     textAnchor="end"
-                    className="fill-[#DC2626] text-[9px] font-mono font-semibold"
+                    className="fill-[#15803d] text-[9px] font-mono font-semibold"
                   >
                     Máx {limitMeta.max}
                     {unit}
@@ -277,7 +277,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                         cx={c.x}
                         cy={c.y}
                         r="4"
-                        fill="#DC2626"
+                        fill="#15803d"
                         stroke="#FFFFFF"
                         strokeWidth="1.2"
                       />
@@ -388,7 +388,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
               Tendencia ({unit})
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#DC2626]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#15803d]" />
               Fuera de umbral
             </span>
             <span className="inline-flex items-center gap-1.5">
@@ -425,7 +425,7 @@ export const TrendChartPanel: React.FC<TrendChartPanelProps> = React.memo(
 
     if (error) {
       return (
-        <div className="bg-sheet-white rounded-[16px] p-5 text-xs text-[#DC2626] flex items-center gap-2">
+        <div className="bg-sheet-white rounded-[16px] p-5 text-xs text-[#15803d] flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>

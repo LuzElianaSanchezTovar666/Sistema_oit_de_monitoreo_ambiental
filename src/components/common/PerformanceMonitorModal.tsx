@@ -328,7 +328,7 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
                       <span
                         className={`px-1.5 py-0.5 rounded-[5px] text-[10px] font-bold ${
                           sp.status === 'SLOW'
-                            ? 'bg-[#DC2626] text-sheet-white'
+                            ? 'bg-[#15803d] text-sheet-white'
                             : 'bg-canopy/15 text-canopy'
                         }`}
                       >
@@ -339,7 +339,7 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
                     </div>
                     <div className="flex items-center gap-3 text-slate">
                       <span>{sp.instanceId}</span>
-                      <span className={sp.durationMs > 150 ? 'text-[#DC2626] font-bold' : 'text-canopy'}>
+                      <span className={sp.durationMs > 150 ? 'text-[#15803d] font-bold' : 'text-canopy'}>
                         {sp.durationMs} ms
                       </span>
                     </div>

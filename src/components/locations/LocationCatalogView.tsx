@@ -231,7 +231,7 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
       </div>
 
       {error && (
-        <div className="p-4 rounded-[20px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-sm flex items-center gap-2">
+        <div className="p-4 rounded-[20px] bg-[#15803d]/15 border border-[#15803d]/50 text-[#bbf7d0] text-sm flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -302,7 +302,7 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
                       onClick={() => handleToggleEstado(u)}
                       className={`px-3 py-1.5 rounded-[56px] text-xs inline-flex items-center gap-1 cursor-pointer border ${
                         u.estado === 'ACTIVA'
-                          ? 'bg-[#DC2626]/15 border-[#DC2626]/40 text-[#FCA5A5]'
+                          ? 'bg-[#15803d]/15 border-[#15803d]/40 text-[#bbf7d0]'
                           : 'bg-neon-pulse/15 border-neon-pulse/40 text-neon-pulse'
                       }`}
                     >
@@ -379,7 +379,7 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
               </div>
 
               {formError && (
-                <div className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-xs flex items-center gap-2">
+                <div className="p-3 rounded-[10px] bg-[#15803d]/15 border border-[#15803d]/50 text-[#bbf7d0] text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>{formError}</span>
                 </div>

@@ -102,11 +102,11 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
       case 'CAIDA_ABRUPTA':
         return { label: 'Caída Abrupta Térmica', color: 'bg-sky-100 text-sky-800 border-sky-300' };
       case 'DERIVA_TERMICA':
-        return { label: 'Deriva Térmica Progresiva', color: 'bg-amber-100 text-amber-800 border-amber-300' };
+        return { label: 'Deriva Térmica Progresiva', color: 'bg-green-100 text-green-800 border-green-300' };
       case 'OSCILACION_INHABITUAL':
-        return { label: 'Oscilación Higrométrica Inhabitual', color: 'bg-purple-100 text-purple-800 border-purple-300' };
+        return { label: 'Oscilación Higrométrica Inhabitual', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
       case 'FALLO_SENSOR':
-        return { label: 'Posible Fallo de Sensor', color: 'bg-red-100 text-red-900 border-red-400 font-bold' };
+        return { label: 'Posible Fallo de Sensor', color: 'bg-emerald-100 text-emerald-900 border-emerald-400 font-bold' };
       case 'DATOS_INSUFICIENTES':
       case 'NO_EVALUADO':
         return { label: 'Datos Insuficientes (<50)', color: 'bg-slate-100 text-slate-700 border-slate-300' };
@@ -221,7 +221,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
       )}
 
       {error && (
-        <div className="p-3 rounded-[10px] bg-[#DC2626]/10 border border-[#DC2626]/30 text-[#DC2626] text-xs flex items-center gap-2">
+        <div className="p-3 rounded-[10px] bg-[#15803d]/10 border border-[#15803d]/30 text-[#15803d] text-xs flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span>{error}</span>
         </div>
@@ -232,7 +232,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
         <div
           className={`rounded-[16px] bg-sheet-white p-6 space-y-5 border ${
             report.es_anomalia
-              ? 'border-purple-300 shadow-sm'
+              ? 'border-emerald-300 shadow-sm'
               : 'border-sage-mist/60'
           }`}
         >
@@ -242,7 +242,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
                   report.es_anomalia
-                    ? 'bg-purple-600 text-pure-white shadow-sm'
+                    ? 'bg-emerald-600 text-pure-white shadow-sm'
                     : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                 }`}
               >
@@ -305,7 +305,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
               <div
                 className={`px-3 py-1.5 rounded-[8px] border font-bold ${
                   report.score_ia !== null && report.score_ia !== undefined && report.score_ia >= 0.7
-                    ? 'bg-purple-100 text-purple-900 border-purple-300'
+                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
                     : 'bg-cream-paper text-slate border-sage-mist'
                 }`}
                 title="Puntuación de anomalía calculada por Isolation Forest / Z-Score [0.0 - 1.0]"
@@ -331,7 +331,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
             {/* Posibles Causas */}
             <div className="bg-cream-paper rounded-[12px] p-5 space-y-3">
               <h4 className="text-xs font-semibold text-bark flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <AlertTriangle className="w-4 h-4 text-green-600" />
                 <span>Posibles Causas Orientativas (Hipótesis)</span>
               </h4>
               <ul className="space-y-2 text-xs text-slate">
@@ -368,7 +368,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
             </span>
             <span>
               Latencia de Inferencia:{' '}
-              <strong className={report.tiempo_inferencia_ms <= 200 ? 'text-canopy' : 'text-amber-600'}>
+              <strong className={report.tiempo_inferencia_ms <= 200 ? 'text-canopy' : 'text-green-600'}>
                 {report.tiempo_inferencia_ms.toFixed(2)} ms
               </strong>{' '}
               (&lt;200 ms meta RF-18)

@@ -40,8 +40,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const roleIcons: Record<UserRole, React.ReactNode> = {
     admin: <Shield className="w-3.5 h-3.5 text-neon-pulse" />,
     cliente: <UserCheck className="w-3.5 h-3.5 text-neon-pulse" />,
-    tecnico: <Wrench className="w-3.5 h-3.5 text-signal-yellow" />,
-    supervisor: <Eye className="w-3.5 h-3.5 text-pure-white" />,
+    tecnico: <Wrench className="w-3.5 h-3.5 text-neon-pulse" />,
+    supervisor: <Eye className="w-3.5 h-3.5 text-neon-pulse" />,
   };
 
   const roleLabels: Record<UserRole, string> = {

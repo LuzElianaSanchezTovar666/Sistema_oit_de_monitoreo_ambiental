@@ -149,8 +149,8 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
             <span>Registrar Intervención Técnica</span>
           </button>
         ) : (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-700 border border-amber-500/30">
-            <ShieldAlert className="w-4 h-4 text-amber-600" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-green-500/10 text-green-700 border border-green-500/30">
+            <ShieldAlert className="w-4 h-4 text-green-600" />
             <span>Solo lectura (RN-22: Requiere Administrador o Técnico)</span>
           </span>
         )}
@@ -274,7 +274,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
             </div>
 
             {formError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-700 text-xs">
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-700 text-xs">
                 {formError}
               </div>
             )}

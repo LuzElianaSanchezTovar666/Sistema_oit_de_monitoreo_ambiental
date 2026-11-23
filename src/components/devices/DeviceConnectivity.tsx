@@ -43,8 +43,8 @@ export const CONNECTIVITY_STATES_CONFIG: Record<
   },
   OFFLINE: {
     icon: WifiOff,
-    color: 'bg-red-500/15 text-red-300',
-    border: 'border-red-500/30',
+    color: 'bg-emerald-500/15 text-emerald-300',
+    border: 'border-emerald-500/30',
     label: 'OFFLINE',
     detail: 'Comunicación interrumpida',
   },
@@ -292,8 +292,8 @@ export function DeviceConnectivityPanel({
             onClick={() => setFilterMode('OFFLINE')}
             className={`px-3 py-1 rounded-full font-medium transition-colors cursor-pointer ${
               filterMode === 'OFFLINE'
-                ? 'bg-red-600 text-sheet-white'
-                : 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100'
+                ? 'bg-emerald-600 text-sheet-white'
+                : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
             }`}
           >
             Desconectados ({stats.offline})
@@ -304,7 +304,7 @@ export function DeviceConnectivityPanel({
             className={`px-3 py-1 rounded-full font-medium transition-colors cursor-pointer ${
               filterMode === 'WARNING'
                 ? 'bg-signal-yellow text-bark'
-                : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
+                : 'bg-green-50 text-green-800 border border-green-200 hover:bg-green-100'
             }`}
           >
             Advertencia / Error ({stats.warning + stats.errorCnt})
@@ -314,8 +314,8 @@ export function DeviceConnectivityPanel({
             onClick={() => setFilterMode('WEAK_SIGNAL')}
             className={`px-3 py-1 rounded-full font-medium transition-colors cursor-pointer ${
               filterMode === 'WEAK_SIGNAL'
-                ? 'bg-orange-600 text-sheet-white'
-                : 'bg-orange-50 text-orange-800 border border-orange-200 hover:bg-orange-100'
+                ? 'bg-emerald-600 text-sheet-white'
+                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
             }`}
           >
             Señal Débil &lt; -80 dBm ({stats.weakSignal})
@@ -378,7 +378,7 @@ export function DeviceConnectivityPanel({
                   {(device.estado === 'ADVERTENCIA' || device.estado === 'OFFLINE') && (
                     <span
                       className={`text-[11px] font-medium ${
-                        device.estado === 'ADVERTENCIA' ? 'text-signal-yellow' : 'text-red-400'
+                        device.estado === 'ADVERTENCIA' ? 'text-signal-yellow' : 'text-emerald-400'
                       }`}
                     >
                       {CONNECTIVITY_STATES_CONFIG[device.estado].detail}

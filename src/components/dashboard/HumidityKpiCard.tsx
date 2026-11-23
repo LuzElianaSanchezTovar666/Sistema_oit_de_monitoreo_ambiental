@@ -42,7 +42,7 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
       },
       'FUERA DE RANGO': {
         label: 'FUERA DE RANGO',
-        className: 'bg-[#DC2626]/20 text-[#DC2626]',
+        className: 'bg-[#15803d]/20 text-[#15803d]',
         Icon: AlertTriangle,
       },
       SIN_CONFIGURACION: {
@@ -62,7 +62,7 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
 
     const valueColor =
       humState === 'FUERA DE RANGO'
-        ? 'text-[#DC2626]'
+        ? 'text-[#15803d]'
         : humState === 'NOMINAL'
           ? 'text-canopy'
           : 'text-slate';
@@ -138,7 +138,7 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
             )}
             <div
               className={`h-full transition-all duration-300 ${
-                humState === 'FUERA DE RANGO' ? 'bg-[#DC2626]' : 'bg-canopy'
+                humState === 'FUERA DE RANGO' ? 'bg-[#15803d]' : 'bg-canopy'
               }`}
               style={{ width: `${barPct}%` }}
             />

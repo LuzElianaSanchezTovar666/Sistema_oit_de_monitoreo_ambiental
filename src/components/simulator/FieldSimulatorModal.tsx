@@ -139,9 +139,9 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
               {/* Botón Falla AC */}
               <button
                 onClick={handleSimulateAcFailure}
-                className="p-4 rounded-[16px] bg-cream-paper hover:bg-cream-paper/50 border border-[#DC2626]/40 text-left transition-colors space-y-1.5"
+                className="p-4 rounded-[16px] bg-cream-paper hover:bg-cream-paper/50 border border-[#15803d]/40 text-left transition-colors space-y-1.5"
               >
-                <div className="flex items-center gap-2 text-[#DC2626] font-semibold">
+                <div className="flex items-center gap-2 text-[#15803d] font-semibold">
                   <Flame className="w-4 h-4" />
                   <span>Falla Climatización</span>
                 </div>
@@ -201,7 +201,7 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
           {/* Sección 2: Escenario B - Dead Letter Queue (DLQ) */}
           <div className="space-y-3 pt-3 border-t border-sage-mist">
             <h4 className="text-xs font-semibold text-bark uppercase tracking-wider flex items-center gap-1.5">
-              <FileWarning className="w-4 h-4 text-[#DC2626]" />
+              <FileWarning className="w-4 h-4 text-[#15803d]" />
               <span>Escenario B: Dead Letter Queue (Payload Telemétrico Corrupto)</span>
             </h4>
             <p className="text-[11px] text-slate">
@@ -234,7 +234,7 @@ export const FieldSimulatorModal: React.FC<FieldSimulatorModalProps> = ({
                 dlqEntries.map((dlq) => (
                   <div key={dlq.id} className="space-y-0.5 border-b border-sage-mist/60 pb-1.5">
                     <div className="flex items-center justify-between text-slate">
-                      <span className="text-[#DC2626]">{dlq.id} · {dlq.topic}</span>
+                      <span className="text-[#15803d]">{dlq.id} · {dlq.topic}</span>
                       <span>{new Date(dlq.fecha_hora).toLocaleTimeString()}</span>
                     </div>
                     <div className="text-bark truncate">Payload: {dlq.raw_payload}</div>

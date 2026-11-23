@@ -836,43 +836,29 @@ export default function App() {
         )}
       </Suspense>
 
-      {/* Banner de Alerta Automática en Tiempo Real RF-13 */}
+      {/* Banner de Alerta Automática en Tiempo Real RF-13 (Paleta Verde SIMOA) */}
       {liveAlertBanner && (
         <div
           role="alert"
-          className={`fixed top-20 right-6 z-50 max-w-md rounded-[16px] border p-4 shadow-xl backdrop-blur-md transition-all ${
-            liveAlertBanner.nivel === 'CRITICA'
-              ? 'bg-[#2A0E12]/95 border-[#DC2626] text-pure-white'
-              : 'bg-[#261D09]/95 border-signal-yellow text-pure-white'
-          }`}
+          className="fixed top-20 right-6 z-50 max-w-md rounded-[16px] border border-[#16a34a] bg-[#f0fdf4] text-[#0d1310] p-4 shadow-xl backdrop-blur-md transition-all"
         >
           <div className="flex items-start gap-3">
-            {liveAlertBanner.nivel === 'CRITICA' ? (
-              <AlertOctagon className="w-5 h-5 text-[#EF4444] shrink-0 mt-0.5" />
-            ) : (
-              <AlertTriangle className="w-5 h-5 text-signal-yellow shrink-0 mt-0.5" />
-            )}
+            <AlertOctagon className="w-5 h-5 text-[#16a34a] shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span
-                  className={`text-[11px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                    liveAlertBanner.nivel === 'CRITICA'
-                      ? 'bg-[#DC2626]/25 text-[#FCA5A5]'
-                      : 'bg-signal-yellow/20 text-signal-yellow'
-                  }`}
-                >
+                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#14532d] border border-[#86efac]">
                   {liveAlertBanner.nivel} · {liveAlertBanner.variable_alterada || 'AMBIENTAL'}
                 </span>
                 {liveAlertBanner.provisional && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-signal-yellow/20 text-signal-yellow">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#14532d] border border-[#86efac]">
                     Provisional
                   </span>
                 )}
               </div>
-              <p className="text-xs font-medium text-pure-white leading-snug">
+              <p className="text-xs font-semibold text-[#0d1310] leading-snug">
                 {liveAlertBanner.mensaje}
               </p>
-              <p className="text-[11px] text-slate-text">
+              <p className="text-[11px] text-[#2d543c]">
                 {liveAlertBanner.ubicacion_nombre || liveAlertBanner.ubicacion_id} ·{' '}
                 {liveAlertBanner.sensor_identificador || liveAlertBanner.sensor_id}
               </p>
@@ -918,7 +904,7 @@ export default function App() {
           {toastType === 'success' ? (
             <Check className="w-4 h-4 text-canopy shrink-0" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
+            <AlertCircle className="w-4 h-4 text-[#16a34a] shrink-0" />
           )}
           <span>{toastMessage}</span>
         </div>

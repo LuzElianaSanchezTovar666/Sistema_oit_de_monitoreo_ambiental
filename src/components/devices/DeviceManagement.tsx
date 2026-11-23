@@ -429,7 +429,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
           <div className="p-3.5 rounded-[16px] bg-deep-abyss border border-graphite-fill">
             <span className="text-[11px] font-mono text-slate-text uppercase block">Desconectados (OFFLINE)</span>
             <div className="text-xl font-bold text-pure-white mt-0.5 flex items-baseline gap-1">
-              <span className={stats.offline > 0 ? "text-red-400" : "text-pure-white"}>{stats.offline}</span>
+              <span className={stats.offline > 0 ? "text-emerald-400" : "text-pure-white"}>{stats.offline}</span>
               <span className="text-xs text-slate-text font-normal">nodos</span>
             </div>
             <span className="text-[11px] text-slate-text font-mono mt-0.5 block">Silencio superado</span>
@@ -502,7 +502,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
 
         {/* Error de carga */}
         {loadError && (
-          <div className="p-4 rounded-[20px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-sm flex items-center gap-2">
+          <div className="p-4 rounded-[20px] bg-[#15803d]/15 border border-[#15803d]/50 text-[#bbf7d0] text-sm flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{loadError}</span>
           </div>
@@ -581,7 +581,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                             <p className="text-xs text-signal-yellow">Retraso en la comunicación</p>
                           )}
                           {effectiveState === 'OFFLINE' && (
-                            <p className="text-xs text-red-300">Comunicación interrumpida</p>
+                            <p className="text-xs text-emerald-300">Comunicación interrumpida</p>
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -604,7 +604,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                             {isAdmin && (live?.estado ?? dev.estado) !== 'INACTIVO' && (
                               <button
                                 onClick={() => setDeactivateTarget(dev)}
-                                className="px-3 py-1.5 rounded-[56px] bg-[#DC2626]/15 border border-[#DC2626]/40 text-[#FCA5A5] hover:bg-[#DC2626]/25 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                                className="px-3 py-1.5 rounded-[56px] bg-[#15803d]/15 border border-[#15803d]/40 text-[#bbf7d0] hover:bg-[#15803d]/25 text-xs inline-flex items-center gap-1.5 cursor-pointer"
                               >
                                 <PowerOff className="w-3.5 h-3.5" />
                                 Desactivar
@@ -723,7 +723,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                 {createError && (
                   <div
                     role="alert"
-                    className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-xs flex items-center gap-2"
+                    className="p-3 rounded-[10px] bg-[#15803d]/15 border border-[#15803d]/50 text-[#bbf7d0] text-xs flex items-center gap-2"
                   >
                     <AlertCircle className="w-4 h-4 shrink-0" />
                     <span>{createError}</span>
@@ -975,7 +975,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                   </div>
 
                   {editError && (
-                    <div className="p-3 rounded-[10px] bg-[#DC2626]/15 border border-[#DC2626]/50 text-[#FCA5A5] text-xs flex items-center gap-2">
+                    <div className="p-3 rounded-[10px] bg-[#15803d]/15 border border-[#15803d]/50 text-[#bbf7d0] text-xs flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{editError}</span>
                     </div>
@@ -1174,8 +1174,8 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
         {/* Modal: Confirmación de Desactivación Lógica (RN-03) */}
         {deactivateTarget && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
-            <div className="bg-deep-abyss border border-[#DC2626]/50 rounded-[20px] w-full max-w-md p-6 space-y-4 text-pure-white">
-              <div className="flex items-center gap-2.5 text-[#FCA5A5]">
+            <div className="bg-deep-abyss border border-[#15803d]/50 rounded-[20px] w-full max-w-md p-6 space-y-4 text-pure-white">
+              <div className="flex items-center gap-2.5 text-[#bbf7d0]">
                 <ShieldAlert className="w-5 h-5" />
                 <h3 className="text-lg font-medium">Desactivar dispositivo (RN-03)</h3>
               </div>
@@ -1195,7 +1195,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                   type="button"
                   disabled={deactivating}
                   onClick={handleConfirmDeactivate}
-                  className="px-5 py-2 rounded-[56px] bg-[#DC2626] text-pure-white text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2 rounded-[56px] bg-[#15803d] text-pure-white text-xs font-medium inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   {deactivating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   Confirmar desactivación

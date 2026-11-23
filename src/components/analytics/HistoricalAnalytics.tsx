@@ -561,7 +561,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
         {error && (
           <div
             role="alert"
-            className="p-3 rounded-[10px] bg-[#DC2626]/10 border border-[#DC2626]/40 text-xs text-[#DC2626] flex items-center gap-2"
+            className="p-3 rounded-[10px] bg-[#15803d]/10 border border-[#15803d]/40 text-xs text-[#15803d] flex items-center gap-2"
           >
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
@@ -659,7 +659,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
             role="status"
             className={`p-2.5 rounded-[8px] text-xs flex items-center gap-2 animate-fadeIn ${
               reportStatus === 'error'
-                ? 'bg-[#DC2626]/10 border border-[#DC2626]/30 text-[#DC2626]'
+                ? 'bg-[#15803d]/10 border border-[#15803d]/30 text-[#15803d]'
                 : reportStatus === 'success'
                 ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
                 : 'bg-sky-50 border border-sky-200 text-sky-800'
@@ -829,7 +829,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
                           m.estado_evaluacion === 'Conforme'
                             ? 'bg-canopy/15 text-canopy'
                             : m.estado_evaluacion === 'Fuera de umbral'
-                              ? 'bg-[#DC2626]/15 text-[#DC2626]'
+                              ? 'bg-[#15803d]/15 text-[#15803d]'
                               : 'bg-cream-paper text-slate'
                         }`}
                       >
@@ -839,10 +839,10 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
                     <td className="py-3 px-4 text-center font-sans">
                       {m.es_anomalia_ia || m.valor_anomalo ? (
                         <span
-                          className="px-2 py-0.5 rounded-[5px] text-[11px] font-bold bg-purple-100 text-purple-900 border border-purple-300 inline-flex items-center gap-1"
+                          className="px-2 py-0.5 rounded-[5px] text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 inline-flex items-center gap-1"
                           title={`Score Anomaly Forest: ${m.score_anomalia_ia ?? 'N/A'}`}
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
                           <span>Anómalo</span>
                           {m.score_anomalia_ia !== null && m.score_anomalia_ia !== undefined && (
                             <span className="text-[10px] font-mono opacity-80">

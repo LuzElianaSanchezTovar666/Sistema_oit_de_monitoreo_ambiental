@@ -314,7 +314,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
                   {loc.nombre}
                 </span>
                 {hasAlert && (
-                  <span className="w-2 h-2 rounded-full bg-[#DC2626] animate-ping" />
+                  <span className="w-2 h-2 rounded-full bg-[#15803d] animate-ping" />
                 )}
               </button>
             );
@@ -324,14 +324,14 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
 
       {/* Banner de Alerta Crítica Activa si existe */}
       {locationAlert && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-[16px] border border-[#DC2626]/50 bg-sheet-white text-bark animate-fadeIn">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-[16px] border border-[#15803d]/50 bg-sheet-white text-bark animate-fadeIn">
           <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-full bg-[#DC2626] text-sheet-white flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#15803d] text-sheet-white flex items-center justify-center shrink-0">
               <AlertOctagon className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[12px] font-semibold uppercase tracking-wider text-[#DC2626] font-mono">
+                <span className="text-[12px] font-semibold uppercase tracking-wider text-[#15803d] font-mono">
                   ¡Alerta {locationAlert.nivel}!
                 </span>
                 <span className="text-xs text-slate">·</span>
@@ -498,7 +498,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
               <div
                 className={`text-right font-semibold ${
                   m.temperatura !== null && m.temperatura > (activeSensorConfig?.limites.temp_max ?? 30)
-                    ? 'text-[#DC2626]'
+                    ? 'text-[#15803d]'
                     : 'text-canopy'
                 }`}
               >
@@ -510,7 +510,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
               <div className="text-right text-slate">{m.score_anomalia_ia ?? '—'}</div>
               <div className="text-center">
                 {m.es_fuera_de_umbral ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-sans text-[#DC2626] font-semibold">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-sans text-[#15803d] font-semibold">
                     <AlertTriangle className="w-3 h-3" /> Alerta
                   </span>
                 ) : (

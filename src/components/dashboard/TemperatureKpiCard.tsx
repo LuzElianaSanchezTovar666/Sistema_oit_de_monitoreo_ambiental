@@ -42,7 +42,7 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
       },
       'FUERA DE RANGO': {
         label: 'FUERA DE RANGO',
-        className: 'bg-[#DC2626]/20 text-[#DC2626]',
+        className: 'bg-[#15803d]/20 text-[#15803d]',
         Icon: AlertTriangle,
       },
       SIN_CONFIGURACION: {
@@ -62,7 +62,7 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
 
     const valueColor =
       thermalState === 'FUERA DE RANGO'
-        ? 'text-[#DC2626]'
+        ? 'text-[#15803d]'
         : thermalState === 'NOMINAL'
           ? 'text-canopy'
           : 'text-slate';
@@ -137,7 +137,7 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
             {gauge.markerPct !== null && (
               <div
                 className={`absolute top-0 bottom-0 w-2 rounded-full transition-all duration-300 ${
-                  thermalState === 'FUERA DE RANGO' ? 'bg-[#DC2626]' : 'bg-canopy'
+                  thermalState === 'FUERA DE RANGO' ? 'bg-[#15803d]' : 'bg-canopy'
                 }`}
                 style={{
                   left: `calc(${gauge.markerPct}% - 4px)`,

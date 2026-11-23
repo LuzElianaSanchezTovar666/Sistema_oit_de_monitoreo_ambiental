@@ -497,7 +497,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                     key={i}
                     className="p-2.5 rounded-[12px] bg-sheet-white text-[11px] text-slate flex items-center gap-2"
                   >
-                    <XCircle className="w-3.5 h-3.5 text-[#DC2626] shrink-0" />
+                    <XCircle className="w-3.5 h-3.5 text-[#15803d] shrink-0" />
                     <span>{ex}</span>
                   </div>
                 ))}
