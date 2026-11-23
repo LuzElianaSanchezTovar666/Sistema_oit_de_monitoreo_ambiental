@@ -198,7 +198,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               href="#contacto"
               className="hidden sm:inline-block text-[15px] font-normal text-pure-white hover:text-neon-pulse transition-colors px-2 py-1"
             >
-              Solicitar demo
+              Soporte técnico
             </a>
             <button
               onClick={() => onEnterSystem('dashboard')}
