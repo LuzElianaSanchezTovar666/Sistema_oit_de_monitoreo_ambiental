@@ -284,51 +284,97 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 </div>
               </div>
 
-              {/* Right Column — 3D Isometric Product Illustration */}
+              {/* Right Column — Ilustración de Invernadero y Sensores (Verdes claros + Oscuros) */}
               <div className="flex justify-center lg:justify-end">
                 <svg
                   viewBox="0 0 520 420"
                   className="w-full max-w-[500px] h-auto"
-                  aria-label="Ilustración isométrica de consola SIMOA"
+                  aria-label="Ilustración de invernadero inteligente SIMOA con monitoreo de clima y cultivos"
                 >
-                  {/* Isometric Base Console */}
-                  <polygon points="260,385 470,275 260,165 50,275" fill="var(--color-deep-abyss)" stroke="var(--color-graphite-fill)" strokeWidth="1.5" />
-                  <polygon points="50,275 260,385 260,402 50,292" fill="var(--color-charcoal)" />
-                  <polygon points="470,275 260,385 260,402 470,292" fill="var(--color-obsidian-shell)" stroke="var(--color-graphite-fill)" strokeWidth="1" />
+                  <defs>
+                    <linearGradient id="ghGlass" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#86efac" stopOpacity="0.22" />
+                      <stop offset="100%" stopColor="#1b4332" stopOpacity="0.12" />
+                    </linearGradient>
+                    <linearGradient id="ghSoil" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#0b1f14" />
+                      <stop offset="50%" stopColor="#163022" />
+                      <stop offset="100%" stopColor="#0b1f14" />
+                    </linearGradient>
+                  </defs>
 
-                  {/* Stacked Isometric Module 1 — Mint Frost */}
-                  <polygon points="260,315 410,235 260,155 110,235" fill="var(--color-mint-frost)" />
-                  <polygon points="110,235 260,315 260,330 110,250" fill="var(--color-mint-whisper)" />
-                  <polygon points="410,235 260,315 260,330 410,250" fill="#a6b8d2" />
+                  {/* Base oscura del terreno del invernadero */}
+                  <rect x="45" y="335" width="430" height="24" rx="12" fill="url(#ghSoil)" stroke="#2d6a4f" strokeWidth="1.2" />
 
-                  {/* Stacked Isometric Module 2 — Signal Yellow */}
-                  <polygon points="260,245 390,176 260,107 130,176" fill="#53d5f4" />
-                  <polygon points="130,176 260,245 260,258 130,189" fill="#2496bc" />
-                  <polygon points="390,176 260,245 260,258 390,189" fill="#166685" />
+                  {/* Estructura principal del invernadero (tonos oscuros + cristal verde claro) */}
+                  <polygon
+                    points="85,335 85,185 260,88 435,185 435,335"
+                    fill="url(#ghGlass)"
+                    stroke="#86efac"
+                    strokeWidth="1.8"
+                  />
 
-                  {/* Stacked Isometric Module 3 — Neon Pulse */}
-                  <polygon points="260,175 370,117 260,59 150,117" fill="var(--color-neon-pulse)" />
-                  <polygon points="150,117 260,175 260,188 150,130" fill="#477bd4" />
-                  <polygon points="370,117 260,175 260,188 370,130" fill="#284e9c" />
+                  {/* Vigas y marcos estructurales en verde oscuro contrastado */}
+                  <line x1="85" y1="185" x2="435" y2="185" stroke="#2d6a4f" strokeWidth="1.5" />
+                  <line x1="172" y1="136" x2="172" y2="335" stroke="#2d6a4f" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="260" y1="88" x2="260" y2="335" stroke="#52b788" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="348" y1="136" x2="348" y2="335" stroke="#2d6a4f" strokeWidth="1.2" strokeDasharray="4 4" />
 
-                  {/* Thin Connector Lines & Floating Tags */}
-                  <line x1="150" y1="117" x2="75" y2="85" stroke="var(--color-mint-whisper)" strokeWidth="1.2" strokeDasharray="4 4" />
-                  <line x1="370" y1="117" x2="445" y2="85" stroke="var(--color-neon-pulse)" strokeWidth="1.2" strokeDasharray="4 4" />
-                  <line x1="390" y1="176" x2="455" y2="176" stroke="#53d5f4" strokeWidth="1.2" strokeDasharray="4 4" />
-                  <line x1="110" y1="235" x2="55" y2="220" stroke="var(--color-mint-frost)" strokeWidth="1.2" strokeDasharray="4 4" />
+                  {/* Camas de cultivo hidropónico y brotes en verde claro */}
+                  <rect x="112" y="302" width="120" height="20" rx="6" fill="#0b1f14" stroke="#52b788" strokeWidth="1.2" />
+                  <rect x="288" y="302" width="120" height="20" rx="6" fill="#0b1f14" stroke="#52b788" strokeWidth="1.2" />
 
-                  {/* Floating Labels */}
-                  <rect x="20" y="68" width="90" height="28" rx="14" fill="var(--color-deep-abyss)" stroke="var(--color-neon-pulse)" strokeWidth="1" />
-                  <text x="65" y="86" textAnchor="middle" fill="#ffffff" fontSize="11" fontWeight="500">ESP32</text>
+                  {/* Plantas / hojas estilizadas dentro del invernadero */}
+                  {[135, 172, 209, 311, 348, 385].map((px, idx) => (
+                    <g key={px}>
+                      <line x1={px} y1="302" x2={px} y2={252 - (idx % 2) * 10} stroke="#52b788" strokeWidth="2" />
+                      <ellipse
+                        cx={px - 11}
+                        cy={272 - (idx % 2) * 8}
+                        rx="12"
+                        ry="6"
+                        transform={`rotate(-28 ${px - 11} ${272 - (idx % 2) * 8})`}
+                        fill="#86efac"
+                        fillOpacity="0.85"
+                      />
+                      <ellipse
+                        cx={px + 11}
+                        cy={264 - (idx % 2) * 8}
+                        rx="12"
+                        ry="6"
+                        transform={`rotate(28 ${px + 11} ${264 - (idx % 2) * 8})`}
+                        fill="#a7f3d0"
+                        fillOpacity="0.9"
+                      />
+                    </g>
+                  ))}
 
-                  <rect x="405" y="68" width="95" height="28" rx="14" fill="var(--color-deep-abyss)" stroke="var(--color-neon-pulse)" strokeWidth="1" />
-                  <text x="452" y="86" textAnchor="middle" fill="var(--color-neon-pulse)" fontSize="11" fontWeight="500">MQTTS</text>
+                  {/* Puntos sensores dentro de las zonas del invernadero */}
+                  <circle cx="172" cy="215" r="5" fill="#86efac" />
+                  <circle cx="172" cy="215" r="11" fill="none" stroke="#86efac" strokeOpacity="0.45" strokeWidth="1.5" />
+                  <circle cx="348" cy="215" r="5" fill="#6ee7b7" />
+                  <circle cx="348" cy="215" r="11" fill="none" stroke="#6ee7b7" strokeOpacity="0.45" strokeWidth="1.5" />
+                  <circle cx="260" cy="145" r="5" fill="#a7f3d0" />
+                  <circle cx="260" cy="145" r="11" fill="none" stroke="#a7f3d0" strokeOpacity="0.45" strokeWidth="1.5" />
 
-                  <rect x="415" y="162" width="90" height="28" rx="14" fill="var(--color-deep-abyss)" stroke="#53d5f4" strokeWidth="1" />
-                  <text x="460" y="180" textAnchor="middle" fill="#53d5f4" fontSize="11" fontWeight="500">IA 3σ</text>
+                  {/* Líneas conectoras finas hacia etiquetas ambientales */}
+                  <line x1="172" y1="215" x2="72" y2="122" stroke="#86efac" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="348" y1="215" x2="442" y2="122" stroke="#6ee7b7" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="260" y1="145" x2="260" y2="48" stroke="#a7f3d0" strokeWidth="1.2" strokeDasharray="4 4" />
+                  <line x1="112" y1="312" x2="64" y2="270" stroke="#52b788" strokeWidth="1.2" strokeDasharray="4 4" />
 
-                  <rect x="12" y="206" width="88" height="28" rx="14" fill="var(--color-deep-abyss)" stroke="var(--color-mint-whisper)" strokeWidth="1" />
-                  <text x="56" y="224" textAnchor="middle" fill="var(--color-mint-frost)" fontSize="11" fontWeight="500">ALERTAS</text>
+                  {/* Etiquetas en tonos verde claro sobre cápsulas oscuras */}
+                  <rect x="14" y="96" width="128" height="30" rx="15" fill="#0b1f14" stroke="#86efac" strokeWidth="1.2" />
+                  <text x="78" y="115" textAnchor="middle" fill="#a7f3d0" fontSize="11" fontWeight="500">23.4 °C · CLIMA</text>
+
+                  <rect x="374" y="96" width="132" height="30" rx="15" fill="#0b1f14" stroke="#6ee7b7" strokeWidth="1.2" />
+                  <text x="440" y="115" textAnchor="middle" fill="#86efac" fontSize="11" fontWeight="500">68 %RH · HUMEDAD</text>
+
+                  <rect x="182" y="20" width="156" height="30" rx="15" fill="#0b1f14" stroke="#a7f3d0" strokeWidth="1.2" />
+                  <text x="260" y="39" textAnchor="middle" fill="#a7f3d0" fontSize="11" fontWeight="500">INVERNADERO ACTIVO</text>
+
+                  <rect x="10" y="244" width="118" height="30" rx="15" fill="#0b1f14" stroke="#52b788" strokeWidth="1.2" />
+                  <text x="69" y="263" textAnchor="middle" fill="#86efac" fontSize="11" fontWeight="500">FERTIRRIEGO</text>
                 </svg>
               </div>
             </div>

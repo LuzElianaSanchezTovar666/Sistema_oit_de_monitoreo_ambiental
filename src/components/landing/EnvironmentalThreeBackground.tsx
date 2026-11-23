@@ -43,12 +43,12 @@ export const EnvironmentalThreeBackground: React.FC = () => {
     window.addEventListener('resize', resize);
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Nodos de sensores distribuidos en zonas del invernadero (Paleta ORYZO)
+    // Nodos de sensores distribuidos en zonas del invernadero (Verdes claros + Oscuros)
     const sensorNodes = [
-      { rx: 0.14, ry: 0.34, label: '23.6 °C · GERMINACIÓN', color: '#dc5000', phase: 0.0 },
-      { rx: 0.38, ry: 0.52, label: '68 %RH · CULTIVO A1', color: '#ffedd7', phase: 1.4 },
-      { rx: 0.64, ry: 0.38, label: '22.1 °C · CLIMATIZACIÓN', color: '#dc5000', phase: 2.7 },
-      { rx: 0.84, ry: 0.60, label: '74 %RH · FERTIRRIEGO', color: '#ffedd7', phase: 4.1 },
+      { rx: 0.14, ry: 0.34, label: '23.6 °C · GERMINACIÓN', color: '#86efac', phase: 0.0 },
+      { rx: 0.38, ry: 0.52, label: '68 %RH · CULTIVO A1', color: '#52b788', phase: 1.4 },
+      { rx: 0.64, ry: 0.38, label: '22.1 °C · CLIMATIZACIÓN', color: '#a7f3d0', phase: 2.7 },
+      { rx: 0.84, ry: 0.60, label: '74 %RH · FERTIRRIEGO', color: '#6ee7b7', phase: 4.1 },
     ];
 
     const drawGreenhouseSilhouette = (cx: number, baseY: number, w: number, h: number, alpha: number) => {
@@ -192,29 +192,29 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       drawGreenhouseSilhouette(width * 0.52 + mouse.x * 14, height * 0.88 + mouse.y * 8, 320, 180, 0.11);
       drawGreenhouseSilhouette(width * 0.80 + mouse.x * 10, height * 0.85 + mouse.y * 6, 240, 140, 0.13);
 
-      // 3. Curva de Humedad Relativa (%RH - Warm Cream)
+      // 3. Curva de Humedad Relativa (%RH - Verde claro menta)
       drawTelemetryWave(
         elapsed,
         height * 0.62,
         34,
         3.2,
         0.55,
-        'rgba(255, 237, 215, 0.34)',
-        'rgba(255, 237, 215, 0.08)',
-        'rgba(255, 237, 215, 0.0)',
+        'rgba(134, 239, 172, 0.38)',
+        'rgba(82, 183, 136, 0.14)',
+        'rgba(11, 31, 20, 0.0)',
         mouse.y * 12
       );
 
-      // 4. Curva de Temperatura (°C - Ember Accent)
+      // 4. Curva de Temperatura (°C - Verde salvia contrastado con oscuro)
       drawTelemetryWave(
         elapsed,
         height * 0.48,
         28,
         2.6,
         0.75,
-        'rgba(220, 80, 0, 0.48)',
-        'rgba(220, 80, 0, 0.12)',
-        'rgba(220, 80, 0, 0.0)',
+        'rgba(167, 243, 208, 0.34)',
+        'rgba(45, 106, 79, 0.18)',
+        'rgba(16, 9, 4, 0.0)',
         mouse.y * 18
       );
 
