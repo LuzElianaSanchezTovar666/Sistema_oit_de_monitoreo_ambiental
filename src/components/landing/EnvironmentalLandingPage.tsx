@@ -149,6 +149,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       {/* Fondo interactivo agrometeorológico SIMOA */}
       <EnvironmentalThreeBackground />
 
+      {/* ORYZO AI — Signature Vertical Edge Serial Label */}
+      <div className="hidden lg:flex fixed right-3 top-1/2 -translate-y-1/2 z-20 oryzo-vertical-label pointer-events-none select-none text-[#15803d]">
+        SIMOA · ORYZO 1-MODEL
+      </div>
+
       {/* 1. ANNOUNCEMENT BANNER — Verdecito fresco sobre fondo blanco */}
       {showAnnouncement && (
         <div className="relative z-20 w-full bg-[#dcfce7] border-b border-[#86efac] text-[#14532d] px-6 py-2.5 text-center text-[14px] font-medium flex items-center justify-center gap-3">
@@ -417,6 +422,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         )}
       </section>
 
+      {/* ORYZO AI — Hairline Dashed Divider */}
+      <div className="max-w-[1200px] mx-auto px-6">
+        <div className="oryzo-divider" />
+      </div>
+
       {/* 6. LIGHT CONTENT CARD (#eaf3ff Mint Frost, 60px radius) — Tab Pill Navigation + Product Preview */}
       <section id="modulos" className="relative z-10 py-16 px-6">
         <div className="max-w-[1200px] mx-auto sauce-card-mint p-8 sm:p-12 space-y-10">
@@ -516,6 +526,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </div>
       </section>
 
+      {/* ORYZO AI — Hairline Dashed Divider */}
+      <div className="max-w-[1200px] mx-auto px-6">
+        <div className="oryzo-divider" />
+      </div>
+
       {/* 7. CAPACIDADES & ARQUITECTURA */}
       <section id="capacidades" className="relative z-10 py-20 px-6">
         <div className="max-w-[1200px] mx-auto space-y-12">
@@ -547,6 +562,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </div>
         </div>
       </section>
+
+      {/* ORYZO AI — Hairline Dashed Divider */}
+      <div className="max-w-[1200px] mx-auto px-6">
+        <div className="oryzo-divider" />
+      </div>
 
       {/* 8. CONTACT CARD */}
       <section id="contacto" className="relative z-10 py-16 px-6">
