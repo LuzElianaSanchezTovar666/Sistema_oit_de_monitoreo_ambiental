@@ -130,40 +130,40 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#ffffff]/15 text-[#ffffff] text-[11px] font-medium tracking-wide uppercase">
               <Leaf className="w-3.5 h-3.5 text-[#b4d5ff]" />
-              <span>Plataforma Segura IoT</span>
+              <span>Monitoreo de Invernadero</span>
             </div>
 
             <div>
               <h1 className="text-3xl font-semibold tracking-tight text-[#ffffff]">SIMOA</h1>
               <p className="text-sm text-[#E0F2FE] mt-1 font-normal">
-                Sistema IoT de Monitoreo Ambiental
+                Control Ambiental para tu Invernadero
               </p>
             </div>
 
             <p className="text-xs sm:text-sm text-[#E2E8F0] leading-relaxed">
-              Acceso protegido mediante autenticación bcrypt, tokens JWT HS256 en cookies HttpOnly y
-              control de permisos basado en roles (RBAC).
+              Supervisa en tiempo real el clima de tus cultivos, recibe alertas oportunas ante
+              cambios bruscos y mantén el control de cada zona desde un solo lugar.
             </p>
           </div>
 
           <div className="space-y-3 text-xs text-[#eaf3ff]">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[10px] bg-[#ffffff]/15 flex items-center justify-center shrink-0">
-                <Cpu className="w-4 h-4 text-[#b4d5ff]" />
+                <Leaf className="w-4 h-4 text-[#b4d5ff]" />
               </div>
-              <span>Gestión de nodos ESP32 y sensores DHT22 / BME280</span>
+              <span>Zonas de Germinación, Cultivo, Climatización y Fertirriego</span>
             </div>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[10px] bg-[#ffffff]/15 flex items-center justify-center shrink-0">
                 <Thermometer className="w-4 h-4 text-[#7DD3FC]" />
               </div>
-              <span>Telemetría de temperatura, humedad y alertas</span>
+              <span>Temperatura, humedad y alertas tempranas en tiempo real</span>
             </div>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[10px] bg-[#ffffff]/15 flex items-center justify-center shrink-0">
                 <ShieldCheck className="w-4 h-4 text-[#b4d5ff]" />
               </div>
-              <span>Roles: Administrador, Operador, Técnico y Supervisor</span>
+              <span>Acceso seguro personalizado según tu perfil</span>
             </div>
           </div>
         </div>
@@ -317,16 +317,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                         : 'shadow-none'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-1 w-full">
-                      <div className="flex items-center gap-1.5">
-                        <IconComponent className="w-3.5 h-3.5 shrink-0 opacity-80" />
-                        <span className="text-xs font-semibold">{demo.title}</span>
-                      </div>
-                      <span
-                        className={`text-[9px] px-1.5 py-0.5 rounded font-medium ${demo.badge}`}
-                      >
-                        {demo.role}
-                      </span>
+                    <div className="flex items-center gap-1.5 w-full">
+                      <IconComponent className="w-3.5 h-3.5 shrink-0 opacity-80" />
+                      <span className="text-xs font-semibold">{demo.title}</span>
                     </div>
                     <div className="mt-1.5 text-[10px] space-y-0.5">
                       <p className="font-mono truncate">{demo.email}</p>
