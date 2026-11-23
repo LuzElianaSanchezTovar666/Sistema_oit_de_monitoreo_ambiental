@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  /* Paleta Equilibrada: Oscuro Neutro + Blanco Puro + Verdes Claros */
-  --color-warm-cream: #ffffff;
-  --color-walnut-shadow: #0d1310;
-  --color-bark-brown: #151e19;
-  --color-cork-border: #2a3b32;
-  --color-driftwood: #6b7f74;
-  --color-ember-accent: #52b788;
+  /* Paleta: Fondo Blanco Puro + Superficies Verdecitas + Textos Oscuros Contrastados */
+  --color-warm-cream: #0d1310;
+  --color-walnut-shadow: #ffffff;
+  --color-bark-brown: #f0fdf4;
+  --color-cork-border: #86efac;
+  --color-driftwood: #166534;
+  --color-ember-accent: #15803d;
   --color-pure-black: #000000;
 
   /* Mapped Console Tokens */
-  --color-obsidian-shell: #0d1310;
-  --color-pure-white: #ffffff;
+  --color-obsidian-shell: #ffffff;
+  --color-pure-white: #0d1310;
   --color-mint-frost: #f0fdf4;
-  --color-deep-abyss: #151e19;
-  --color-charcoal: #080c0a;
-  --color-fog-border: #bbf7d0;
-  --color-stone-border: #52b788;
-  --color-slate-text: #d1dbd5;
-  --color-graphite-fill: #1f3529;
-  --color-neon-pulse: #86efac;
-  --color-mint-whisper: #ffffff;
-  --color-signal-yellow: #86efac;
+  --color-deep-abyss: #f0fdf4;
+  --color-charcoal: #e2fbe8;
+  --color-fog-border: #86efac;
+  --color-stone-border: #22c55e;
+  --color-slate-text: #334155;
+  --color-graphite-fill: #14532d;
+  --color-neon-pulse: #16a34a;
+  --color-mint-whisper: #dcfce7;
+  --color-signal-yellow: #15803d;
 
   /* Typography — Font Families */
   --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -59,41 +59,41 @@
 }
 
 @theme {
-  /* Tokens Oscuro Neutro + Blanco + Verdes Claros */
-  --color-warm-cream: #ffffff;
-  --color-walnut-shadow: #0d1310;
-  --color-bark-brown: #151e19;
-  --color-cork-border: #2a3b32;
-  --color-driftwood: #6b7f74;
-  --color-ember-accent: #52b788;
+  /* Tokens Fondo Blanco + Verdecito + Oscuro Contrastado */
+  --color-warm-cream: #0d1310;
+  --color-walnut-shadow: #ffffff;
+  --color-bark-brown: #f0fdf4;
+  --color-cork-border: #86efac;
+  --color-driftwood: #166534;
+  --color-ember-accent: #15803d;
   --color-pure-black: #000000;
 
   /* Mapped Console Tokens */
-  --color-obsidian-shell: #0d1310;
-  --color-pure-white: #ffffff;
+  --color-obsidian-shell: #ffffff;
+  --color-pure-white: #0d1310;
   --color-mint-frost: #f0fdf4;
-  --color-deep-abyss: #151e19;
-  --color-charcoal: #080c0a;
-  --color-fog-border: #bbf7d0;
-  --color-stone-border: #52b788;
-  --color-slate-text: #d1dbd5;
-  --color-graphite-fill: #1f3529;
-  --color-neon-pulse: #86efac;
-  --color-mint-whisper: #ffffff;
-  --color-signal-yellow: #86efac;
+  --color-deep-abyss: #f0fdf4;
+  --color-charcoal: #e2fbe8;
+  --color-fog-border: #86efac;
+  --color-stone-border: #22c55e;
+  --color-slate-text: #334155;
+  --color-graphite-fill: #14532d;
+  --color-neon-pulse: #16a34a;
+  --color-mint-whisper: #dcfce7;
+  --color-signal-yellow: #15803d;
 
   /* Legacy semantic aliases */
-  --color-cream-paper: #0d1310;
-  --color-sheet-white: #151e19;
-  --color-canopy: #86efac;
-  --color-bark: #ffffff;
-  --color-ink: #ffffff;
-  --color-slate: #d1dbd5;
-  --color-sage-mist: #2a3b32;
-  --color-pale-sage: #2a3b32;
-  --color-muted-slate: #d1dbd5;
-  --color-mint-pulse: #86efac;
-  --color-orb-violet: #52b788;
+  --color-cream-paper: #ffffff;
+  --color-sheet-white: #f0fdf4;
+  --color-canopy: #16a34a;
+  --color-bark: #0d1310;
+  --color-ink: #0d1310;
+  --color-slate: #334155;
+  --color-sage-mist: #86efac;
+  --color-pale-sage: #dcfce7;
+  --color-muted-slate: #475569;
+  --color-mint-pulse: #22c55e;
+  --color-orb-violet: #15803d;
 
   /* Typography */
   --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -162,7 +162,7 @@
   line-height: 0.95;
   letter-spacing: 0px;
   text-transform: uppercase;
-  color: var(--color-warm-cream);
+  color: #0d1310;
 }
 
 .sauce-heading {
@@ -172,16 +172,17 @@
   line-height: 0.95;
   letter-spacing: 0px;
   text-transform: uppercase;
-  color: inherit;
+  color: #0d1310;
 }
 
 .sauce-eyebrow {
   font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 10px;
   line-height: 1.2;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: #15803d;
 }
 
 .sauce-stat-value {
@@ -189,14 +190,14 @@
   font-weight: 500;
   font-size: clamp(32px, 3.5vw, 41px);
   line-height: 0.95;
-  color: #86efac;
+  color: #15803d;
   font-variant-numeric: tabular-nums;
 }
 
 .sauce-btn-primary {
-  background-color: #86efac;
-  color: #09140e;
-  border: 1px solid #bbf7d0;
+  background-color: #22c55e;
+  color: #ffffff;
+  border: 1px solid #16a34a;
   border-radius: 36px;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
@@ -208,13 +209,13 @@
 }
 
 .sauce-btn-primary:hover {
-  background-color: #a7f3d0;
+  background-color: #16a34a;
 }
 
 .sauce-btn-ghost {
-  background-color: transparent;
-  color: #ffffff;
-  border: 1px solid #ffffff;
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #86efac;
   border-radius: 22.5px;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
@@ -225,11 +226,11 @@
 }
 
 .sauce-btn-ghost:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #dcfce7;
 }
 
 .sauce-card-mint {
-  background-color: #ffffff;
+  background-color: #f0fdf4;
   color: #0d1310;
   border: 1px dashed #86efac;
   border-radius: 12px;
@@ -237,17 +238,17 @@
 }
 
 .sauce-card-dark {
-  background-color: var(--color-bark-brown);
-  color: var(--color-warm-cream);
-  border: 1px dashed var(--color-cork-border);
+  background-color: #f0fdf4;
+  color: #0d1310;
+  border: 1px dashed #86efac;
   border-radius: 12px;
   box-shadow: none;
 }
 
 .sauce-input {
   background-color: #ffffff;
-  border: 1px solid #52b788;
-  color: #09140e;
+  border: 1px solid #86efac;
+  color: #0d1310;
   border-radius: 10px;
   font-family: var(--font-halyard-display-variable);
   font-size: 15px;
@@ -255,7 +256,7 @@
 
 .sauce-input:focus {
   outline: none;
-  border-color: #1b4332;
+  border-color: #22c55e;
 }
 
 /* Console component utilities */
@@ -265,7 +266,7 @@
   font-size: 18px;
   line-height: 1.05;
   text-transform: uppercase;
-  color: var(--color-warm-cream);
+  color: #0d1310;
 }
 
 .apple-metric-display {
@@ -273,7 +274,7 @@
   font-weight: 500;
   font-size: clamp(28px, 3vw, 41px);
   line-height: 0.95;
-  color: #86efac;
+  color: #15803d;
   font-variant-numeric: tabular-nums;
 }
 
@@ -282,13 +283,13 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 1.35;
-  color: #a7d7b8;
+  color: #2d543c;
 }
 
 .apple-blue-pill {
-  background-color: #86efac;
-  color: #09140e;
-  border: 1px solid #bbf7d0;
+  background-color: #22c55e;
+  color: #ffffff;
+  border: 1px solid #16a34a;
   border-radius: 36px;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
@@ -297,12 +298,12 @@
 }
 
 .apple-blue-pill:hover {
-  background-color: #a7f3d0;
+  background-color: #16a34a;
 }
 
 .apple-white-outline-pill {
-  background-color: transparent;
-  color: var(--color-warm-cream);
+  background-color: #f0fdf4;
+  color: #15803d;
   border: 1px solid #86efac;
   border-radius: 22.5px;
   padding-left: 16px;
@@ -314,14 +315,14 @@
 }
 
 .apple-white-outline-pill:hover {
-  background-color: rgba(134, 239, 172, 0.12);
+  background-color: #dcfce7;
 }
 
 .apple-pill-input,
 .apple-pill-select {
-  background-color: var(--color-bark-brown);
-  border: 1px solid var(--color-cork-border);
-  color: var(--color-warm-cream);
+  background-color: #ffffff;
+  border: 1px solid #86efac;
+  color: #0d1310;
   border-radius: 10px;
   padding-left: 12px;
   padding-right: 12px;
@@ -332,13 +333,13 @@
 .apple-pill-input:focus,
 .apple-pill-select:focus {
   outline: none;
-  border-color: #86efac;
+  border-color: #22c55e;
 }
 
 .apple-badge-orange {
-  background-color: rgba(134, 239, 172, 0.14);
+  background-color: #dcfce7;
   border: 1px dashed #86efac;
-  color: #86efac;
+  color: #15803d;
   border-radius: 36px;
   padding: 2px 10px;
   font-family: var(--font-halyard-display-variable);
@@ -349,7 +350,7 @@
 }
 
 .apple-inline-link {
-  color: #86efac;
+  color: #15803d;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
   text-transform: uppercase;
