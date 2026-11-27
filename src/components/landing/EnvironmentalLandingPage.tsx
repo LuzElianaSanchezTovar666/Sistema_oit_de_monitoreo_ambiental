@@ -204,14 +204,27 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         ) : (
           <div className="max-w-[1240px] mx-auto">
             {/* Center Editorial Typography Headline */}
-            <div className="max-w-[820px] mx-auto text-center pt-8 pb-14 space-y-6">
-              <h1 className="font-serif font-normal text-[#17191c] text-[52px] sm:text-[70px] lg:text-[84px] leading-[1.08] tracking-[-0.035em]">
-                Monitoreo ambiental inteligente <br />
-                con precisión y <span className="italic font-serif">claridad total</span>
+            <div className="max-w-[880px] mx-auto text-center pt-8 pb-14 space-y-6">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f2f2f3] border border-[#e5e5e7] text-[13px] text-[#555861] font-medium tracking-wide">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#17191c]" />
+                <span>S · I · M · O · A</span>
+              </div>
+
+              <h1 className="font-serif font-normal text-[#17191c] text-[58px] sm:text-[80px] lg:text-[96px] leading-[1.02] tracking-[-0.035em]">
+                SIMOA
               </h1>
-              <p className="text-[17px] sm:text-[19px] leading-[1.45] text-[#555861] max-w-[620px] mx-auto font-normal">
+
+              <p className="font-serif italic text-[24px] sm:text-[34px] lg:text-[42px] text-[#2c2f35] leading-[1.2] tracking-[-0.02em] max-w-[760px] mx-auto">
+                <span className="font-semibold not-italic text-[#17191c]">S</span>istema{' '}
+                <span className="font-semibold not-italic text-[#17191c]">I</span>nteligente de{' '}
+                <span className="font-semibold not-italic text-[#17191c]">M</span>onitoreo{' '}
+                <span className="font-semibold not-italic text-[#17191c]">O</span>perativo{' '}
+                <span className="font-semibold not-italic text-[#17191c]">A</span>mbiental
+              </p>
+
+              <p className="text-[17px] sm:text-[19px] leading-[1.5] text-[#555861] max-w-[640px] mx-auto font-normal">
                 Supervisa temperatura, humedad y el estado de tus nodos IoT en tiempo real
-                con una interfaz limpia, datos auditados y alertas automáticas.
+                con una interfaz limpia, telemetría verificada y detección de anomalías por IA.
               </p>
               {/* Pair of Pills: Filled + Ghost */}
               <div className="pt-2 flex items-center justify-center gap-4">
