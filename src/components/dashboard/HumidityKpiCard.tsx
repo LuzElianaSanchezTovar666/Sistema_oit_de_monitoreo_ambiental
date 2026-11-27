@@ -62,8 +62,8 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
 
     const valueColor =
       humState === 'FUERA DE RANGO'
-        ? 'text-[#5d2a1a]'
-        : 'text-[#17191c]';
+        ? 'text-[#DC2626]'
+        : 'text-[#0D3B1E]';
 
     const zScoreDisplay =
       effectiveHum !== null && snapshot?.z_score_disponible && snapshot.z_score !== null
@@ -74,23 +74,23 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
 
     return (
       <div
-        className="bg-white rounded-[20px] p-5 border border-[#ececec] shadow-[0_0_0_1px_rgba(4,23,43,0.04),0_8px_16px_-4px_rgba(0,0,0,0.04)] space-y-4 flex flex-col justify-between font-sans"
+        className="bg-white rounded-[28px] p-5 border border-[#C8E6C9] shadow-[0_4px_20px_rgba(13,59,30,0.06)] space-y-4 flex flex-col justify-between font-sans"
         aria-label={`Humedad relativa actual en ${locationName}`}
       >
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <span className="text-[13px] font-medium text-[#777b86] flex items-center gap-1.5">
-              <Droplets className="w-4 h-4 text-[#17191c] shrink-0" />
+            <span className="text-[13px] font-semibold text-[#1B5E20] flex items-center gap-1.5">
+              <Droplets className="w-4 h-4 text-[#1B5E20] shrink-0" />
               <span>Humedad Relativa</span>
             </span>
-            <p className="text-[12px] text-[#979799] truncate mt-0.5" title={locationName}>
+            <p className="text-[12px] text-[#3B694C] truncate mt-0.5" title={locationName}>
               {snapshot?.ubicacion_nombre || locationName}
               {snapshot?.sensor_identificador ? ` · ${snapshot.sensor_identificador}` : ''}
             </p>
           </div>
 
           <span
-            className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1 shrink-0 ${badge.className}`}
+            className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1 shrink-0 ${badge.className}`}
           >
             <BadgeIcon className="w-3 h-3" aria-hidden="true" />
             <span>{badge.label}</span>
@@ -98,12 +98,12 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
         </div>
 
         <div>
-          <div className={`text-[36px] font-medium tabular-nums leading-none ${valueColor}`}>
+          <div className={`text-[36px] font-semibold tabular-nums leading-none ${valueColor}`}>
             {effectiveHum !== null ? effectiveHum.toFixed(1) : '--'}
-            <span className="text-[18px] font-normal text-[#777b86] ml-1">%RH</span>
+            <span className="text-[18px] font-normal text-[#3B694C] ml-1">%RH</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-1 text-[12px] text-[#777b86] mt-2 font-mono">
+          <div className="flex flex-wrap items-center justify-between gap-1 text-[12px] text-[#3B694C] mt-2 font-mono">
             <span>
               {humMin !== null && humMax !== null
                 ? `Banda: ${humMin.toFixed(0)}% - ${humMax.toFixed(0)}%`
@@ -115,10 +115,10 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
           </div>
         </div>
 
-        {/* Indicador de barra para humedad relativa Steep */}
+        {/* Indicador de barra para humedad relativa SIMOA */}
         <div className="space-y-1.5">
           <div
-            className="relative w-full bg-[#f2f2f3] rounded-full h-2 overflow-hidden"
+            className="relative w-full bg-[#E8F5E9] rounded-full h-2 overflow-hidden"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
@@ -127,7 +127,7 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
           >
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                humState === 'FUERA DE RANGO' ? 'bg-[#5d2a1a]' : 'bg-[#17191c]'
+                humState === 'FUERA DE RANGO' ? 'bg-[#DC2626]' : 'bg-[#16A34A]'
               }`}
               style={{ width: `${barPct}%` }}
             />

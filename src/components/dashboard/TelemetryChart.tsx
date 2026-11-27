@@ -233,8 +233,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         >
           <defs>
             <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#fbe1d1" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#A5D6A7" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -249,7 +249,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                   y1={y}
                   x2={width - padding.right}
                   y2={y}
-                  stroke="#ececec"
+                  stroke="#C8E6C9"
                   strokeOpacity="0.8"
                   strokeDasharray="3 3"
                 />
@@ -257,7 +257,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                   x={padding.left - 8}
                   y={y + 3}
                   textAnchor="end"
-                  className="fill-[#777b86] text-[10px] font-mono tabular-nums"
+                  className="fill-[#3B694C] text-[10px] font-mono tabular-nums"
                 >
                   {val.toFixed(1)}°
                 </text>
@@ -274,7 +274,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 y1={tempMaxY}
                 x2={width - padding.right}
                 y2={tempMaxY}
-                stroke="#5d2a1a"
+                stroke="#DC2626"
                 strokeWidth="1.2"
                 strokeDasharray="4 4"
               />
@@ -282,7 +282,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 x={width - padding.right}
                 y={tempMaxY - 4}
                 textAnchor="end"
-                className="fill-[#5d2a1a] text-[9px] font-mono font-medium"
+                className="fill-[#DC2626] text-[9px] font-mono font-medium"
               >
                 Máx {limites.temp_max}°C
               </text>
@@ -293,7 +293,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 y1={tempMinY}
                 x2={width - padding.right}
                 y2={tempMinY}
-                stroke="#777b86"
+                stroke="#0284C7"
                 strokeWidth="1.2"
                 strokeDasharray="4 4"
               />
@@ -301,7 +301,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 x={width - padding.right}
                 y={tempMinY - 4}
                 textAnchor="end"
-                className="fill-[#777b86] text-[9px] font-mono font-medium"
+                className="fill-[#0284C7] text-[9px] font-mono font-medium"
               >
                 Mín {limites.temp_min}°C
               </text>
@@ -315,8 +315,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
               <path
                 d={tempPath}
                 fill="none"
-                stroke="#5d2a1a"
-                strokeWidth="2.2"
+                stroke="#16A34A"
+                strokeWidth="2.4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -328,7 +328,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             <path
               d={humPath}
               fill="none"
-              stroke="#777b86"
+              stroke="#0284C7"
               strokeWidth="2.2"
               strokeDasharray={metricMode === 'dual' ? '2 2' : undefined}
               strokeLinecap="round"
@@ -336,7 +336,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             />
           )}
 
-          {/* Puntos de anomalía destacados en el trazado (Steep Peach Halo #fbe1d1 con núcleo Sienna Brown #5d2a1a) */}
+          {/* Puntos de anomalía destacados en el trazado */}
           {tempPoints.map((pt, i) => {
             if (!pt.reading.valor_anomalo) return null;
             return (
@@ -344,18 +344,19 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 <circle
                   cx={pt.x}
                   cy={pt.y}
-                  r="7"
-                  fill="#fbe1d1"
-                  fillOpacity="0.8"
-                  className="animate-pulse"
+                  r="5"
+                  fill="#DC2626"
+                  opacity="0.85"
                 />
                 <circle
                   cx={pt.x}
                   cy={pt.y}
-                  r="3.5"
-                  fill="#5d2a1a"
+                  r="9"
+                  fill="none"
+                  stroke="#DC2626"
+                  strokeWidth="1.5"
+                  className="animate-ping"
                 />
-                <circle cx={pt.x} cy={pt.y} r="1.5" fill="#ffffff" />
               </g>
             );
           })}

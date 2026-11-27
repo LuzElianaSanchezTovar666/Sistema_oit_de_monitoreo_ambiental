@@ -107,10 +107,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
 
   return (
-    <aside className="w-64 shrink-0 bg-[#fafafb] border-r border-[#ececec] flex flex-col justify-between p-5 hidden md:flex font-sans">
+    <aside className="w-64 shrink-0 bg-[#F2F8F4] border-r border-[#C8E6C9] flex flex-col justify-between p-5 hidden md:flex font-sans">
       <div className="space-y-6">
         <div>
-          <span className="steep-tag uppercase tracking-[0.08em] px-2 block mb-3">
+          <span className="apple-badge-orange uppercase tracking-[0.08em] px-2.5 block mb-3 text-[11px] font-semibold text-[#1B5E20]">
             Menú de Consola
           </span>
           <nav className="space-y-1">
@@ -120,24 +120,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-[14px] transition-colors cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-[13px] transition-all cursor-pointer ${
                     isActive
-                      ? 'bg-[#17191c] text-white font-normal'
-                      : 'text-[#17191c] font-normal hover:bg-[#f2f2f3]'
+                      ? 'apple-blue-pill font-semibold shadow-xs'
+                      : 'text-[#0D3B1E] font-medium hover:bg-white hover:text-[#1B5E20]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className={isActive ? 'text-white' : 'text-[#777b86]'}>
+                    <span className={isActive ? 'text-white' : 'text-[#3B694C]'}>
                       {item.icon}
                     </span>
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
                     <span
-                      className={`px-2 py-0.5 text-[11px] font-mono tabular-nums font-normal ${
+                      className={`px-2 py-0.5 text-[11px] font-mono tabular-nums font-semibold ${
                         isActive
-                          ? 'bg-white text-[#17191c] rounded-full'
-                          : item.badgeStyle || 'bg-[#f2f2f3] text-[#777b86] rounded-full'
+                          ? 'bg-white text-[#1B5E20] rounded-full'
+                          : item.badgeStyle || 'bg-[#E8F5E9] text-[#1B5E20] rounded-full'
                       }`}
                     >
                       {item.badge}
@@ -149,48 +149,48 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
         </div>
 
-        {/* Infrastructure Topology Card — Steep Artifact Style */}
-        <div className="p-4 rounded-[20px] bg-white border border-[#ececec] shadow-[0_0_0_1px_rgba(4,23,43,0.03),0_4px_12px_rgba(0,0,0,0.04)] text-xs space-y-3">
-          <div className="flex items-center justify-between text-[13px] font-medium text-[#17191c]">
+        {/* Infrastructure Topology Card — SIMOA Environmental Style */}
+        <div className="p-4 rounded-[24px] bg-white border border-[#C8E6C9] shadow-[0_4px_14px_rgba(13,59,30,0.04)] text-xs space-y-3">
+          <div className="flex items-center justify-between text-[13px] font-semibold text-[#0D3B1E]">
             <span>Topología Activa</span>
-            <span className="inline-flex items-center gap-1.5 text-[#5d2a1a] text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#17191c]" />
+            <span className="inline-flex items-center gap-1.5 text-[#15803D] text-[11px] font-semibold">
+              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
               Nominal
             </span>
           </div>
-          <div className="space-y-2 text-[12px] text-[#777b86]">
+          <div className="space-y-2 text-[12px] text-[#3B694C]">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Server className="w-3 h-3 text-[#17191c]" /> Mosquitto TLS
+                <Server className="w-3.5 h-3.5 text-[#1B5E20]" /> Mosquitto TLS
               </span>
-              <span className="text-[#17191c] font-mono">8883 MQTTS</span>
+              <span className="text-[#0D3B1E] font-mono font-medium">8883 MQTTS</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <Database className="w-3 h-3 text-[#17191c]" /> TimescaleDB
+                <Database className="w-3.5 h-3.5 text-[#1B5E20]" /> TimescaleDB
               </span>
-              <span className="text-[#17191c]">Hypertable</span>
+              <span className="text-[#0D3B1E] font-medium">Hypertable</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">
-                <ArrowRightLeft className="w-3 h-3 text-[#5d2a1a]" /> IA Pipeline
+                <ArrowRightLeft className="w-3.5 h-3.5 text-[#15803D]" /> IA Pipeline
               </span>
-              <span className="text-[#5d2a1a]">Isolation Forest</span>
+              <span className="text-[#15803D] font-medium">Isolation Forest</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Footer Info */}
-      <div className="pt-4 border-t border-[#ececec] text-[12px] text-[#979799] px-1 space-y-1">
+      <div className="pt-4 border-t border-[#C8E6C9] text-[12px] text-[#3B694C] px-1 space-y-1">
         <div className="flex items-center justify-between">
           <span>Plataforma</span>
-          <span className="font-medium text-[#17191c]">SIMOA Cloud v2.4</span>
+          <span className="font-semibold text-[#0D3B1E]">SIMOA Cloud v2.4</span>
         </div>
         <div className="flex items-center justify-between">
           <span>Estado Red</span>
-          <span className="inline-flex items-center gap-1.5 font-normal text-[#17191c]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#17191c]" />
+          <span className="inline-flex items-center gap-1.5 font-semibold text-[#15803D]">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
             Conectado
           </span>
         </div>

@@ -62,8 +62,8 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
 
     const valueColor =
       thermalState === 'FUERA DE RANGO'
-        ? 'text-[#5d2a1a]'
-        : 'text-[#17191c]';
+        ? 'text-[#DC2626]'
+        : 'text-[#0D3B1E]';
 
     const zScoreDisplay =
       effectiveTemp !== null && snapshot?.z_score_disponible && snapshot.z_score !== null
@@ -72,23 +72,23 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
 
     return (
       <div
-        className="bg-white rounded-[20px] p-5 border border-[#ececec] shadow-[0_0_0_1px_rgba(4,23,43,0.04),0_8px_16px_-4px_rgba(0,0,0,0.04)] space-y-4 flex flex-col justify-between font-sans"
+        className="bg-white rounded-[28px] p-5 border border-[#C8E6C9] shadow-[0_4px_20px_rgba(13,59,30,0.06)] space-y-4 flex flex-col justify-between font-sans"
         aria-label={`Temperatura actual en ${locationName}`}
       >
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <span className="text-[13px] font-medium text-[#777b86] flex items-center gap-1.5">
-              <Thermometer className="w-4 h-4 text-[#17191c] shrink-0" />
+            <span className="text-[13px] font-semibold text-[#1B5E20] flex items-center gap-1.5">
+              <Thermometer className="w-4 h-4 text-[#1B5E20] shrink-0" />
               <span>Temperatura</span>
             </span>
-            <p className="text-[12px] text-[#979799] truncate mt-0.5" title={locationName}>
+            <p className="text-[12px] text-[#3B694C] truncate mt-0.5" title={locationName}>
               {snapshot?.ubicacion_nombre || locationName}
               {snapshot?.sensor_identificador ? ` · ${snapshot.sensor_identificador}` : ''}
             </p>
           </div>
 
           <span
-            className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1 shrink-0 ${badge.className}`}
+            className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1 shrink-0 ${badge.className}`}
           >
             <BadgeIcon className="w-3 h-3" aria-hidden="true" />
             <span>{badge.label}</span>
@@ -96,12 +96,12 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
         </div>
 
         <div>
-          <div className={`text-[36px] font-medium tabular-nums leading-none ${valueColor}`}>
+          <div className={`text-[36px] font-semibold tabular-nums leading-none ${valueColor}`}>
             {effectiveTemp !== null ? effectiveTemp.toFixed(1) : '--'}
-            <span className="text-[18px] font-normal text-[#777b86] ml-1">°C</span>
+            <span className="text-[18px] font-normal text-[#3B694C] ml-1">°C</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-1 text-[12px] text-[#777b86] mt-2 font-mono">
+          <div className="flex flex-wrap items-center justify-between gap-1 text-[12px] text-[#3B694C] mt-2 font-mono">
             <span>
               {tempMin !== null && tempMax !== null
                 ? `Banda: ${tempMin.toFixed(1)}° - ${tempMax.toFixed(1)}°C`
@@ -113,10 +113,10 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
           </div>
         </div>
 
-        {/* Indicador visual térmico Steep */}
+        {/* Indicador visual térmico SIMOA */}
         <div className="space-y-1.5">
           <div
-            className="relative w-full bg-[#f2f2f3] rounded-full h-2 overflow-hidden"
+            className="relative w-full bg-[#E8F5E9] rounded-full h-2 overflow-hidden"
             role="progressbar"
             aria-valuemin={gauge.hasScale ? gauge.scaleMin : undefined}
             aria-valuemax={gauge.hasScale ? gauge.scaleMax : undefined}
@@ -125,7 +125,7 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
           >
             {gauge.hasScale && (
               <div
-                className="absolute top-0 bottom-0 bg-[#17191c]/15 transition-all duration-300"
+                className="absolute top-0 bottom-0 bg-[#A5D6A7] transition-all duration-300"
                 style={{
                   left: `${gauge.nominalStartPct}%`,
                   width: `${gauge.nominalWidthPct}%`,
@@ -135,7 +135,7 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
             {gauge.markerPct !== null && (
               <div
                 className={`absolute top-0 bottom-0 w-2 rounded-full transition-all duration-300 ${
-                  thermalState === 'FUERA DE RANGO' ? 'bg-[#5d2a1a]' : 'bg-[#17191c]'
+                  thermalState === 'FUERA DE RANGO' ? 'bg-[#DC2626]' : 'bg-[#16A34A]'
                 }`}
                 style={{
                   left: `calc(${gauge.markerPct}% - 4px)`,
