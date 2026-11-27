@@ -13,7 +13,6 @@ import {
   Mail,
   Send,
   LineChart,
-  Radio,
   Menu,
   X,
   ShieldCheck,
@@ -23,7 +22,6 @@ import {
 import { ScrollReveal } from '../../hooks/useScrollAnimation';
 import { HeroSkeleton, CardGridSkeleton, FlowSequenceSkeleton, SkeletonBox } from '../common/SkeletonLoader';
 import { OptimizedImage } from '../common/OptimizedImage';
-import { EnvironmentalThreeBackground } from './EnvironmentalThreeBackground';
 
 interface EnvironmentalLandingPageProps {
   onEnterSystem: (initialTab?: string) => void;
@@ -64,42 +62,42 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
     {
       icon: <Thermometer className="w-5 h-5" />,
       metric: '±0.2 °C',
-      metricColor: 'text-brand-forest', surface: 'bg-cream-paper border-sage-mist/55',
+      metricColor: 'text-brand-forest', surface: 'bg-garden-sage border-garden-border',
       title: 'Registro de Temperatura y Humedad',
       desc: 'Captura periódica y continua de variables higrotérmicas en recintos críticos con sondas calibradas.',
     },
     {
       icon: <Cpu className="w-5 h-5" />,
       metric: 'ESP32',
-      metricColor: 'text-brand-plum', surface: 'bg-brand-lavender border-brand-lavender-border',
+      metricColor: 'text-brand-forest', surface: 'bg-garden-mint border-garden-border',
       title: 'Supervisión de Dispositivos IoT',
       desc: 'Seguimiento en tiempo real de nodos microcontroladores con control de estado y telemetría.',
     },
     {
       icon: <LineChart className="w-5 h-5" />,
       metric: '100%',
-      metricColor: 'text-brand-forest', surface: 'bg-cream-paper border-sage-mist/55',
+      metricColor: 'text-brand-forest', surface: 'bg-garden-sage border-garden-border',
       title: 'Consultas e Historiales en Vivo',
       desc: 'Base de datos temporal TimescaleDB con trazabilidad integral de millones de puntos telemétricos.',
     },
     {
       icon: <Activity className="w-5 h-5" />,
       metric: '1 Hz',
-      metricColor: 'text-brand-plum', surface: 'bg-brand-lavender border-brand-lavender-border',
+      metricColor: 'text-brand-forest', surface: 'bg-garden-mint border-garden-border',
       title: 'Gráficas Ambientales Dinámicas',
       desc: 'Series de tiempo interactivas en SVG con bandas de tolerancia, líneas de umbral y zoom temporal.',
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
       metric: '5 min',
-      metricColor: 'text-brand-gold', surface: 'bg-brand-yellow/70 border-brand-yellow-border',
+      metricColor: 'text-garden-deep', surface: 'bg-garden-sage border-garden-border',
       title: 'Alertas sin avisos repetidos',
       desc: 'Disparo inmediato ante superación de límites, consolidando eventos críticos sin saturación.',
     },
     {
       icon: <BrainCircuit className="w-5 h-5" />,
       metric: '<200 ms',
-      metricColor: 'text-brand-forest', surface: 'bg-cream-paper border-sage-mist/55',
+      metricColor: 'text-brand-forest', surface: 'bg-garden-sage border-garden-border',
       title: 'Detección Inteligente con IA',
       desc: 'Algoritmos Isolation Forest y Z-Score dinámico que discriminan picos de anomalías reales.',
     },
@@ -254,27 +252,24 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#F2F8F4] text-[#0D3B1E] selection:bg-brand-plum selection:text-[#ffffff] overflow-x-hidden">
-      {/* Fondo 3D Interactivo con Three.js (figuras dispersas, partículas y seguimiento de cursor) */}
-      <EnvironmentalThreeBackground />
-
+    <div className="relative min-h-screen bg-garden-paper text-garden-deep selection:bg-garden-leaf selection:text-garden-deep overflow-x-hidden">
       {/* BARRA DE NAVEGACIÓN PRINCIPAL UNIFICADA Y PROFESIONAL */}
-      <header className="sticky top-0 z-50 bg-[#FFFFFF]/95 backdrop-blur-md border-b border-[#C8E6C9] shadow-[0_4px_20px_rgba(13,59,30,0.05)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[76px] flex items-center justify-between gap-6">
+      <header className="sticky top-0 z-50 border-b border-garden-border bg-garden-paper/95 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[76px] flex items-center justify-between gap-3 sm:gap-6">
           {/* Logo Oficial SIMOA */}
           <a
             href="#inicio"
-            className="flex items-center gap-3 shrink-0 group focus:outline-none"
+            className="flex items-center gap-3 shrink-0 rounded-lg group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest"
           >
             <img
               src="/assets/images/simoa-logo.webp"
               alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-              className="h-11 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
+              className="h-10 sm:h-12 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.02]"
             />
           </a>
 
           {/* Enlaces de Navegación Centrales */}
-          <nav className="hidden lg:flex items-center gap-1 bg-brand-lavender p-1.5 rounded-full border border-brand-lavender-border">
+          <nav className="hidden lg:flex items-center gap-1">
             {[
               { href: '#inicio', label: 'Inicio' },
               { href: '#acerca', label: 'Nosotros' },
@@ -286,7 +281,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               <a
                 key={link.href}
                 href={link.href}
-                className="px-4 py-1.5 rounded-full text-[13px] font-semibold text-[#265336] hover:text-[#1B5E20] hover:bg-[#FFFFFF] hover:shadow-xs transition-all"
+                className="rounded-lg px-3 py-2 text-sm font-semibold text-garden-deep transition-colors hover:bg-garden-mint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest"
               >
                 {link.label}
               </a>
@@ -295,21 +290,18 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
           {/* Acceso y navegación adaptable */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E8F5E9] border border-[#A5D6A7] text-[12px] font-semibold text-[#1B5E20]">
-              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
-              <span>Red IoT Activa</span>
-            </div>
-
             <button
               onClick={() => onEnterSystem('dashboard')}
-              className="px-3.5 py-2 sm:px-5 sm:py-2.5 whitespace-nowrap text-[13px] font-semibold flex items-center gap-2 cursor-pointer rounded-full bg-brand-forest text-white hover:bg-canopy border border-[#1f2922] shadow-sm transition-all"
+              className="px-3.5 py-2 sm:px-5 sm:py-2.5 whitespace-nowrap text-[13px] font-semibold flex items-center gap-2 cursor-pointer rounded-xl bg-brand-forest text-white hover:bg-canopy border border-brand-forest transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest"
             >
               <span>Ingresar al Sistema</span>
               <ArrowRight className="hidden sm:block w-4 h-4 text-[#4ade80]" aria-hidden="true" />
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Abrir menú de navegación"
+              aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="simoa-mobile-navigation"
               className="lg:hidden p-2 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9] text-[#0D3B1E]"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -319,7 +311,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
         {/* Menú Desplegable Móvil */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-[#FFFFFF] border-t border-[#C8E6C9] px-6 py-4 space-y-2 shadow-lg">
+          <div id="simoa-mobile-navigation" className="lg:hidden space-y-2 border-t border-garden-border bg-garden-paper px-6 py-4">
             {[
               { href: '#inicio', label: 'Inicio' },
               { href: '#acerca', label: 'Nosotros' },
@@ -367,128 +359,59 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </div>
         </div>
       ) : (
-        <main className="relative z-10 space-y-[24px]">
-          {/* 3. HERO PRODUCT STAGE */}
-          <section id="inicio" className="bg-transparent pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-6 space-y-12">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-                {/* Left Column: Monumental Launch Statement */}
-                <ScrollReveal animation="slide-up" className="lg:col-span-7 space-y-6">
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="px-3.5 py-1.5 rounded-full bg-brand-yellow text-brand-gold border border-brand-yellow-border text-[12px] font-semibold tracking-wide shadow-xs inline-flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
-                      TELEMETRÍA AMBIENTAL EN TIEMPO REAL
-                    </span>
-                    <span className="apple-nav-text text-brand-plum uppercase tracking-wider font-bold">
-                      PRECISIÓN INDUSTRIAL · IA PREDICTIVA
-                    </span>
-                  </div>
+        <main className="relative z-10 space-y-8 sm:space-y-14">
+          <section id="inicio" className="scroll-mt-24 px-3 pt-4 sm:px-6">
+            <div className="relative mx-auto flex min-h-[560px] max-w-[1720px] flex-col justify-end overflow-hidden rounded-[28px] bg-garden-deep text-white sm:min-h-[630px] sm:rounded-[36px] lg:min-h-[650px]">
+              <img
+                src="/assets/images/simoa-greenhouse.webp"
+                alt="Sensor ambiental entre las plantas de un invernadero"
+                width={1720}
+                height={717}
+                fetchPriority="high"
+                className="simoa-garden-hero-image absolute inset-0 size-full object-cover"
+              />
+              <div className="simoa-garden-hero-shade absolute inset-0" aria-hidden="true" />
 
-                  <h1 className="apple-hero-display text-balance">
+              <div className="relative mx-auto flex w-full max-w-7xl flex-col px-6 pt-20 sm:px-12 lg:px-16">
+                <div className="max-w-2xl pb-12 sm:pb-16 lg:pb-20">
+                  <h1 className="text-balance text-[clamp(2.65rem,6.1vw,5.2rem)] font-bold leading-[1.02] tracking-[-0.045em] text-white">
                     Monitoreo ambiental inteligente.
                   </h1>
-
-                  <p className="text-[17px] leading-relaxed text-[#1e293b] max-w-xl font-medium">
-                    Consulta en tiempo real la temperatura y la humedad de invernaderos, laboratorios y cámaras de frío. SIMOA te avisa cuando detecta una lectura fuera de lo esperado.
+                  <p className="mt-6 max-w-lg text-base leading-relaxed text-garden-mint sm:text-lg">
+                    Consulta la temperatura y la humedad desde un solo panel y recibe avisos cuando una lectura salga del rango esperado.
                   </p>
-
-                  {/* Enlace a las soluciones */}
-                  <div className="flex flex-wrap items-center gap-3.5 pt-2">
-                    <a
-                      href="#funcionalidades"
-                      className="py-3.5 px-6 text-[14px] font-bold text-brand-plum bg-brand-lavender border-2 border-brand-lavender-border hover:border-brand-plum hover:bg-white rounded-full transition-all shadow-xs"
-                    >
-                      Conocer Soluciones
-                    </a>
-                  </div>
-                </ScrollReveal>
-
-                {/* Right Column: Isolated Hardware Showcase on Gallery Black using AVIF/WebP <picture> */}
-                <ScrollReveal animation="slide-right" delay={120} className="lg:col-span-5">
-                  <div className="relative rounded-[28px] overflow-hidden bg-[#F2F8F4] border border-[#C8E6C9] shadow-md">
-                    <OptimizedImage
-                      baseName="hero-iot-stage"
-                      alt="Hardware IoT ESP32 y sensores ambientales en formato AVIF/WebP con lecturas luminosas sobre fondo negro"
-                      priority={true}
-                      width={1200}
-                      height={800}
-                      className="w-full h-80 sm:h-96 lg:h-[440px] object-cover opacity-90"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/60 via-transparent to-transparent" />
-
-                    {/* Health/Sensor Readout Overlay 1 — High Contrast Dark Carbon Header */}
-                    <div className="absolute top-4 left-4 p-4 rounded-[24px] bg-[#0d1310]/92 backdrop-blur-md border border-[#1f2922] shadow-md space-y-1 text-white">
-                      <div className="flex items-center gap-2 text-[12px] text-[#86efac] tracking-[-0.12px]">
-                        <Radio className="w-3.5 h-3.5 text-[#22c55e] animate-pulse" />
-                        <span>NODO INVERNADERO A1 · DHT22</span>
-                      </div>
-                      <div className="flex items-baseline gap-4 pt-1">
-                        <div>
-                          <span className="text-[28px] font-semibold tracking-[0.196px] text-[#4ade80] font-display tabular-nums">
-                            23.8°
-                          </span>
-                          <span className="text-[12px] text-[#86efac] ml-1">TEMP</span>
-                        </div>
-                        <div>
-                          <span className="text-[28px] font-semibold tracking-[0.196px] text-white font-display tabular-nums">
-                            68.4%
-                          </span>
-                          <span className="text-[12px] text-[#86efac] ml-1">HUM</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Health/Sensor Readout Overlay 2 — High Contrast Dark Carbon Anomaly Banner */}
-                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-[24px] bg-[#0d1310]/95 backdrop-blur-md border border-[#1f2922] shadow-lg flex items-center justify-between text-white">
-                      <div>
-                        <div className="text-[12px] text-[#86efac]">ANOMALÍA IA · ISOLATION FOREST</div>
-                        <div className="text-[14px] font-semibold text-white mt-0.5">
-                          Score <span className="text-[#4ade80]">0.082 Nominal</span> · Umbral Crítico{' '}
-                          <span className="text-[#f87171]">3.0σ</span>
-                        </div>
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-[#166534] text-[#86efac] text-[11px] font-semibold border border-[#22c55e]/40">
-                        PROTECCIÓN ACTIVA
-                      </span>
-                    </div>
-                  </div>
-                </ScrollReveal>
-              </div>
-
-              {/* Floating High-Contrast Dark Utility Capsule */}
-              <ScrollReveal animation="fade-in" delay={180}>
-                <div className="px-6 py-4 flex justify-center max-w-4xl mx-auto rounded-[36px] bg-[#0d1310] text-white border border-[#1f2922] shadow-[0_8px_30px_rgba(13,19,16,0.25)]">
-                  <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-[14px] font-medium leading-[18px] tracking-[-0.224px] text-white">
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
-                      Lecturas de sensores en tiempo real
-                    </span>
-                    <span className="text-[#3b493f] hidden sm:inline">|</span>
-                    <span>
-                      Detección de anomalías con IA
-                    </span>
-                    <span className="text-[#3b493f] hidden sm:inline">|</span>
-                    <span>
-                      Control de alertas repetidas
-                    </span>
-                  </div>
+                  <a
+                    href="#funcionalidades"
+                    className="mt-7 inline-flex items-center gap-2 rounded-xl bg-garden-leaf px-5 py-3 text-sm font-bold text-garden-deep transition-colors hover:bg-garden-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  >
+                    Conocer las soluciones
+                    <ArrowRight className="size-4" aria-hidden="true" />
+                  </a>
                 </div>
-              </ScrollReveal>
+
+                <ul className="grid gap-4 border-t border-white/35 py-6 text-sm font-semibold text-garden-mint sm:grid-cols-3 sm:gap-6 sm:py-8">
+                  <li className="flex items-center gap-2.5"><Thermometer className="size-5 text-garden-leaf" aria-hidden="true" /> Temperatura y humedad en vivo</li>
+                  <li className="flex items-center gap-2.5"><LineChart className="size-5 text-garden-leaf" aria-hidden="true" /> Historial de lecturas</li>
+                  <li className="flex items-center gap-2.5"><AlertTriangle className="size-5 text-garden-leaf" aria-hidden="true" /> Alertas fuera de rango</li>
+                </ul>
+              </div>
             </div>
           </section>
 
           {/* 4. UPGRADE COMPARISON MODULE */}
-          <section id="acerca" className="px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto bg-[#FFFFFF] border border-[#0d1310]/15 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
-              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-4">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
-                  Misión y alcance del sistema
-                </span>
-                <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
-                  Precisión clínica en cada lectura ambiental.
-                </h2>
+          <section id="acerca" className="scroll-mt-24 px-4 sm:px-6">
+            <div className="max-w-7xl mx-auto px-2 py-10 sm:px-6 sm:py-14 space-y-10">
+              <ScrollReveal animation="slide-up" className="grid gap-5 lg:grid-cols-[1.2fr_1fr] lg:items-end lg:gap-14">
+                <div className="space-y-3">
+                  <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
+                    Dónde se usa SIMOA
+                  </span>
+                  <h2 className="text-[clamp(1.8rem,4.2vw,3.35rem)] font-bold leading-[1.08] tracking-tight text-garden-deep">
+                    Conoce las condiciones de cada espacio.
+                  </h2>
+                </div>
                 <p className="text-[16px] text-[#1e293b] leading-relaxed">
-                  Diseñado para aulas, laboratorios farmacéuticos, bodegas e invernaderos donde la estabilidad higrotérmica es crítica. SIMOA unifica sensores electrónicos, transmisión MQTT segura y detección de anomalías por IA.
+                  SIMOA reúne en un solo lugar las lecturas de invernaderos, laboratorios y cámaras de frío. Así puedes consultar el historial y atender a tiempo los cambios de temperatura y humedad.
                 </p>
               </ScrollReveal>
 
@@ -502,8 +425,8 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       priority={false}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/70 via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-brand-yellow text-brand-gold border border-brand-yellow-border text-[12px] font-semibold tracking-wide shadow-sm">
+                    <div className="absolute inset-0 bg-gradient-to-t from-garden-deep/70 via-transparent to-transparent" />
+                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-garden-sage text-garden-deep border border-garden-border text-[12px] font-semibold tracking-wide shadow-sm">
                       CADENA DE FRÍO · 24/7
                     </span>
                   </div>
@@ -512,9 +435,6 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       <h3 className="text-[20px] font-bold text-[#0d1310]">
                         Laboratorios, Invernaderos y Cámaras Frías
                       </h3>
-                      <span className="text-[28px] font-bold text-[#15803D] font-display tabular-nums">
-                        4.2°C
-                      </span>
                     </div>
                     <p className="text-[14px] text-[#1e293b] leading-relaxed">
                       Supervisión ininterrumpida 24/7 con trazabilidad histórica completa y respuesta inmediata para proteger cultivos e insumos sensibles.
@@ -530,8 +450,8 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       priority={false}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/70 via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-[#0d1310] text-[#f87171] border border-[#991b1b] text-[12px] font-semibold tracking-wide shadow-sm">
+                    <div className="absolute inset-0 bg-gradient-to-t from-garden-deep/70 via-transparent to-transparent" />
+                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-garden-deep text-white border border-garden-border text-[12px] font-semibold tracking-wide shadow-sm">
                       ALERTAS AUTOMÁTICAS
                     </span>
                   </div>
@@ -540,9 +460,6 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       <h3 className="text-[20px] font-bold text-[#0d1310]">
                         Detección Temprana de Excursiones
                       </h3>
-                      <span className="text-[28px] font-bold text-[#DC2626] font-display tabular-nums">
-                        +3.1σ
-                      </span>
                     </div>
                     <p className="text-[14px] text-[#1e293b] leading-relaxed">
                       Cuando una lectura sale del rango configurado, SIMOA envía una alerta y usa IA para ayudar a explicar lo ocurrido.
@@ -597,16 +514,16 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </section>
 
           {/* 5. FEATURE MEDIA CARDS */}
-          <section id="funcionalidades" className="py-12 px-4 sm:px-6 bg-transparent">
+          <section id="funcionalidades" className="scroll-mt-24 bg-garden-deep px-4 py-16 sm:px-6 sm:py-24">
             <div className="max-w-7xl mx-auto space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
                 <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
                   Soluciones de Monitoreo Integral
                 </span>
-                <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
+                <h2 className="text-[28px] sm:text-[40px] font-bold text-white tracking-tight leading-tight">
                   Seis módulos. Un ecosistema continuo.
                 </h2>
-                <p className="text-[16px] text-[#1e293b] leading-relaxed">
+                <p className="text-[16px] text-garden-mint leading-relaxed">
                   Arquitectura completa para supervisar cada punto de tu operación ambiental desde la captura en campo hasta el análisis predictivo.
                 </p>
               </ScrollReveal>
@@ -622,16 +539,16 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                   >
                     <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-[0_8px_30px_rgba(13,19,16,0.06)] hover:shadow-[0_16px_40px_rgba(13,19,16,0.12)] hover:border-[#15803D]/50 rounded-[28px] overflow-hidden flex flex-col justify-between h-full transition-all">
                       {/* Media Header */}
-                      <div className="relative h-44 w-full bg-[#0d1310] overflow-hidden">
+                      <div className="relative h-44 w-full bg-garden-deep overflow-hidden">
                         <OptimizedImage
                           baseName={mod.imageBase}
                           alt={mod.imageAlt}
                           priority={false}
                           className="w-full h-full object-cover opacity-90"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/70 via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-garden-deep/70 via-transparent to-transparent" />
                         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                          <span className="text-[12px] font-bold px-3 py-1 rounded-full bg-[#0d1310] text-[#86efac] border border-[#166534] shadow-xs">
+                          <span className="text-[12px] font-bold px-3 py-1 rounded-full bg-garden-deep text-[#86efac] border border-[#166534] shadow-xs">
                             {mod.tag}
                           </span>
                           <span className="text-[12px] font-bold px-3 py-1 rounded-full bg-[#15803D] text-white shadow-xs">
@@ -643,7 +560,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       <div className="p-6 space-y-4 flex-1 flex flex-col justify-between bg-[#FFFFFF]">
                         <div className="space-y-3">
                           {/* Cápsula de Indicador de Alto Contraste Negro */}
-                          <div className="bg-[#0d1310] text-white rounded-[22px] p-4 border border-[#1f2922] shadow-sm flex items-center justify-between">
+                          <div className="bg-garden-deep text-white rounded-[22px] p-4 border border-[#1f2922] shadow-sm flex items-center justify-between">
                             <div className="space-y-0.5">
                               <span className="text-[11px] font-bold text-[#86efac] block uppercase tracking-wider">
                                 Indicador Operativo
@@ -656,7 +573,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                                 {mod.metricValue}
                               </span>
                             </div>
-                            <div className="w-11 h-11 rounded-full bg-[#16221a] border border-[#223528] flex items-center justify-center text-[#4ade80] shadow-xs">
+                            <div className="w-11 h-11 rounded-full bg-brand-forest border border-garden-leaf/30 flex items-center justify-center text-[#4ade80] shadow-xs">
                               {mod.icon}
                             </div>
                           </div>
@@ -684,7 +601,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </section>
 
           {/* 6. SECCIÓN DE TECNOLOGÍAS */}
-          <section id="tecnologias" className="px-4 sm:px-6">
+          <section id="tecnologias" className="scroll-mt-24 px-4 sm:px-6">
             <div className="max-w-7xl mx-auto bg-[#FFFFFF] border border-[#0d1310]/15 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-4">
                 <span className="text-[13px] font-bold uppercase tracking-wider text-brand-forest bg-cream-paper border border-sage-mist/45 px-3.5 py-1 rounded-full inline-block">
@@ -707,9 +624,9 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-56" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-brand-lavender text-bark border border-brand-lavender-border shadow-sm rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 transition-all">
+                    <div className="bg-garden-mint text-bark border border-garden-border shadow-sm rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 transition-all">
                       <div className="space-y-2">
-                        <span className="text-[12px] font-bold text-brand-plum uppercase tracking-wider">
+                        <span className="text-[12px] font-bold text-brand-forest uppercase tracking-wider">
                           {tech.category}
                         </span>
                         <h3 className="text-[20px] font-bold text-bark">
@@ -719,8 +636,8 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                           {tech.desc}
                         </p>
                       </div>
-                      <div className="pt-3 border-t border-brand-lavender-border">
-                        <span className="text-[12px] font-mono font-semibold text-brand-gold bg-brand-yellow border border-brand-yellow-border px-3 py-1 rounded-full inline-block">
+                      <div className="pt-3 border-t border-garden-border">
+                        <span className="text-[12px] font-mono font-semibold text-garden-deep bg-garden-sage border border-garden-border px-3 py-1 rounded-full inline-block">
                           {tech.badge}
                         </span>
                       </div>
@@ -732,10 +649,10 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </section>
 
           {/* 7. SECCIÓN DE FUNCIONAMIENTO */}
-          <section id="funcionamiento" className="py-12 px-4 sm:px-6 bg-transparent">
+          <section id="funcionamiento" className="scroll-mt-24 py-12 px-4 sm:px-6 bg-transparent">
             <div className="max-w-7xl mx-auto space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-brand-plum bg-brand-lavender border border-brand-lavender-border px-3.5 py-1 rounded-full inline-block">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-brand-forest bg-garden-mint border border-garden-border px-3.5 py-1 rounded-full inline-block">
                   Cómo viajan los datos
                 </span>
                 <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
@@ -755,13 +672,13 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-cream-paper text-bark border border-sage-mist/55 shadow-sm rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
+                    <div className="bg-garden-sage text-bark border border-garden-border shadow-sm rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono font-bold text-brand-gold bg-brand-yellow border border-brand-yellow-border px-2.5 py-0.5 rounded-full">
+                          <span className="text-[11px] font-mono font-bold text-garden-deep bg-garden-sage border border-garden-border px-2.5 py-0.5 rounded-full">
                             PASO {step.step}
                           </span>
-                          <div className="w-8 h-8 rounded-xl bg-brand-lavender border border-brand-lavender-border flex items-center justify-center text-brand-plum shrink-0">
+                          <div className="w-8 h-8 rounded-xl bg-garden-mint border border-garden-border flex items-center justify-center text-brand-forest shrink-0">
                             {step.icon}
                           </div>
                         </div>
@@ -784,7 +701,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </section>
 
           {/* 8. SECCIÓN DE CONTACTO Y DESPLIEGUE COMERCIAL */}
-          <section id="contacto" className="bg-brand-lavender/90 backdrop-blur-[2px] border-t border-brand-lavender-border text-[#0D3B1E] py-20 px-4 sm:px-6">
+          <section id="contacto" className="scroll-mt-24 bg-garden-mint backdrop-blur-[2px] border-t border-garden-border text-[#0D3B1E] py-20 px-4 sm:px-6">
             <div className="max-w-7xl mx-auto space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
                 <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
@@ -810,7 +727,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                           className="h-10 w-auto object-contain"
                         />
                       </div>
-                      <span className="px-3 py-1 rounded-full bg-brand-lavender text-brand-plum border border-brand-lavender-border text-[12px] font-semibold tracking-wide shadow-xs block w-fit">
+                      <span className="px-3 py-1 rounded-full bg-garden-mint text-brand-forest border border-garden-border text-[12px] font-semibold tracking-wide shadow-xs block w-fit">
                         SOLUCIONES A MEDIDA
                       </span>
                       <h3 className="text-[22px] font-bold text-brand-forest pt-1">
@@ -836,12 +753,12 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-[20px] bg-brand-lavender text-brand-plum border border-brand-lavender-border flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-white/70 border border-brand-lavender-border flex items-center justify-center text-brand-plum shrink-0">
+                      <div className="p-4 rounded-[20px] bg-garden-mint text-brand-forest border border-garden-border flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-white/70 border border-garden-border flex items-center justify-center text-brand-forest shrink-0">
                           <MapPin className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-plum block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-forest block">
                             Sectores de Aplicación
                           </span>
                           <span className="text-[14px] font-semibold text-bark block">
@@ -850,12 +767,12 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-[20px] bg-brand-yellow/70 text-brand-gold border border-brand-yellow-border flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-white/60 border border-brand-yellow-border flex items-center justify-center text-brand-gold shrink-0">
+                      <div className="p-4 rounded-[20px] bg-garden-sage text-garden-deep border border-garden-border flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-white/60 border border-garden-border flex items-center justify-center text-garden-deep shrink-0">
                           <Clock className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-gold block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-garden-deep block">
                             Disponibilidad y Soporte
                           </span>
                           <span className="text-[14px] font-semibold text-bark block">
@@ -963,40 +880,40 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       )}
 
       {/* 9. FOOTER COMERCIAL DE ALTO CONTRASTE */}
-      <footer className="relative z-10 py-12 bg-[#FFFFFF] border-t border-[#0d1310]/15 text-[12px] text-[#1e293b]">
+      <footer className="relative z-10 py-12 bg-garden-deep border-t border-brand-forest text-[13px] text-garden-mint">
         <div className="max-w-7xl mx-auto px-6 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-3">
-              <div className="inline-block px-3 py-1.5 rounded-xl bg-[#0d1310] border border-[#1f2922]">
+              <div className="inline-block px-3 py-1.5 rounded-xl bg-garden-mint border border-garden-border">
                 <img
                   src="/assets/images/simoa-logo.webp"
                   alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
                   className="h-9 w-auto object-contain"
                 />
               </div>
-              <p className="text-[12px] text-[#1e293b] leading-relaxed">
+              <p className="text-[12px] text-garden-mint leading-relaxed">
                 SIMOA muestra las lecturas de tus sensores, guarda su historial y te avisa cuando detecta cambios fuera de lo esperado.
               </p>
             </div>
 
             <div className="space-y-2">
-              <span className="font-bold text-[#0d1310] text-[13px] block uppercase tracking-wider">
+              <span className="font-bold text-white text-[13px] block uppercase tracking-wider">
                 Navegación
               </span>
-              <ul className="space-y-1.5 font-medium text-[#1e293b]">
-                <li><a href="#inicio" className="hover:text-[#15803D] transition-colors">Inicio</a></li>
-                <li><a href="#acerca" className="hover:text-[#15803D] transition-colors">Nosotros</a></li>
-                <li><a href="#funcionalidades" className="hover:text-[#15803D] transition-colors">Soluciones</a></li>
-                <li><a href="#tecnologias" className="hover:text-[#15803D] transition-colors">Tecnología</a></li>
-                <li><a href="#funcionamiento" className="hover:text-[#15803D] transition-colors">Cómo Funciona</a></li>
+              <ul className="space-y-1.5 font-medium text-garden-mint">
+                <li><a href="#inicio" className="hover:text-garden-leaf transition-colors">Inicio</a></li>
+                <li><a href="#acerca" className="hover:text-garden-leaf transition-colors">Nosotros</a></li>
+                <li><a href="#funcionalidades" className="hover:text-garden-leaf transition-colors">Soluciones</a></li>
+                <li><a href="#tecnologias" className="hover:text-garden-leaf transition-colors">Tecnología</a></li>
+                <li><a href="#funcionamiento" className="hover:text-garden-leaf transition-colors">Cómo Funciona</a></li>
               </ul>
             </div>
 
             <div className="space-y-2">
-              <span className="font-bold text-[#0d1310] text-[13px] block uppercase tracking-wider">
+              <span className="font-bold text-white text-[13px] block uppercase tracking-wider">
                 Soluciones Ambientales
               </span>
-              <ul className="space-y-1.5 text-[#1e293b] font-medium">
+              <ul className="space-y-1.5 text-garden-mint font-medium">
                 <li>Monitoreo de Invernaderos</li>
                 <li>Control de Cadena de Frío</li>
                 <li>Supervisión de Laboratorios</li>
@@ -1007,14 +924,14 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
           </div>
 
-          <div className="pt-6 border-t border-[#0d1310]/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-[#1e293b] font-medium">
+          <div className="pt-6 border-t border-white/25 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-garden-mint font-medium">
             <div>
               © 2026 SIMOA · Sistema Inteligente de Monitoreo Ambiental. Todos los derechos reservados.
             </div>
             <div className="flex items-center gap-4">
-              <a href="#contacto" className="hover:text-[#15803D] transition-colors">Soporte Técnico</a>
+              <a href="#contacto" className="hover:text-garden-leaf transition-colors">Soporte Técnico</a>
               <span>·</span>
-              <a href="#inicio" className="hover:text-[#15803D] transition-colors">Privacidad y Seguridad</a>
+              <a href="#inicio" className="hover:text-garden-leaf transition-colors">Privacidad y Seguridad</a>
             </div>
           </div>
         </div>

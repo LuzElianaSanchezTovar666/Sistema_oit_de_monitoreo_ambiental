@@ -427,6 +427,12 @@
 @theme static {
   /* Verde para acciones, morado para navegación y amarillo para avisos. */
   --color-brand-forest: #194c34;
+  --color-garden-deep: #123729;
+  --color-garden-paper: #fafbf6;
+  --color-garden-mint: #eaf4e7;
+  --color-garden-sage: #d7e7d8;
+  --color-garden-leaf: #a8d183;
+  --color-garden-border: #b3c9b8;
   --color-brand-plum: #573b82;
   --color-brand-lavender: #f1ebf8;
   --color-brand-lavender-border: #d6c8e5;
@@ -560,3 +566,23 @@
   box-shadow: 0 0 0 2px #ffffff;
 }
 
+
+/* La fotografía conserva el sensor a la derecha y reserva fondo oscuro para el texto. */
+.simoa-garden-hero-image {
+  object-position: 68% center;
+}
+
+.simoa-garden-hero-shade {
+  background: linear-gradient(90deg, rgb(10 38 25 / 94%) 0%, rgb(10 38 25 / 81%) 33%, rgb(10 38 25 / 26%) 65%, transparent 100%),
+    linear-gradient(0deg, rgb(10 38 25 / 96%) 0%, transparent 46%);
+}
+
+@media (max-width: 639px) {
+  .simoa-garden-hero-image {
+    object-position: 72% center;
+  }
+
+  .simoa-garden-hero-shade {
+    background: linear-gradient(0deg, rgb(10 38 25 / 98%) 0%, rgb(10 38 25 / 86%) 54%, rgb(10 38 25 / 30%) 100%);
+  }
+}
