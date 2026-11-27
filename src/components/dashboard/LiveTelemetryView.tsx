@@ -357,9 +357,13 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           <div className="text-xs text-slate">
             <span className="font-semibold text-bark">Dispositivo en MySQL:</span>{' '}
             {activeSensorConfig ? (
-              <span className="font-mono text-canopy">
-                Sensor {activeSensorConfig.identificador} ({activeSensorConfig.modelo}) · Variables:{' '}
-                {activeSensorConfig.variables_habilitadas.map((v) => `${v.variable} (${v.unidad})`).join(', ')}
+              <span className="inline-flex items-center gap-2">
+                <span className="sensor-badge-purple">
+                  Sensor {activeSensorConfig.identificador} ({activeSensorConfig.modelo})
+                </span>
+                <span className="font-mono text-canopy text-[11px]">
+                  · Variables: {activeSensorConfig.variables_habilitadas.map((v) => `${v.variable} (${v.unidad})`).join(', ')}
+                </span>
               </span>
             ) : (
               <span>Sin sensor vinculado en MySQL</span>
@@ -408,8 +412,8 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[12px] font-semibold text-slate">Presión Atmosférica</span>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-[5px] font-semibold bg-canopy/15 text-canopy">
-                BME280
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-[5px] font-semibold bg-[#1b102b] text-[#c084fc] border border-[#a855f7]/40">
+                SENSOR BME280
               </span>
             </div>
             <div>

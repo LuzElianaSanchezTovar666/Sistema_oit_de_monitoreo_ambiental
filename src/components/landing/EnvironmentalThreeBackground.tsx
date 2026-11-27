@@ -43,25 +43,25 @@ export const EnvironmentalThreeBackground: React.FC = () => {
     window.addEventListener('resize', resize);
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Nodos de sensores distribuidos en zonas del invernadero (Verdecitos sobre Fondo Blanco)
+    // Nodos de sensores IoT distribuidos en zonas del invernadero (Toques moraditos que representan los sensores)
     const sensorNodes = [
-      { rx: 0.14, ry: 0.34, label: '23.6 °C · GERMINACIÓN', color: '#16a34a', phase: 0.0 },
-      { rx: 0.38, ry: 0.52, label: '68 %RH · CULTIVO A1', color: '#059669', phase: 1.4 },
-      { rx: 0.64, ry: 0.38, label: '22.1 °C · CLIMATIZACIÓN', color: '#10b981', phase: 2.7 },
-      { rx: 0.84, ry: 0.60, label: '74 %RH · FERTIRRIEGO', color: '#22c55e', phase: 4.1 },
+      { rx: 0.14, ry: 0.34, label: '23.6 °C · GERMINACIÓN (DHT22)', color: '#c084fc', phase: 0.0 },
+      { rx: 0.38, ry: 0.52, label: '68 %RH · CULTIVO A1 (BME280)', color: '#a855f7', phase: 1.4 },
+      { rx: 0.64, ry: 0.38, label: '22.1 °C · CLIMATIZACIÓN (SHT31)', color: '#c084fc', phase: 2.7 },
+      { rx: 0.84, ry: 0.60, label: '74 %RH · FERTIRRIEGO (ESP32)', color: '#a855f7', phase: 4.1 },
     ];
 
     const drawGreenhouseSilhouette = (cx: number, baseY: number, w: number, h: number, alpha: number) => {
       ctx.save();
-      ctx.strokeStyle = `rgba(21, 128, 61, ${alpha * 1.6})`;
-      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = `rgba(34, 197, 94, ${alpha * 2.2})`;
+      ctx.lineWidth = 1.4;
 
       const x0 = cx - w / 2;
       const x1 = cx + w / 2;
       const wallTopY = baseY - h * 0.55;
       const peakY = baseY - h;
 
-      // Estructura principal a dos aguas del invernadero
+      // Estructura principal a dos aguas del invernadero (verde brillante que resalta en fondo negro)
       ctx.beginPath();
       ctx.moveTo(x0, baseY);
       ctx.lineTo(x0, wallTopY);
@@ -71,9 +71,9 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       ctx.closePath();
       ctx.stroke();
 
-      // Costillas internas / paneles en tono verde sutil
-      ctx.strokeStyle = `rgba(34, 197, 94, ${alpha * 1.8})`;
-      ctx.lineWidth = 0.8;
+      // Costillas internas / paneles en tono verde botánico
+      ctx.strokeStyle = `rgba(74, 222, 128, ${alpha * 2.5})`;
+      ctx.lineWidth = 0.9;
       for (let i = 1; i <= 3; i++) {
         const px = x0 + (w * i) / 4;
         const roofY = i <= 2
@@ -192,33 +192,33 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       drawGreenhouseSilhouette(width * 0.52 + mouse.x * 14, height * 0.88 + mouse.y * 8, 320, 180, 0.13);
       drawGreenhouseSilhouette(width * 0.80 + mouse.x * 10, height * 0.85 + mouse.y * 6, 240, 140, 0.15);
 
-      // 3. Curva de Humedad Relativa (%RH - Verde claro menta contrastado)
+      // 3. Curva de Humedad Relativa (%RH - Verde menta frío que resalta sobre negro)
       drawTelemetryWave(
         elapsed,
         height * 0.62,
         34,
         3.2,
         0.55,
-        'rgba(34, 197, 94, 0.65)',
-        'rgba(74, 222, 128, 0.16)',
-        'rgba(255, 255, 255, 0.0)',
+        'rgba(74, 222, 128, 0.85)',
+        'rgba(34, 197, 94, 0.20)',
+        'rgba(7, 11, 9, 0.0)',
         mouse.y * 12
       );
 
-      // 4. Curva de Temperatura (°C - Verdecito esmeralda contrastado)
+      // 4. Curva de Temperatura (°C - Verde esmeralda brillante que resalta sobre negro)
       drawTelemetryWave(
         elapsed,
         height * 0.48,
         28,
         2.6,
         0.75,
-        'rgba(16, 185, 129, 0.70)',
-        'rgba(110, 231, 183, 0.16)',
-        'rgba(255, 255, 255, 0.0)',
+        'rgba(34, 197, 94, 0.90)',
+        'rgba(74, 222, 128, 0.22)',
+        'rgba(7, 11, 9, 0.0)',
         mouse.y * 18
       );
 
-      // 5. Conexiones y nodos de sensores del invernadero
+      // 5. Conexiones y nodos de sensores del invernadero (Toques moraditos que representan los sensores)
       ctx.save();
       const computedNodes = sensorNodes.map((n) => ({
         ...n,
@@ -226,10 +226,10 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         y: n.ry * height + Math.sin(elapsed * 0.9 + n.phase) * 8 + mouse.y * 10,
       }));
 
-      // Enlaces punteados entre nodos en verdecito
-      ctx.strokeStyle = 'rgba(34, 197, 94, 0.30)';
+      // Enlaces punteados entre sensores en tono moradito
+      ctx.strokeStyle = 'rgba(168, 85, 247, 0.45)';
       ctx.setLineDash([4, 6]);
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
       for (let i = 0; i < computedNodes.length - 1; i++) {
         ctx.moveTo(computedNodes[i].x, computedNodes[i].y);
@@ -238,25 +238,33 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Dibujar cada nodo con pulso suave y etiqueta de lectura
+      // Dibujar cada sensor IoT con pulso moradito suave y etiqueta de lectura contrastada
       computedNodes.forEach((node) => {
-        const pulseRadius = 10 + Math.sin(elapsed * 2.2 + node.phase) * 4;
+        const pulseRadius = 12 + Math.sin(elapsed * 2.2 + node.phase) * 5;
 
+        // Anillo de pulso del sensor (Moradito)
         ctx.beginPath();
         ctx.arc(node.x, node.y, pulseRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = `${node.color}55`;
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = `${node.color}66`;
+        ctx.lineWidth = 1.6;
         ctx.stroke();
 
+        // Núcleo del sensor (Moradito brillante)
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, 4.5, 0, Math.PI * 2);
         ctx.fillStyle = node.color;
         ctx.fill();
 
-        // Etiqueta legible en verde oscuro sobre fondo blanco
-        ctx.font = '600 10px ui-monospace, SFMono-Regular, Menlo, monospace';
-        ctx.fillStyle = '#14532d';
-        ctx.fillText(node.label, node.x + 12, node.y + 4);
+        // Punto central blanco para destello de telemetría activa
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, 1.8, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+
+        // Etiqueta legible en lavanda / blanco sobre fondo negro
+        ctx.font = '600 11px ui-monospace, SFMono-Regular, Menlo, monospace';
+        ctx.fillStyle = '#f3e8ff';
+        ctx.fillText(node.label, node.x + 14, node.y + 4);
       });
       ctx.restore();
 

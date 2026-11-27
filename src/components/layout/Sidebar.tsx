@@ -43,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'devices',
       label: 'Dispositivos',
-      icon: <Cpu className="w-4 h-4" />,
+      icon: <Cpu className="w-4 h-4 text-[#c084fc]" />,
       badge: devicesCount.toString(),
       badgeStyle: 'bg-obsidian-shell text-pure-white rounded-[10px]',
       allowedRoles: ['admin', 'tecnico', 'supervisor'],
@@ -58,8 +58,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     {
       id: 'sensors',
       label: 'Sensores',
-      icon: <Thermometer className="w-4 h-4" />,
-      badge: null,
+      icon: <Thermometer className="w-4 h-4 text-[#c084fc]" />,
+      badge: 'IoT',
+      badgeStyle: 'bg-[#1b102b] text-[#c084fc] border border-[#a855f7]/50 rounded-[8px]',
       allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'],
     },
     {

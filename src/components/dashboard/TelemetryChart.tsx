@@ -144,7 +144,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         <div>
           <h3 className="text-[17px] font-semibold tracking-[-0.374px] text-bark flex items-center gap-2">
             <span>Serie Temporal de Telemetría</span>
-            <span className="text-xs text-slate font-normal">· {locationName} ({sensorType})</span>
+            <span className="text-xs text-slate font-normal">· {locationName}</span>
+            <span className="sensor-badge-purple text-[10px]">Sensor {sensorType}</span>
           </h3>
           <p className="text-[12px] text-slate mt-0.5">
             Lecturas registradas en MySQL
@@ -335,7 +336,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             />
           )}
 
-          {/* Puntos de anomalía destacados en el trazado (Pulse Red #15803d) */}
+          {/* Puntos de anomalía destacados en el trazado (Sensor Purple Halo #c084fc con núcleo #a855f7) */}
           {tempPoints.map((pt, i) => {
             if (!pt.reading.valor_anomalo) return null;
             return (
@@ -343,11 +344,18 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 <circle
                   cx={pt.x}
                   cy={pt.y}
-                  r="5.5"
-                  fill="#15803d"
+                  r="6.5"
+                  fill="#c084fc"
+                  fillOpacity="0.45"
                   className="animate-pulse"
                 />
-                <circle cx={pt.x} cy={pt.y} r="2.5" fill="#ffffff" />
+                <circle
+                  cx={pt.x}
+                  cy={pt.y}
+                  r="3.5"
+                  fill="#a855f7"
+                />
+                <circle cx={pt.x} cy={pt.y} r="1.5" fill="#ffffff" />
               </g>
             );
           })}
@@ -429,8 +437,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#15803d]" />
-            <span>Anomalía ML detectada</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#c084fc] shadow-[0_0_6px_#c084fc]" />
+            <span>Anomalía en sensor</span>
           </div>
         </div>
         <div className="font-mono text-[11px]">

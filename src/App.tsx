@@ -845,31 +845,31 @@ export default function App() {
         )}
       </Suspense>
 
-      {/* Banner de Alerta Automática en Tiempo Real RF-13 (Paleta Verde SIMOA) */}
+      {/* Banner de Alerta Automática en Tiempo Real RF-13 (Paleta Invernadero SIMOA) */}
       {liveAlertBanner && (
         <div
           role="alert"
-          className="fixed top-20 right-6 z-50 max-w-md rounded-[16px] border border-[#16a34a] bg-[#f0fdf4] text-[#0d1310] p-4 shadow-xl backdrop-blur-md transition-all"
+          className="fixed top-20 right-6 z-50 max-w-md rounded-[16px] border border-[#22c55e]/40 bg-[#070b09]/95 text-[#f1f5f3] p-4 shadow-2xl backdrop-blur-md transition-all shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
         >
           <div className="flex items-start gap-3">
-            <AlertOctagon className="w-5 h-5 text-[#16a34a] shrink-0 mt-0.5" />
+            <AlertOctagon className="w-5 h-5 text-[#22c55e] shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#14532d] border border-[#86efac]">
+                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#121e18] text-[#4ade80] border border-[#1e3a2b]">
                   {liveAlertBanner.nivel} · {liveAlertBanner.variable_alterada || 'AMBIENTAL'}
                 </span>
                 {liveAlertBanner.provisional && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#14532d] border border-[#86efac]">
-                    Provisional
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1b102b] text-[#c084fc] border border-[#a855f7]/40">
+                    Sensor IoT
                   </span>
                 )}
               </div>
-              <p className="text-xs font-semibold text-[#0d1310] leading-snug">
+              <p className="text-xs font-semibold text-[#f1f5f3] leading-snug">
                 {liveAlertBanner.mensaje}
               </p>
-              <p className="text-[11px] text-[#2d543c]">
+              <p className="text-[11px] text-[#94a398]">
                 {liveAlertBanner.ubicacion_nombre || liveAlertBanner.ubicacion_id} ·{' '}
-                {liveAlertBanner.sensor_identificador || liveAlertBanner.sensor_id}
+                <span className="text-[#c084fc] font-mono">{liveAlertBanner.sensor_identificador || liveAlertBanner.sensor_id}</span>
               </p>
               <div className="flex items-center gap-2 pt-1">
                 <button

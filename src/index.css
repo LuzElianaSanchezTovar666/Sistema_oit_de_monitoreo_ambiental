@@ -1,28 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  /* ORYZO AI — Sistema de Diseño Integrado (Tonos Claros y Verdes) */
-  --color-warm-cream: #0d1310;
-  --color-walnut-shadow: #ffffff;
-  --color-bark-brown: #f0fdf4;
-  --color-cork-border: #86efac;
+  /* ORYZO AI — Sistema Invernadero Frío: Fondo Negro + Verde Invernadero + Toques Moraditos Sensores */
+  --color-warm-cream: #f1f5f3;
+  --color-walnut-shadow: #070b09;
+  --color-bark-brown: #0e1713;
+  --color-cork-border: #1e3a2b;
   --color-driftwood: #166534;
-  --color-ember-accent: #15803d;
-  --color-pure-black: #0d1310;
+  --color-ember-accent: #22c55e;
+  --color-pure-black: #070b09;
 
   /* Mapped Console Tokens */
-  --color-obsidian-shell: #ffffff;
-  --color-pure-white: #0d1310;
-  --color-mint-frost: #f0fdf4;
-  --color-deep-abyss: #f0fdf4;
-  --color-charcoal: #e2fbe8;
-  --color-fog-border: #86efac;
+  --color-obsidian-shell: #070b09;
+  --color-pure-white: #ffffff;
+  --color-mint-frost: #0e1713;
+  --color-deep-abyss: #070b09;
+  --color-charcoal: #121e18;
+  --color-fog-border: #1e3a2b;
   --color-stone-border: #22c55e;
-  --color-slate-text: #334155;
-  --color-graphite-fill: #14532d;
-  --color-neon-pulse: #16a34a;
-  --color-mint-whisper: #dcfce7;
-  --color-signal-yellow: #15803d;
+  --color-slate-text: #94a398;
+  --color-graphite-fill: #1a3325;
+  --color-neon-pulse: #22c55e;
+  --color-mint-whisper: #162e21;
+  --color-signal-yellow: #22c55e;
+
+  /* Toques Moraditos que representan los Sensores IoT */
+  --color-sensor-purple: #c084fc;
+  --color-sensor-purple-deep: #a855f7;
+  --color-sensor-purple-bg: rgba(168, 85, 247, 0.14);
+  --color-sensor-purple-border: rgba(192, 132, 252, 0.45);
 
   /* Typography — Font Families */
   --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -84,48 +90,52 @@
   --radius-buttons-outlined: 22.5px;
 
   /* Surfaces */
-  --surface-walnut-shadow: #ffffff;
-  --surface-bark-brown: #f0fdf4;
-  --surface-cork-border: #86efac;
-  --surface-warm-cream: #0d1310;
+  --surface-walnut-shadow: #070b09;
+  --surface-bark-brown: #0e1713;
+  --surface-cork-border: #1e3a2b;
+  --surface-warm-cream: #f1f5f3;
 }
 
 @theme {
-  /* Tokens ORYZO AI Fondo Claro + Verdes */
-  --color-warm-cream: #0d1310;
-  --color-walnut-shadow: #ffffff;
-  --color-bark-brown: #f0fdf4;
-  --color-cork-border: #86efac;
+  /* Tokens ORYZO AI Fondo Negro Invernadero + Verde + Moradito Sensores */
+  --color-warm-cream: #f1f5f3;
+  --color-walnut-shadow: #070b09;
+  --color-bark-brown: #0e1713;
+  --color-cork-border: #1e3a2b;
   --color-driftwood: #166534;
-  --color-ember-accent: #15803d;
-  --color-pure-black: #0d1310;
+  --color-ember-accent: #22c55e;
+  --color-pure-black: #070b09;
 
   /* Mapped Console Tokens */
-  --color-obsidian-shell: #ffffff;
-  --color-pure-white: #0d1310;
-  --color-mint-frost: #f0fdf4;
-  --color-deep-abyss: #f0fdf4;
-  --color-charcoal: #e2fbe8;
-  --color-fog-border: #86efac;
+  --color-obsidian-shell: #070b09;
+  --color-pure-white: #ffffff;
+  --color-mint-frost: #0e1713;
+  --color-deep-abyss: #070b09;
+  --color-charcoal: #121e18;
+  --color-fog-border: #1e3a2b;
   --color-stone-border: #22c55e;
-  --color-slate-text: #334155;
-  --color-graphite-fill: #14532d;
-  --color-neon-pulse: #16a34a;
-  --color-mint-whisper: #dcfce7;
-  --color-signal-yellow: #15803d;
+  --color-slate-text: #94a398;
+  --color-graphite-fill: #1a3325;
+  --color-neon-pulse: #22c55e;
+  --color-mint-whisper: #162e21;
+  --color-signal-yellow: #22c55e;
+
+  /* Toques Moraditos Sensores */
+  --color-sensor-purple: #c084fc;
+  --color-sensor-purple-deep: #a855f7;
 
   /* Legacy semantic aliases */
-  --color-cream-paper: #ffffff;
-  --color-sheet-white: #f0fdf4;
-  --color-canopy: #16a34a;
-  --color-bark: #0d1310;
-  --color-ink: #0d1310;
-  --color-slate: #334155;
-  --color-sage-mist: #86efac;
-  --color-pale-sage: #dcfce7;
-  --color-muted-slate: #475569;
+  --color-cream-paper: #070b09;
+  --color-sheet-white: #0e1713;
+  --color-canopy: #22c55e;
+  --color-bark: #f1f5f3;
+  --color-ink: #f1f5f3;
+  --color-slate: #94a398;
+  --color-sage-mist: #1e3a2b;
+  --color-pale-sage: #121e18;
+  --color-muted-slate: #64748b;
   --color-mint-pulse: #22c55e;
-  --color-orb-violet: #15803d;
+  --color-orb-violet: #a855f7;
 
   /* Typography */
   --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -195,20 +205,20 @@
 }
 
 /* ============================================================================
-   SISTEMA EDITORIAL ORYZO AI — TONOS CLAROS Y VERDES PARA INVERNADERO SIMOA
+   SISTEMA EDITORIAL ORYZO AI — INVERNADERO FRÍO: FONDO NEGRO + VERDE + SENSORES MORADITOS
    ============================================================================ */
 
 .oryzo-divider {
-  border-top: 1px dashed var(--color-cork-border, #86efac);
+  border-top: 1px dashed var(--color-cork-border, #1e3a2b);
 }
 
 .oryzo-pill-btn {
-  background-color: #16a34a;
-  color: #ffffff;
+  background-color: #22c55e;
+  color: #070b09;
   border-radius: var(--radius-buttons-pill, 36px);
   padding: 14px 24px;
   font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -219,13 +229,13 @@
   transition: background-color 0.18s ease;
 }
 .oryzo-pill-btn:hover {
-  background-color: #15803d;
+  background-color: #16a34a;
 }
 
 .oryzo-ghost-btn {
   background-color: transparent;
-  color: #15803d;
-  border: 1px solid var(--color-cork-border, #86efac);
+  color: #4ade80;
+  border: 1px solid var(--color-cork-border, #1e3a2b);
   border-radius: var(--radius-buttons-outlined, 22.5px);
   padding: 7.5px 18px;
   font-family: var(--font-halyard-display-variable);
@@ -237,18 +247,19 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: background-color 0.18s ease;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 .oryzo-ghost-btn:hover {
-  background-color: #dcfce7;
+  background-color: #121e18;
+  border-color: #22c55e;
 }
 
 .oryzo-input {
   background-color: transparent;
   border: none;
-  border-bottom: 1px solid var(--color-cork-border, #86efac);
+  border-bottom: 1px solid var(--color-cork-border, #1e3a2b);
   border-radius: var(--radius-inputs, 0px);
-  color: #0d1310;
+  color: #ffffff;
   padding: 10px 4px;
   font-family: var(--font-halyard-display-variable);
   font-size: 15px;
@@ -256,12 +267,12 @@
 }
 .oryzo-input:focus {
   outline: none;
-  border-bottom-color: #16a34a;
+  border-bottom-color: #22c55e;
 }
 
 .oryzo-card {
-  background-color: var(--color-bark-brown, #f0fdf4);
-  border: 1px dashed var(--color-cork-border, #86efac);
+  background-color: var(--color-bark-brown, #0e1713);
+  border: 1px dashed var(--color-cork-border, #1e3a2b);
   border-radius: var(--radius-cards, 12px);
   padding: var(--card-padding, 24px);
   box-shadow: none;
@@ -273,7 +284,7 @@
   font-size: clamp(16px, 1.8vw, 29px);
   line-height: var(--leading-body, 1.26);
   letter-spacing: 0px;
-  color: #2d4a3b;
+  color: #94a398;
 }
 
 .oryzo-vertical-label {
@@ -281,11 +292,11 @@
   text-orientation: mixed;
   transform: rotate(180deg);
   font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 11px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #15803d;
+  color: #4ade80;
 }
 
 .sauce-display {
@@ -295,7 +306,7 @@
   line-height: 0.95;
   letter-spacing: 0px;
   text-transform: uppercase;
-  color: #0d1310;
+  color: #ffffff;
 }
 
 .sauce-heading {
@@ -305,7 +316,7 @@
   line-height: 0.95;
   letter-spacing: 0px;
   text-transform: uppercase;
-  color: #0d1310;
+  color: #ffffff;
 }
 
 .sauce-eyebrow {
@@ -313,9 +324,9 @@
   font-weight: 600;
   font-size: 10px;
   line-height: 1.2;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #15803d;
+  color: #4ade80;
 }
 
 .sauce-stat-value {
@@ -323,17 +334,17 @@
   font-weight: 500;
   font-size: clamp(32px, 3.5vw, 41px);
   line-height: 0.95;
-  color: #15803d;
+  color: #22c55e;
   font-variant-numeric: tabular-nums;
 }
 
 .sauce-btn-primary {
   background-color: #22c55e;
-  color: #ffffff;
+  color: #070b09;
   border: 1px solid #16a34a;
   border-radius: 36px;
   font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -346,34 +357,35 @@
 }
 
 .sauce-btn-ghost {
-  background-color: #f0fdf4;
-  color: #15803d;
-  border: 1px solid #86efac;
+  background-color: #0e1713;
+  color: #4ade80;
+  border: 1px solid #1e3a2b;
   border-radius: 22.5px;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
   font-size: 12px;
   text-transform: uppercase;
   padding: 7.5px 18px;
-  transition: background-color 0.18s ease;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 
 .sauce-btn-ghost:hover {
-  background-color: #dcfce7;
+  background-color: #121e18;
+  border-color: #22c55e;
 }
 
 .sauce-card-mint {
-  background-color: #f0fdf4;
-  color: #0d1310;
-  border: 1px dashed #86efac;
+  background-color: #0e1713;
+  color: #f1f5f3;
+  border: 1px dashed #1e3a2b;
   border-radius: 12px;
   box-shadow: none;
 }
 
 .sauce-card-dark {
-  background-color: #f0fdf4;
-  color: #0d1310;
-  border: 1px dashed #86efac;
+  background-color: #0e1713;
+  color: #f1f5f3;
+  border: 1px dashed #1e3a2b;
   border-radius: 12px;
   box-shadow: none;
 }
@@ -381,9 +393,9 @@
 .sauce-input, .oryzo-input {
   background-color: transparent;
   border: none;
-  border-bottom: 1px solid var(--color-cork-border, #86efac);
+  border-bottom: 1px solid var(--color-cork-border, #1e3a2b);
   border-radius: var(--radius-inputs, 0px);
-  color: #0d1310;
+  color: #ffffff;
   padding: 10px 4px;
   font-family: var(--font-halyard-display-variable);
   font-size: 15px;
@@ -392,7 +404,7 @@
 
 .sauce-input:focus, .oryzo-input:focus {
   outline: none;
-  border-bottom-color: #16a34a;
+  border-bottom-color: #22c55e;
 }
 
 /* Console component utilities */
@@ -402,7 +414,7 @@
   font-size: 18px;
   line-height: 1.05;
   text-transform: uppercase;
-  color: #0d1310;
+  color: #ffffff;
 }
 
 .apple-metric-display {
@@ -410,7 +422,7 @@
   font-weight: 500;
   font-size: clamp(28px, 3vw, 41px);
   line-height: 0.95;
-  color: #15803d;
+  color: #22c55e;
   font-variant-numeric: tabular-nums;
 }
 
@@ -419,16 +431,16 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 1.35;
-  color: #2d543c;
+  color: #94a398;
 }
 
 .apple-blue-pill {
   background-color: #22c55e;
-  color: #ffffff;
+  color: #070b09;
   border: 1px solid #16a34a;
   border-radius: 36px;
   font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
   transition: background-color 0.18s ease;
 }
@@ -438,9 +450,9 @@
 }
 
 .apple-white-outline-pill {
-  background-color: #f0fdf4;
-  color: #15803d;
-  border: 1px solid #86efac;
+  background-color: #0e1713;
+  color: #4ade80;
+  border: 1px solid #1e3a2b;
   border-radius: 22.5px;
   padding-left: 16px;
   padding-right: 16px;
@@ -451,14 +463,14 @@
 }
 
 .apple-white-outline-pill:hover {
-  background-color: #dcfce7;
+  background-color: #121e18;
 }
 
 .apple-pill-input,
 .apple-pill-select {
-  background-color: #ffffff;
-  border: 1px solid #86efac;
-  color: #0d1310;
+  background-color: #0e1713;
+  border: 1px solid #1e3a2b;
+  color: #ffffff;
   border-radius: 10px;
   padding-left: 12px;
   padding-right: 12px;
@@ -473,9 +485,9 @@
 }
 
 .apple-badge-orange {
-  background-color: #dcfce7;
-  border: 1px dashed #86efac;
-  color: #15803d;
+  background-color: #121e18;
+  border: 1px dashed #22c55e;
+  color: #4ade80;
   border-radius: 36px;
   padding: 2px 10px;
   font-family: var(--font-halyard-display-variable);
@@ -486,7 +498,7 @@
 }
 
 .apple-inline-link {
-  color: #15803d;
+  color: #4ade80;
   font-family: var(--font-halyard-display-variable);
   font-weight: 500;
   text-transform: uppercase;
@@ -494,4 +506,25 @@
 
 .apple-inline-link:hover {
   text-decoration: underline;
+}
+
+/* Toques Moraditos que representan los Sensores IoT */
+.sensor-badge-purple {
+  background-color: rgba(168, 85, 247, 0.14);
+  border: 1px solid rgba(192, 132, 252, 0.45);
+  color: #c084fc;
+  border-radius: 36px;
+  padding: 2px 10px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sensor-chip {
+  background-color: #1b102b;
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  color: #d8b4fe;
 }

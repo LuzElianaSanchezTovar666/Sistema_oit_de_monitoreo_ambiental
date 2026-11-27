@@ -104,10 +104,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => onTabChange(item.id)}
                 className={`px-4 py-2 rounded-[56px] text-[14px] transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'bg-neon-pulse text-obsidian-shell font-medium'
+                    ? 'bg-neon-pulse text-obsidian-shell font-semibold shadow-[0_0_12px_rgba(34,197,94,0.35)]'
                     : 'text-pure-white font-normal hover:bg-deep-abyss'
                 }`}
               >
+                {item.id === 'sensors' && (
+                  <span className="w-2 h-2 rounded-full bg-[#c084fc] shadow-[0_0_6px_#c084fc]" />
+                )}
                 {item.label}
               </button>
             );
