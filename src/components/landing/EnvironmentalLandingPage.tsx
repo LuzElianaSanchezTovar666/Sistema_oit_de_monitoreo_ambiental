@@ -68,38 +68,38 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
     {
       icon: <Thermometer className="w-5 h-5" />,
       metric: '±0.2 °C',
-      title: 'Registro de Temperatura y Humedad',
-      desc: 'Captura periódica y continua de variables higrotérmicas en recintos críticos con sondas calibradas.',
+      title: 'Temperatura y humedad',
+      desc: 'Lecturas continuas con sensores calibrados.',
     },
     {
       icon: <Cpu className="w-5 h-5" />,
       metric: 'ESP32',
-      title: 'Supervisión de Dispositivos IoT',
-      desc: 'Seguimiento en tiempo real de nodos microcontroladores con control de estado y telemetría.',
+      title: 'Dispositivos IoT',
+      desc: 'Consulta si tus dispositivos están conectados.',
     },
     {
       icon: <LineChart className="w-5 h-5" />,
       metric: '100%',
-      title: 'Consultas e Historiales en Vivo',
-      desc: 'Base de datos temporal TimescaleDB con trazabilidad integral de millones de puntos telemétricos.',
+      title: 'Historial de lecturas',
+      desc: 'Consulta los registros guardados.',
     },
     {
       icon: <Activity className="w-5 h-5" />,
       metric: '1 Hz',
-      title: 'Gráficas Ambientales Dinámicas',
-      desc: 'Series de tiempo interactivas en SVG con bandas de tolerancia, líneas de umbral y zoom temporal.',
+      title: 'Gráficas en vivo',
+      desc: 'Sigue los cambios de temperatura y humedad.',
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
       metric: '5 min',
-      title: 'Alertas sin avisos repetidos',
-      desc: 'Disparo inmediato ante superación de límites, consolidando eventos críticos sin saturación.',
+      title: 'Alertas sin duplicados',
+      desc: 'Recibe un aviso si una lectura sale del rango.',
     },
     {
       icon: <BrainCircuit className="w-5 h-5" />,
       metric: '<200 ms',
-      title: 'Detección Inteligente con IA',
-      desc: 'Algoritmos Isolation Forest y Z-Score dinámico que discriminan picos de anomalías reales.',
+      title: 'Detección con IA',
+      desc: 'Identifica lecturas fuera de lo habitual.',
     },
   ];
 
@@ -345,115 +345,73 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             </div>
           </section>
 
-          {/* 4. UPGRADE COMPARISON MODULE */}
-          <section id="acerca" className="scroll-mt-24 px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto px-2 py-10 sm:px-6 sm:py-14 space-y-10">
-              <ScrollReveal animation="slide-up" className="grid gap-5 lg:grid-cols-[1.2fr_1fr] lg:items-end lg:gap-14">
+          <section id="acerca" aria-labelledby="simoa-about-title" className="scroll-mt-24 px-4 sm:px-6">
+            <div className="mx-auto grid max-w-7xl gap-8 py-10 md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-12 lg:px-6 lg:py-14">
+              <ScrollReveal animation="slide-up" className="space-y-6">
                 <div className="space-y-3">
-                  <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
+                  <span className="inline-block rounded-full border border-garden-border bg-garden-mint px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-brand-forest">
                     Dónde se usa SIMOA
                   </span>
-                  <h2 className="text-[clamp(1.8rem,4.2vw,3.35rem)] font-bold leading-[1.08] tracking-tight text-garden-deep">
+                  <h2 id="simoa-about-title" className="max-w-[22ch] text-[clamp(1.8rem,4.2vw,3.35rem)] font-bold leading-[1.08] tracking-tight text-garden-deep">
                     Conoce las condiciones de cada espacio.
                   </h2>
+                  <p className="max-w-prose text-base leading-relaxed text-slate">
+                    SIMOA reúne en un solo lugar las lecturas de invernaderos, laboratorios y cámaras de frío. Así puedes consultar el historial y atender a tiempo los cambios de temperatura y humedad.
+                  </p>
                 </div>
-                <p className="text-[16px] text-[#1e293b] leading-relaxed">
-                  SIMOA reúne en un solo lugar las lecturas de invernaderos, laboratorios y cámaras de frío. Así puedes consultar el historial y atender a tiempo los cambios de temperatura y humedad.
-                </p>
+
+                <ul className="landing-card-grid grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:gap-4">
+                  {aboutCapabilities.map((item) => (
+                    <li key={item.title}>
+                      <div className="landing-card flex h-full flex-col gap-2 rounded-2xl border px-4 py-3.5 shadow-sm lg:px-5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="landing-card-accent font-display text-2xl font-bold tabular-nums">{item.metric}</span>
+                          <span className="landing-card-chip grid size-8 shrink-0 place-items-center rounded-lg border" aria-hidden="true">
+                            {item.icon}
+                          </span>
+                        </div>
+                        <h3 className="text-sm font-bold leading-snug sm:text-base">{item.title}</h3>
+                        <p className="landing-card-description text-sm leading-snug">{item.desc}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </ScrollReveal>
 
-              {/* Featured Two-Column AVIF/WebP Hardware Showcase Cards */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-[20px]">
-                <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-xs rounded-[28px] overflow-hidden flex flex-col justify-between">
-                  <div className="relative h-60 w-full overflow-hidden">
+              <div className="grid gap-4 md:auto-rows-fr">
+                <figure className="flex flex-col overflow-hidden rounded-2xl border border-garden-border bg-garden-mint shadow-sm">
+                  <div className="relative min-h-44 flex-1 sm:min-h-52">
                     <OptimizedImage
                       baseName="module-lab-bioterium"
-                      alt="Monitoreo de laboratorios y bioterios con sensores de precisión en formato AVIF/WebP"
-                      priority={false}
-                      className="w-full h-full object-cover"
+                      alt="Equipo de monitoreo ambiental en un laboratorio"
+                      className="absolute inset-0 size-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-garden-deep/70 via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-garden-sage text-garden-deep border border-garden-border text-[12px] font-semibold tracking-wide shadow-sm">
-                      CADENA DE FRÍO · 24/7
+                    <span className="absolute left-3 top-3 rounded-full bg-garden-mint px-3 py-1 text-xs font-bold text-garden-deep">
+                      Cadena de frío 24/7
                     </span>
                   </div>
-                  <div className="p-6 space-y-3 bg-[#FFFFFF]">
-                    <div className="flex items-baseline justify-between">
-                      <h3 className="text-[20px] font-bold text-[#0d1310]">
-                        Laboratorios, Invernaderos y Cámaras Frías
-                      </h3>
-                    </div>
-                    <p className="text-[14px] text-[#1e293b] leading-relaxed">
-                      Supervisión ininterrumpida 24/7 con trazabilidad histórica completa y respuesta inmediata para proteger cultivos e insumos sensibles.
-                    </p>
-                  </div>
-                </div>
+                  <figcaption className="space-y-1 px-5 py-4">
+                    <h3 className="text-base font-bold leading-snug text-garden-deep">Laboratorios, invernaderos y cámaras de frío</h3>
+                    <p className="text-sm leading-relaxed text-slate">Consulta las lecturas y su historial para cuidar cultivos e insumos sensibles.</p>
+                  </figcaption>
+                </figure>
 
-                <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-xs rounded-[28px] overflow-hidden flex flex-col justify-between">
-                  <div className="relative h-60 w-full overflow-hidden">
+                <figure className="flex flex-col overflow-hidden rounded-2xl border border-garden-border bg-garden-mint shadow-sm">
+                  <div className="relative min-h-44 flex-1 sm:min-h-52">
                     <OptimizedImage
                       baseName="module-climate-chamber"
-                      alt="Control ambiental en tiempo real con alertas automáticas"
-                      priority={false}
-                      className="w-full h-full object-cover"
+                      alt="Personal trabajando en un espacio con monitoreo ambiental"
+                      className="absolute inset-0 size-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-garden-deep/70 via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-garden-deep text-white border border-garden-border text-[12px] font-semibold tracking-wide shadow-sm">
-                      ALERTAS AUTOMÁTICAS
+                    <span className="absolute left-3 top-3 rounded-full bg-brand-forest px-3 py-1 text-xs font-bold text-white">
+                      Alertas automáticas
                     </span>
                   </div>
-                  <div className="p-6 space-y-3 bg-[#FFFFFF]">
-                    <div className="flex items-baseline justify-between">
-                      <h3 className="text-[20px] font-bold text-[#0d1310]">
-                        Detección Temprana de Excursiones
-                      </h3>
-                    </div>
-                    <p className="text-[14px] text-[#1e293b] leading-relaxed">
-                      Cuando una lectura sale del rango configurado, SIMOA envía una alerta y usa IA para ayudar a explicar lo ocurrido.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Three-column Feature Metric Tiles */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px] landing-card-grid">
-                {aboutCapabilities.map((item, idx) => (
-                  <ScrollReveal
-                    key={idx}
-                    animation="slide-up"
-                    delay={idx * 60}
-                    lazy
-                    skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
-                  >
-                    <div className="landing-card rounded-[28px] p-6 h-full flex flex-col justify-between space-y-4 border shadow-sm">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="landing-card-chip text-[11px] font-bold uppercase tracking-wider border px-2.5 py-1 rounded-full">
-                            Telemetría SIMOA
-                          </span>
-                          <div className="landing-card-chip w-9 h-9 rounded-xl border flex items-center justify-center shrink-0">
-                            {item.icon}
-                          </div>
-                        </div>
-                        <div
-                          className="landing-card-accent py-1 font-display text-[32px] font-bold tabular-nums"
-                        >
-                          {item.metric}
-                        </div>
-                        <h3 className="text-[18px] font-bold leading-snug">
-                          {item.title}
-                        </h3>
-                        <p className="text-[14px] leading-relaxed landing-card-description">
-                          {item.desc}
-                        </p>
-                      </div>
-                      <div className="landing-card-divider landing-card-accent pt-3 border-t flex items-center gap-2 text-[12px] font-semibold">
-                        <CheckCircle2 className="w-4 h-4 shrink-0" />
-                        <span>Módulo activo en tiempo real</span>
-                      </div>
-                    </div>
-                  </ScrollReveal>
-                ))}
+                  <figcaption className="space-y-1 px-5 py-4">
+                    <h3 className="text-base font-bold leading-snug text-garden-deep">Detección de cambios fuera de rango</h3>
+                    <p className="text-sm leading-relaxed text-slate">Recibe un aviso y consulta el diagnóstico de IA para entender qué pasó.</p>
+                  </figcaption>
+                </figure>
               </div>
             </div>
           </section>
