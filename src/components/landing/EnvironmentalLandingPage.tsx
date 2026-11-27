@@ -552,8 +552,8 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </section>
 
           {/* 7. SECCIÓN DE FUNCIONAMIENTO */}
-          <section id="funcionamiento" className="scroll-mt-24 py-12 px-4 sm:px-6 bg-transparent">
-            <div className="max-w-7xl mx-auto space-y-10">
+          <section id="funcionamiento" className="scroll-mt-24 px-4 sm:px-6">
+            <div className="max-w-7xl mx-auto bg-[#FFFFFF] border border-[#0d1310]/15 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
                 <span className="text-[13px] font-bold uppercase tracking-wider text-brand-forest bg-garden-mint border border-garden-border px-3.5 py-1 rounded-full inline-block">
                   Cómo viajan los datos
