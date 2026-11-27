@@ -3,10 +3,10 @@ import * as THREE from 'three';
 
 /**
  * Modelado interactivo 3D con Three.js para SIMOA:
- * - Sensores reales de invernadero (Sensor DHT22, Placa ESP32, Sonda de suelo, Hojas y Gotas de riego)
- * - Diseñado con contraste en tonos oscuros (negro obsidiana / carbón) combinados con verde botánico
- * - Posicionado exclusivamente en los LATERALES (flancos izquierdo y derecho)
- * - Zona central 100% limpia y despejada para el texto y las métricas
+ * - Sensores de invernadero con estética cristalina / translúcida (NO negros, aspecto de vidrio/holográfico)
+ * - DHT22, ESP32, Sonda de suelo, Hojas botánicas y Gotas de riego
+ * - Confinados estrictamente a los laterales (flancos exteriores)
+ * - Protección matemática garantizada para que NUNCA sobrepasen el área del texto / letras
  */
 export const EnvironmentalThreeBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -25,12 +25,12 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       const scene = new THREE.Scene();
 
       const camera = new THREE.PerspectiveCamera(
-        55,
+        52,
         window.innerWidth / window.innerHeight,
         0.1,
         100
       );
-      camera.position.z = 22;
+      camera.position.z = 24;
 
       renderer = new THREE.WebGLRenderer({
         alpha: true,
@@ -42,163 +42,296 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       renderer.setClearColor(0x000000, 0);
       container.appendChild(renderer.domElement);
 
-      // Iluminación ambiental y dirigida para resaltar el contraste negro/verde
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+      // Iluminación ambiental y direccional suave para destacar reflejos translúcidos
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.15);
       scene.add(ambientLight);
 
-      const dirLightLeft = new THREE.DirectionalLight(0x4ade80, 1.3);
-      dirLightLeft.position.set(-15, 12, 10);
+      const dirLightLeft = new THREE.DirectionalLight(0x86efac, 1.1);
+      dirLightLeft.position.set(-18, 14, 12);
       scene.add(dirLightLeft);
 
-      const dirLightRight = new THREE.DirectionalLight(0x22c55e, 1.3);
-      dirLightRight.position.set(15, 12, 10);
+      const dirLightRight = new THREE.DirectionalLight(0x38bdf8, 1.1);
+      dirLightRight.position.set(18, 14, 12);
       scene.add(dirLightRight);
 
-      // Creadores procedurales de modelos de sensores e invernadero
+      // Conversión de píxeles de pantalla a coordenadas de mundo Three.js
+      const screenXToWorldX = (screenPx: number, targetZ: number): number => {
+        const ndcX = (screenPx / window.innerWidth) * 2 - 1;
+        const dist = camera.position.z - targetZ;
+        const halfHeight = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * dist;
+        const halfWidth = halfHeight * camera.aspect;
+        return ndcX * halfWidth;
+      };
+
+      // Obtener los límites seguros en píxeles del contenedor de contenido
+      const getSafeGutterBounds = () => {
+        const contentEl = document.querySelector('.max-w-7xl') || document.querySelector('main');
+        const rect = contentEl?.getBoundingClientRect();
+        const screenW = window.innerWidth;
+
+        // Márgenes seguros con holgura para que ningún modelo toque el texto
+        const leftMarginPx = rect ? rect.left : (screenW - 1280) / 2;
+        const rightMarginPx = rect ? rect.right : screenW - (screenW - 1280) / 2;
+
+        const safeLeftPx = Math.max(0, leftMarginPx - 30);
+        const safeRightPx = Math.min(screenW, rightMarginPx + 30);
+
+        return {
+          safeLeftPx,
+          safeRightPx,
+          hasLeftGutter: safeLeftPx >= 90,
+          hasRightGutter: screenW - safeRightPx >= 90,
+        };
+      };
+
+      // =========================================================================
+      // MODELOS 3D TRANSLÚCIDOS DE MONITOREO DE INVERNADEROS (SIN NEGRO)
+      // =========================================================================
+
+      // 1. Sensor DHT22 Translúcido (Vidrio esmeralda / menta con rejilla)
       const createDht22Sensor = (): THREE.Group => {
         const group = new THREE.Group();
-        // Carcasa negra de alto contraste
+
+        // Carcasa de vidrio menta translúcido
         const bodyMat = new THREE.MeshStandardMaterial({
-          color: 0x0f172a,
-          roughness: 0.3,
-          metalness: 0.3,
+          color: 0xdcfce7,
+          roughness: 0.15,
+          metalness: 0.1,
+          transparent: true,
+          opacity: 0.32,
+          depthWrite: false,
         });
-        const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.2, 0.6), bodyMat);
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.9, 0.45), bodyMat);
         group.add(body);
 
-        // Ranuras de ventilación verdes (rejilla higrométrica de invernadero)
-        const grillMat = new THREE.MeshBasicMaterial({ color: 0x22c55e });
-        [-0.5, -0.25, 0, 0.25, 0.5].forEach((yPos) => {
-          const slot = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.08, 0.64), grillMat);
+        // Borde fino de definición cristalina
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: 0x22c55e,
+          transparent: true,
+          opacity: 0.4,
+        });
+        const edges = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(1.4, 1.9, 0.45)),
+          edgeMat
+        );
+        group.add(edges);
+
+        // Ranuras de ventilación verde higrométrico translúcido
+        const grillMat = new THREE.MeshStandardMaterial({
+          color: 0x16a34a,
+          transparent: true,
+          opacity: 0.45,
+          depthWrite: false,
+        });
+        [-0.4, -0.2, 0, 0.2, 0.4].forEach((yPos) => {
+          const slot = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.48), grillMat);
           slot.position.set(0, yPos, 0);
           group.add(slot);
         });
 
-        // Pines inferiores de conexión metálicos
-        const pinMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.85, roughness: 0.2 });
-        [-0.45, -0.15, 0.15, 0.45].forEach((px) => {
-          const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8), pinMat);
-          pin.position.set(px, -1.35, 0);
+        // Pines inferiores de conexión translúcidos
+        const pinMat = new THREE.MeshStandardMaterial({
+          color: 0x94a3b8,
+          transparent: true,
+          opacity: 0.35,
+          metalness: 0.4,
+          roughness: 0.2,
+          depthWrite: false,
+        });
+        [-0.35, -0.12, 0.12, 0.35].forEach((px) => {
+          const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.45, 8), pinMat);
+          pin.position.set(px, -1.15, 0);
           group.add(pin);
         });
 
+        group.scale.set(0.75, 0.75, 0.75);
         return group;
       };
 
+      // 2. Placa Microcontrolador ESP32 Translúcida (Cristal jade con chip y pines dorados)
       const createEsp32Node = (): THREE.Group => {
         const group = new THREE.Group();
-        // Placa PCB negro grafito con serigrafía verde
-        const pcbMat = new THREE.MeshStandardMaterial({ color: 0x090d0b, roughness: 0.45, metalness: 0.2 });
-        const pcb = new THREE.Mesh(new THREE.BoxGeometry(1.9, 2.7, 0.15), pcbMat);
+
+        // Placa PCB cristal jade translúcido
+        const pcbMat = new THREE.MeshStandardMaterial({
+          color: 0x86efac,
+          roughness: 0.2,
+          metalness: 0.1,
+          transparent: true,
+          opacity: 0.30,
+          depthWrite: false,
+        });
+        const pcb = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.3, 0.12), pcbMat);
         group.add(pcb);
 
-        // Chip SoC central negro con marco metálico
-        const chipMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.2, metalness: 0.8 });
-        const chip = new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 0.25), chipMat);
-        chip.position.set(0, 0.2, 0.08);
+        // Borde cristalino verde
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: 0x16a34a,
+          transparent: true,
+          opacity: 0.38,
+        });
+        const edges = new THREE.LineSegments(
+          new THREE.EdgesGeometry(new THREE.BoxGeometry(1.6, 2.3, 0.12)),
+          edgeMat
+        );
+        group.add(edges);
+
+        // Chip SoC central translúcido pizarra/cristal (NO negro)
+        const chipMat = new THREE.MeshStandardMaterial({
+          color: 0x64748b,
+          roughness: 0.2,
+          metalness: 0.3,
+          transparent: true,
+          opacity: 0.35,
+          depthWrite: false,
+        });
+        const chip = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.18), chipMat);
+        chip.position.set(0, 0.15, 0.06);
         group.add(chip);
 
-        // LED de telemetría verde brillante
-        const ledMat = new THREE.MeshBasicMaterial({ color: 0x4ade80 });
-        const led = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.22), ledMat);
-        led.position.set(-0.65, 0.95, 0.1);
+        // LED de telemetría menta translúcido
+        const ledMat = new THREE.MeshBasicMaterial({
+          color: 0x4ade80,
+          transparent: true,
+          opacity: 0.65,
+        });
+        const led = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.16, 0.16), ledMat);
+        led.position.set(-0.55, 0.8, 0.08);
         group.add(led);
 
-        // Pines dorados en ambos bordes
-        const pinMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 });
-        for (let y = -1.1; y <= 1.1; y += 0.28) {
-          const pLeft = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.08, 0.1), pinMat);
-          pLeft.position.set(-1.0, y, 0);
+        // Pines perimetrales translúcidos ámbar suave
+        const pinMat = new THREE.MeshStandardMaterial({
+          color: 0xf59e0b,
+          transparent: true,
+          opacity: 0.4,
+          metalness: 0.5,
+          roughness: 0.2,
+          depthWrite: false,
+        });
+        for (let y = -0.9; y <= 0.9; y += 0.26) {
+          const pLeft = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.06, 0.08), pinMat);
+          pLeft.position.set(-0.85, y, 0);
           group.add(pLeft);
 
-          const pRight = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.08, 0.1), pinMat);
-          pRight.position.set(1.0, y, 0);
+          const pRight = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.06, 0.08), pinMat);
+          pRight.position.set(0.85, y, 0);
           group.add(pRight);
         }
 
+        group.scale.set(0.75, 0.75, 0.75);
         return group;
       };
 
+      // 3. Sonda Industrial de Sustrato/Suelo Translúcida (Orientada verticalmente para no invadir texto)
       const createIndustrialProbe = (): THREE.Group => {
         const group = new THREE.Group();
-        // Vástago de sonda de acero inoxidable para sustrato
-        const shaftMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.15 });
-        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 2.7, 16), shaftMat);
+
+        // Vástago de sonda cristalino acerado
+        const shaftMat = new THREE.MeshStandardMaterial({
+          color: 0xcfd8dc,
+          roughness: 0.2,
+          metalness: 0.35,
+          transparent: true,
+          opacity: 0.32,
+          depthWrite: false,
+        });
+        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 2.2, 16), shaftMat);
         group.add(shaft);
 
-        // Cabezal negro mate industrial
-        const headMat = new THREE.MeshStandardMaterial({ color: 0x090d0b, roughness: 0.35 });
-        const head = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.1, 16), headMat);
-        head.position.set(0, 1.7, 0);
+        // Cabezal superior translúcido verde bosque (NO negro)
+        const headMat = new THREE.MeshStandardMaterial({
+          color: 0x15803d,
+          roughness: 0.25,
+          transparent: true,
+          opacity: 0.38,
+          depthWrite: false,
+        });
+        const head = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.85, 16), headMat);
+        head.position.set(0, 1.4, 0);
         group.add(head);
 
-        // Anillo de goma verde de sellado estanco
-        const ringMat = new THREE.MeshBasicMaterial({ color: 0x16a34a });
-        const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.53, 0.53, 0.16, 16), ringMat);
-        ring.position.set(0, 1.3, 0);
+        // Anillo de sellado verde lima translúcido
+        const ringMat = new THREE.MeshBasicMaterial({
+          color: 0x4ade80,
+          transparent: true,
+          opacity: 0.55,
+        });
+        const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.41, 0.41, 0.12, 16), ringMat);
+        ring.position.set(0, 1.05, 0);
         group.add(ring);
 
+        // Mantener orientación vertical sutil (inclinación de solo 15°)
+        group.rotation.z = 0.25;
+        group.scale.set(0.75, 0.75, 0.75);
         return group;
       };
 
+      // 4. Hoja Botánica de Invernadero Translúcida
       const createGreenhouseLeaf = (): THREE.Group => {
         const group = new THREE.Group();
         const leafMat = new THREE.MeshStandardMaterial({
-          color: 0x16a34a,
-          roughness: 0.25,
-          metalness: 0.1,
+          color: 0x22c55e,
+          roughness: 0.2,
+          transparent: true,
+          opacity: 0.30,
           side: THREE.DoubleSide,
+          depthWrite: false,
         });
 
-        // Forma de hoja vegetal
         const shape = new THREE.Shape();
-        shape.moveTo(0, -1.2);
-        shape.quadraticCurveTo(0.85, -0.3, 0.9, 0.6);
-        shape.quadraticCurveTo(0.4, 1.3, 0, 1.9);
-        shape.quadraticCurveTo(-0.4, 1.3, -0.9, 0.6);
-        shape.quadraticCurveTo(-0.85, -0.3, 0, -1.2);
+        shape.moveTo(0, -1.0);
+        shape.quadraticCurveTo(0.7, -0.2, 0.75, 0.5);
+        shape.quadraticCurveTo(0.35, 1.1, 0, 1.6);
+        shape.quadraticCurveTo(-0.35, 1.1, -0.75, 0.5);
+        shape.quadraticCurveTo(-0.7, -0.2, 0, -1.0);
 
         const geom = new THREE.ExtrudeGeometry(shape, {
-          depth: 0.08,
+          depth: 0.05,
           bevelEnabled: true,
           bevelSegments: 2,
           steps: 1,
-          bevelSize: 0.04,
-          bevelThickness: 0.04,
+          bevelSize: 0.03,
+          bevelThickness: 0.03,
         });
         const mesh = new THREE.Mesh(geom, leafMat);
-        mesh.scale.set(0.85, 0.85, 0.85);
         group.add(mesh);
 
-        // Nervadura central contrastada en verde oscuro
-        const veinMat = new THREE.MeshBasicMaterial({ color: 0x0d3b1e });
-        const vein = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.5, 8), veinMat);
-        vein.position.set(0, 0.25, 0.07);
+        // Nervadura central translúcida
+        const veinMat = new THREE.MeshBasicMaterial({
+          color: 0x15803d,
+          transparent: true,
+          opacity: 0.45,
+        });
+        const vein = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.1, 8), veinMat);
+        vein.position.set(0, 0.2, 0.05);
         group.add(vein);
 
+        group.scale.set(0.75, 0.75, 0.75);
         return group;
       };
 
+      // 5. Gota de Humedad / Riego Translúcida
       const createHumidityDroplet = (): THREE.Group => {
         const group = new THREE.Group();
         const dropMat = new THREE.MeshStandardMaterial({
-          color: 0x0284c7,
-          roughness: 0.2,
-          metalness: 0.15,
+          color: 0x38bdf8,
+          roughness: 0.1,
+          metalness: 0.1,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.35,
+          depthWrite: false,
         });
-        const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.75, 16, 16), dropMat);
+        const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), dropMat);
         group.add(sphere);
 
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.3, 16), dropMat);
-        cone.position.set(0, 0.85, 0);
+        const cone = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.0, 16), dropMat);
+        cone.position.set(0, 0.7, 0);
         group.add(cone);
 
+        group.scale.set(0.75, 0.75, 0.75);
         return group;
       };
 
-      // Constructores disponibles
       const builders = [
         createDht22Sensor,
         createEsp32Node,
@@ -207,10 +340,9 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         createHumidityDroplet,
       ];
 
-      // Figuras 3D ubicadas exclusivamente a los LATERALES
+      // Figuras 3D confinadas a los laterales
       const shapes: Array<{
         group: THREE.Group;
-        baseX: number;
         baseY: number;
         baseZ: number;
         rotSpeedX: number;
@@ -221,46 +353,68 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         isLeft: boolean;
       }> = [];
 
-      const lateralConfigs = [
-        // Flanco Izquierdo
-        { x: -18.5, y: 11, z: -2, isLeft: true, modelIdx: 0 },
-        { x: -21.0, y: 6, z: -4, isLeft: true, modelIdx: 1 },
-        { x: -17.5, y: 1, z: -1, isLeft: true, modelIdx: 2 },
-        { x: -20.5, y: -4, z: -3, isLeft: true, modelIdx: 3 },
-        { x: -17.0, y: -9, z: -5, isLeft: true, modelIdx: 4 },
-        { x: -21.5, y: -14, z: -2, isLeft: true, modelIdx: 0 },
+      const initialBounds = getSafeGutterBounds();
 
-        // Flanco Derecho
-        { x: 18.5, y: 11, z: -2, isLeft: false, modelIdx: 1 },
-        { x: 21.0, y: 6, z: -4, isLeft: false, modelIdx: 0 },
-        { x: 17.5, y: 1, z: -1, isLeft: false, modelIdx: 3 },
-        { x: 20.5, y: -4, z: -3, isLeft: false, modelIdx: 2 },
-        { x: 17.0, y: -9, z: -5, isLeft: false, modelIdx: 4 },
-        { x: 21.5, y: -14, z: -2, isLeft: false, modelIdx: 1 },
+      // Configuración vertical de modelos (6 a la izquierda, 6 a la derecha)
+      const verticalSlots = [
+        { y: 11, z: -2, modelIdx: 0 },
+        { y: 6.5, z: -3.5, modelIdx: 1 },
+        { y: 1.5, z: -1.5, modelIdx: 2 },
+        { y: -3.5, z: -3, modelIdx: 3 },
+        { y: -8.5, z: -4, modelIdx: 4 },
+        { y: -13.5, z: -2, modelIdx: 0 },
       ];
 
-      lateralConfigs.forEach((cfg) => {
-        const buildFn = builders[cfg.modelIdx % builders.length];
+      // Añadir modelos del flanco izquierdo
+      verticalSlots.forEach((slot, idx) => {
+        const buildFn = builders[slot.modelIdx % builders.length];
         const group = buildFn();
-        group.position.set(cfg.x, cfg.y, cfg.z);
+        const targetX = screenXToWorldX(Math.max(20, initialBounds.safeLeftPx * 0.45), slot.z);
+        group.position.set(targetX, slot.y, slot.z);
         scene.add(group);
 
         shapes.push({
           group,
-          baseX: cfg.x,
-          baseY: cfg.y,
-          baseZ: cfg.z,
-          rotSpeedX: (Math.random() - 0.5) * 0.008,
-          rotSpeedY: (Math.random() - 0.5) * 0.012,
-          rotSpeedZ: (Math.random() - 0.5) * 0.006,
+          baseY: slot.y,
+          baseZ: slot.z,
+          rotSpeedX: (Math.random() - 0.5) * 0.007,
+          rotSpeedY: (Math.random() - 0.5) * 0.010,
+          rotSpeedZ: (Math.random() - 0.5) * 0.005,
           floatSpeed: 0.001 + Math.random() * 0.001,
-          floatOffset: Math.random() * Math.PI * 2,
-          isLeft: cfg.isLeft,
+          floatOffset: (idx * Math.PI) / 3,
+          isLeft: true,
         });
       });
 
-      // Partículas laterales (moléculas de aire / señales telemétricas)
-      const particleCount = 70;
+      // Añadir modelos del flanco derecho
+      verticalSlots.forEach((slot, idx) => {
+        const buildFn = builders[(slot.modelIdx + 2) % builders.length];
+        const group = buildFn();
+        const screenW = window.innerWidth;
+        const targetX = screenXToWorldX(
+          initialBounds.safeRightPx + (screenW - initialBounds.safeRightPx) * 0.55,
+          slot.z
+        );
+        group.position.set(targetX, slot.y, slot.z);
+        scene.add(group);
+
+        shapes.push({
+          group,
+          baseY: slot.y,
+          baseZ: slot.z,
+          rotSpeedX: (Math.random() - 0.5) * 0.007,
+          rotSpeedY: (Math.random() - 0.5) * 0.010,
+          rotSpeedZ: (Math.random() - 0.5) * 0.005,
+          floatSpeed: 0.001 + Math.random() * 0.001,
+          floatOffset: (idx * Math.PI) / 3 + 1.2,
+          isLeft: false,
+        });
+      });
+
+      // =========================================================================
+      // PARTÍCULAS LATERALES TRANSLÚCIDAS (SEÑALES Y MOLÉCULAS DE AIRE)
+      // =========================================================================
+      const particleCount = 60;
       const particleGeometry = new THREE.BufferGeometry();
       const positionsArray = new Float32Array(particleCount * 3);
       const basePositions = new Float32Array(particleCount * 3);
@@ -268,9 +422,14 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       for (let i = 0; i < particleCount; i++) {
         const i3 = i * 3;
         const isLeft = i % 2 === 0;
-        const x = isLeft ? -16.5 - Math.random() * 8.5 : 16.5 + Math.random() * 8.5;
+        const screenW = window.innerWidth;
+        const screenX = isLeft
+          ? Math.random() * Math.max(20, initialBounds.safeLeftPx * 0.7)
+          : initialBounds.safeRightPx + Math.random() * (screenW - initialBounds.safeRightPx);
+
+        const x = screenXToWorldX(screenX, -2);
         const y = (Math.random() - 0.5) * 32;
-        const z = (Math.random() - 0.5) * 12 - 2;
+        const z = (Math.random() - 0.5) * 8 - 2;
 
         positionsArray[i3] = x;
         positionsArray[i3 + 1] = y;
@@ -283,22 +442,20 @@ export const EnvironmentalThreeBackground: React.FC = () => {
 
       particleGeometry.setAttribute('position', new THREE.BufferAttribute(positionsArray, 3));
       const particleMaterial = new THREE.PointsMaterial({
-        color: 0x16a34a,
-        size: 0.22,
+        color: 0x4ade80,
+        size: 0.18,
         transparent: true,
-        opacity: 0.55,
+        opacity: 0.35,
+        depthWrite: false,
       });
       const particles = new THREE.Points(particleGeometry, particleMaterial);
       scene.add(particles);
 
-      // Estado del mouse
+      // Manejo del cursor para parallax suave
       const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
-      const worldMouse = new THREE.Vector3(0, 0, 0);
-
       const handleMouseMove = (e: MouseEvent) => {
         mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
         mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
-        worldMouse.set(mouse.targetX * 20, mouse.targetY * 12, 0);
       };
 
       let scrollOffset = 0;
@@ -318,61 +475,97 @@ export const EnvironmentalThreeBackground: React.FC = () => {
 
       window.addEventListener('resize', handleResize);
 
-      // Bucle de animación
+      // =========================================================================
+      // BUCLE DE ANIMACIÓN CON RESTRICCIÓN MATEMÁTICA ESTRICTA (FUERA DE LAS LETRAS)
+      // =========================================================================
       let clock = 0;
       const animate = () => {
         animationFrameId = requestAnimationFrame(animate);
         clock += 0.016;
 
-        mouse.x += (mouse.targetX - mouse.x) * 0.06;
-        mouse.y += (mouse.targetY - mouse.y) * 0.06;
+        // Suavizado del movimiento del cursor
+        mouse.x += (mouse.targetX - mouse.x) * 0.05;
+        mouse.y += (mouse.targetY - mouse.y) * 0.05;
 
-        camera.position.x = mouse.x * 1.5;
-        camera.position.y = mouse.y * 1.2 - scrollOffset * 0.4;
-        camera.lookAt(0, -scrollOffset * 0.3, 0);
+        // Parallax de la cámara contenido
+        camera.position.x = mouse.x * 0.8;
+        camera.position.y = mouse.y * 0.6 - scrollOffset * 0.3;
+        camera.lookAt(0, -scrollOffset * 0.25, 0);
+
+        // Recalcular los límites de seguridad en píxeles
+        const currentBounds = getSafeGutterBounds();
+        const screenW = window.innerWidth;
 
         shapes.forEach((s) => {
           s.group.rotation.x += s.rotSpeedX;
           s.group.rotation.y += s.rotSpeedY;
           s.group.rotation.z += s.rotSpeedZ;
 
-          const floatY = Math.sin(clock * 1.1 + s.floatOffset) * 0.55;
-          s.group.position.y = s.baseY + floatY - scrollOffset * 0.75;
+          const floatY = Math.sin(clock * 1.0 + s.floatOffset) * 0.45;
+          s.group.position.y = s.baseY + floatY - scrollOffset * 0.6;
 
-          const dx = s.group.position.x - worldMouse.x;
-          const dy = s.group.position.y - worldMouse.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 6.0) {
-            const force = (6.0 - dist) / 6.0;
-            const pushDir = s.isLeft ? -1 : 1;
-            s.group.position.x = s.baseX + pushDir * force * 1.5;
-          } else {
-            s.group.position.x += (s.baseX - s.group.position.x) * 0.04;
-          }
-
-          // Confinamiento estricto a los laterales (|x| >= 16.0)
+          // REGLA CRÍTICA: Ningún modelo sobrepasa la zona de las letras
           if (s.isLeft) {
-            s.group.position.x = Math.min(-16.0, s.group.position.x);
+            if (!currentBounds.hasLeftGutter) {
+              // Si la pantalla es estrecha y no hay margen libre a la izquierda, ocultar completamente
+              s.group.visible = false;
+            } else {
+              s.group.visible = true;
+              // Anclar estrictamente dentro del margen libre izquierdo
+              const safeGutterCenterPx = currentBounds.safeLeftPx * 0.45;
+              const targetWorldX = screenXToWorldX(safeGutterCenterPx, s.baseZ);
+              s.group.position.x = targetWorldX;
+
+              // Límite infranqueable: el borde derecho del modelo NUNCA cruza safeLeftPx
+              const maxAllowedWorldX = screenXToWorldX(currentBounds.safeLeftPx - 25, s.baseZ);
+              if (s.group.position.x > maxAllowedWorldX) {
+                s.group.position.x = maxAllowedWorldX;
+              }
+            }
           } else {
-            s.group.position.x = Math.max(16.0, s.group.position.x);
+            if (!currentBounds.hasRightGutter) {
+              s.group.visible = false;
+            } else {
+              s.group.visible = true;
+              const safeGutterCenterPx =
+                currentBounds.safeRightPx + (screenW - currentBounds.safeRightPx) * 0.55;
+              const targetWorldX = screenXToWorldX(safeGutterCenterPx, s.baseZ);
+              s.group.position.x = targetWorldX;
+
+              // Límite infranqueable: el borde izquierdo del modelo NUNCA cruza safeRightPx
+              const minAllowedWorldX = screenXToWorldX(currentBounds.safeRightPx + 25, s.baseZ);
+              if (s.group.position.x < minAllowedWorldX) {
+                s.group.position.x = minAllowedWorldX;
+              }
+            }
           }
         });
 
+        // Partículas contenidas estrictamente en los márgenes
         const posAttr = particleGeometry.getAttribute('position') as THREE.BufferAttribute;
         const arr = posAttr.array as Float32Array;
 
         for (let i = 0; i < particleCount; i++) {
           const ix = i * 3;
-          const bx = basePositions[ix];
+          const isLeft = i % 2 === 0;
           const by = basePositions[ix + 1];
 
-          arr[ix + 1] = by + Math.sin(clock * 0.75 + i) * 0.35 - scrollOffset * 0.5;
+          arr[ix + 1] = by + Math.sin(clock * 0.65 + i) * 0.3 - scrollOffset * 0.4;
 
-          if (bx < 0) {
-            arr[ix] = Math.min(-15.5, arr[ix]);
+          if (isLeft) {
+            if (!currentBounds.hasLeftGutter) {
+              arr[ix + 2] = -999; // Ocultar si no hay espacio
+            } else {
+              const maxPartX = screenXToWorldX(currentBounds.safeLeftPx - 15, -2);
+              arr[ix] = Math.min(arr[ix], maxPartX);
+            }
           } else {
-            arr[ix] = Math.max(15.5, arr[ix]);
+            if (!currentBounds.hasRightGutter) {
+              arr[ix + 2] = -999;
+            } else {
+              const minPartX = screenXToWorldX(currentBounds.safeRightPx + 15, -2);
+              arr[ix] = Math.max(arr[ix], minPartX);
+            }
           }
         }
         posAttr.needsUpdate = true;
@@ -391,6 +584,13 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         shapes.forEach((s) => {
           s.group.traverse((child) => {
             if (child instanceof THREE.Mesh) {
+              child.geometry.dispose();
+              if (Array.isArray(child.material)) {
+                child.material.forEach((m) => m.dispose());
+              } else {
+                child.material.dispose();
+              }
+            } else if (child instanceof THREE.LineSegments) {
               child.geometry.dispose();
               if (Array.isArray(child.material)) {
                 child.material.forEach((m) => m.dispose());
