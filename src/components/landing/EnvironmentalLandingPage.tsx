@@ -592,28 +592,32 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#FFFFFF] border border-[#0d1310]/14 shadow-xs hover:border-[#15803D]/50 hover:shadow-md rounded-[28px] p-6 h-full flex flex-col justify-between space-y-4 transition-all">
+                    <div className="bg-[#0d1310] text-white border border-[#1f2922] shadow-md hover:border-[#22c55e]/50 hover:shadow-xl rounded-[28px] p-6 h-full flex flex-col justify-between space-y-4 transition-all">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-[12px] text-[#0d1310] font-bold uppercase tracking-wider bg-[#f0fdf4] border border-[#86efac]/80 px-2.5 py-1 rounded-full">
+                          <span className="text-[11px] text-[#86efac] font-bold uppercase tracking-wider bg-[#14231a] border border-[#166534] px-2.5 py-1 rounded-full">
                             Telemetría SIMOA
                           </span>
-                          <div className="w-9 h-9 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shadow-xs">
+                          <div className="w-9 h-9 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shadow-xs">
                             {item.icon}
                           </div>
                         </div>
-                        <div className={`text-[32px] font-bold ${item.metricColor} py-1 tabular-nums font-display`}>
+                        <div
+                          className={`text-[32px] font-bold ${
+                            item.metricColor === 'text-[#DC2626]' ? 'text-[#f87171]' : 'text-[#4ade80]'
+                          } py-1 tabular-nums font-display`}
+                        >
                           {item.metric}
                         </div>
-                        <h3 className="text-[18px] font-bold leading-snug text-[#0d1310]">
+                        <h3 className="text-[18px] font-bold leading-snug text-white">
                           {item.title}
                         </h3>
-                        <p className="text-[14px] leading-relaxed text-[#1e293b]">
+                        <p className="text-[14px] leading-relaxed text-[#cbd5e1]">
                           {item.desc}
                         </p>
                       </div>
-                      <div className="pt-3 border-t border-[#0d1310]/10 flex items-center gap-2 text-[12px] font-semibold text-[#0d1310]">
-                        <CheckCircle2 className="w-4 h-4 text-[#15803D]" />
+                      <div className="pt-3 border-t border-[#1e2e25] flex items-center gap-2 text-[12px] font-semibold text-[#86efac]">
+                        <CheckCircle2 className="w-4 h-4 text-[#4ade80]" />
                         <span>Módulo activo en tiempo real</span>
                       </div>
                     </div>
@@ -717,18 +721,17 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             </div>
           </section>
 
-          {/* 6. SECCIÓN DE TECNOLOGÍAS - ALTO CONTRASTE NEGRO INDUSTRIAL */}
+          {/* 6. SECCIÓN DE TECNOLOGÍAS - CONTENEDOR LIMPIO CON TARJETAS OSCURAS DE ALTO CONTRASTE */}
           <section id="tecnologias" className="px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto bg-[#0d1310] text-white border border-[#1f2922] shadow-[0_16px_50px_rgba(13,19,16,0.35)] rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
+            <div className="max-w-7xl mx-auto bg-[#FFFFFF] border border-[#0d1310]/15 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-4">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-[#4ade80] bg-[#16291e] border border-[#22c55e]/40 px-3.5 py-1 rounded-full inline-flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
+                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
                   Stack & Protocolos
                 </span>
-                <h2 className="text-[30px] sm:text-[38px] font-bold text-white tracking-tight leading-tight">
+                <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
                   Ingeniería abierta de grado industrial.
                 </h2>
-                <p className="text-[16px] text-[#cbd5e1] leading-relaxed max-w-3xl">
+                <p className="text-[16px] text-[#1e293b] leading-relaxed max-w-3xl">
                   Estándares abiertos de baja latencia con compresión Brotli/Gzip, caché Redis, pool de conexiones co-localizado y trazabilidad OpenTelemetry.
                 </p>
               </ScrollReveal>
@@ -742,7 +745,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-56" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#141d18] border border-[#1e2e25] rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 hover:border-[#22c55e]/50 hover:shadow-[0_8px_24px_rgba(34,197,94,0.12)] transition-all">
+                    <div className="bg-[#0d1310] text-white border border-[#1f2922] shadow-md hover:border-[#22c55e]/50 hover:shadow-xl rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 transition-all">
                       <div className="space-y-2">
                         <span className="text-[12px] font-bold text-[#4ade80] uppercase tracking-wider">
                           {tech.category}
@@ -750,12 +753,12 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                         <h3 className="text-[20px] font-bold text-white">
                           {tech.name}
                         </h3>
-                        <p className="text-[14px] leading-relaxed text-[#94a3b8]">
+                        <p className="text-[14px] leading-relaxed text-[#cbd5e1]">
                           {tech.desc}
                         </p>
                       </div>
                       <div className="pt-3 border-t border-[#1e2e25]">
-                        <span className="text-[12px] font-mono font-semibold text-[#86efac] bg-[#0d1310] border border-[#166534] px-3 py-1 rounded-full inline-block">
+                        <span className="text-[12px] font-mono font-semibold text-[#86efac] bg-[#14231a] border border-[#166534] px-3 py-1 rounded-full inline-block">
                           {tech.badge}
                         </span>
                       </div>
@@ -790,26 +793,26 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-xs hover:border-[#15803D]/50 hover:shadow-md rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
+                    <div className="bg-[#0d1310] text-white border border-[#1f2922] shadow-sm hover:border-[#22c55e]/50 hover:shadow-md rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono font-bold text-[#86efac] bg-[#0d1310] border border-[#166534] px-2.5 py-0.5 rounded-full">
+                          <span className="text-[11px] font-mono font-bold text-[#86efac] bg-[#14231a] border border-[#166534] px-2.5 py-0.5 rounded-full">
                             PASO {step.step}
                           </span>
-                          <div className="w-8 h-8 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shadow-xs">
+                          <div className="w-8 h-8 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shadow-xs">
                             {step.icon}
                           </div>
                         </div>
-                        <h4 className="text-[16px] font-bold text-[#0d1310]">
+                        <h4 className="text-[16px] font-bold text-white">
                           {step.title}
                         </h4>
-                        <p className="text-[13px] leading-relaxed text-[#1e293b]">
+                        <p className="text-[13px] leading-relaxed text-[#94a3b8]">
                           {step.desc}
                         </p>
                       </div>
-                      <div className="text-[12px] text-[#0d1310] font-bold pt-1 flex items-center gap-1">
+                      <div className="text-[12px] text-[#4ade80] font-bold pt-1 flex items-center gap-1">
                         <span>Etapa verificada</span>
-                        <span className="text-[#15803D]">→</span>
+                        <span>→</span>
                       </div>
                     </div>
                   </ScrollReveal>
@@ -857,43 +860,43 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     </div>
 
                     <div className="space-y-3">
-                      <div className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[#0d1310]/14 shadow-xs flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                      <div className="p-4 rounded-[20px] bg-[#0d1310] text-white border border-[#1f2922] shadow-sm flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
                           <ShieldCheck className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#15803D] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#86efac] block">
                             Variables Supervisadas
                           </span>
-                          <span className="text-[14px] font-bold text-[#0d1310] block">
+                          <span className="text-[14px] font-bold text-white block">
                             Temperatura (°C), Humedad Relativa (%RH) y Punto de Rocío
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[#0d1310]/14 shadow-xs flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                      <div className="p-4 rounded-[20px] bg-[#0d1310] text-white border border-[#1f2922] shadow-sm flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
                           <MapPin className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#15803D] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#86efac] block">
                             Sectores de Aplicación
                           </span>
-                          <span className="text-[14px] font-bold text-[#0d1310] block">
+                          <span className="text-[14px] font-bold text-white block">
                             Agroindustria, Invernaderos, Laboratorios y Cadena de Frío
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[#0d1310]/14 shadow-xs flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                      <div className="p-4 rounded-[20px] bg-[#0d1310] text-white border border-[#1f2922] shadow-sm flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
                           <Clock className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#15803D] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#86efac] block">
                             Disponibilidad y Soporte
                           </span>
-                          <span className="text-[14px] font-bold text-[#15803D] block">
+                          <span className="text-[14px] font-bold text-[#4ade80] block">
                             Monitoreo continuo 24/7 con alertas instantáneas
                           </span>
                         </div>
