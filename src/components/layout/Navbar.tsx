@@ -66,7 +66,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <div className="sticky top-0 z-30 font-sans">
       {/* Announcement Bar — Environmental Mint */}
-      <div className="w-full bg-console-session border-b border-brand-yellow-border text-brand-gold px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-medium">
+      <div className="w-full bg-garden-sage border-b border-garden-border text-garden-deep px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-medium">
         <span
           className={`w-2 h-2 rounded-full shrink-0 ${
             isStreaming ? 'bg-[#16A34A] animate-pulse' : 'bg-[#94A3B8]'
@@ -95,7 +95,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Navigation Links — Pill tabs */}
-        <nav className="hidden lg:flex items-center gap-1 bg-brand-lavender p-1 rounded-full border border-brand-lavender-border">
+        <nav className="hidden lg:flex items-center gap-1 bg-garden-mint p-1 rounded-full border border-garden-border">
           {visibleNavItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -104,8 +104,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => onTabChange(item.id)}
                 className={`px-4 py-2 rounded-full text-[13px] transition-all whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'bg-brand-plum text-white font-semibold shadow-xs'
-                    : 'text-brand-plum font-medium hover:bg-white'
+                    ? 'bg-brand-forest text-white font-semibold shadow-xs'
+                    : 'text-brand-forest font-medium hover:bg-white'
                 }`}
               >
                 {item.id === 'sensors' && (

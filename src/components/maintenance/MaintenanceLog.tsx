@@ -201,7 +201,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
                       {fecha ? new Date(fecha).toLocaleDateString() : 'N/D'}
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="apple-badge-orange font-mono">{mnt.tipo_mantenimiento}</span>
+                      <span className="garden-badge font-mono">{mnt.tipo_mantenimiento}</span>
                     </td>
                     <td className="px-5 py-3.5 font-semibold text-bark">
                       {devName}

@@ -280,7 +280,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
             <h2 className="apple-card-heading text-bark">
               {currentLocation?.nombre}
             </h2>
-            <span className="apple-badge-orange font-mono">
+            <span className="garden-badge font-mono">
               {currentLocation?.codigo_area}
             </span>
             {globalConnectivityStats && (
@@ -314,7 +314,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
                 onClick={() => onSelectLocation(loc.id_ubicacion)}
                 className={`flex items-center gap-2 px-4 py-1.5 text-[13px] rounded-full transition-colors whitespace-nowrap cursor-pointer ${
                   isSelected
-                    ? 'bg-[#17191c] text-white font-medium'
+                    ? 'bg-brand-forest text-white font-medium'
                     : 'text-[#777b86] hover:text-[#17191c]'
                 }`}
               >
@@ -420,7 +420,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[12px] font-semibold text-slate">Presión Atmosférica</span>
-              <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full font-medium bg-[#fbe1d1] text-[#5d2a1a]">
+              <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full font-medium bg-garden-mint text-garden-deep">
                 SENSOR BME280
               </span>
             </div>
@@ -436,8 +436,8 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           </div>
         )}
 
-        <div className="bg-brand-lavender border border-brand-lavender-border rounded-[16px] p-4">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-brand-plum"><BrainCircuit className="h-4 w-4" /> Diagnóstico de la lectura</h3>
+        <div className="bg-garden-mint border border-garden-border rounded-[16px] p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-brand-forest"><BrainCircuit className="h-4 w-4" /> Diagnóstico de la lectura</h3>
           <p className="mt-2 text-xs text-slate">
             {rf08Snapshot?.z_score_disponible && rf08Snapshot.z_score !== null && !rf08Stale &&
               !isDeviceUnavailable(rf08Snapshot.dispositivo_id)

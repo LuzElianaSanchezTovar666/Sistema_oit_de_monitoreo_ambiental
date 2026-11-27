@@ -68,14 +68,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const containerClass = fullPage
-    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-[#F2F8F4] font-sans'
+    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-garden-sage font-sans'
     : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md font-sans';
 
   return (
     <div className={containerClass}>
       <div className="w-full max-w-4xl bg-white text-[#0D3B1E] rounded-[28px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-[#C8E6C9] shadow-[0_8px_30px_rgba(13,59,30,0.12)]">
         {/* Panel izquierdo — Identidad Oficial SIMOA */}
-        <div className="md:col-span-5 bg-brand-lavender text-brand-plum p-8 sm:p-10 flex flex-col justify-center border-b md:border-b-0 md:border-r border-brand-lavender-border">
+        <div className="md:col-span-5 bg-garden-mint text-garden-deep p-8 sm:p-10 flex flex-col justify-center border-b md:border-b-0 md:border-r border-garden-border">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
@@ -84,7 +84,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 className="h-10 w-auto object-contain"
               />
             </div>
-            <h2 className="text-[24px] font-semibold text-brand-plum leading-tight pt-2">
+            <h2 className="text-[24px] font-semibold text-brand-forest leading-tight pt-2">
               Monitoreo ambiental SIMOA
             </h2>
             <p className="text-[15px] text-[#3B694C] leading-relaxed">

@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Dispositivos',
       icon: <Cpu className="w-4 h-4" />,
       badge: devicesCount.toString(),
-      badgeStyle: 'bg-[#f2f2f3] text-[#17191c] rounded-full',
+      badgeStyle: 'bg-garden-mint text-garden-deep rounded-full',
       allowedRoles: ['admin', 'tecnico', 'supervisor'],
     },
     {
@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Sensores',
       icon: <Thermometer className="w-4 h-4" />,
       badge: 'IoT',
-      badgeStyle: 'bg-brand-yellow text-brand-gold rounded-full',
+      badgeStyle: 'bg-garden-leaf text-garden-deep rounded-full',
       allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'],
     },
     {
@@ -68,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Alertas e Incidencias',
       icon: <AlertTriangle className="w-4 h-4" />,
       badge: alertCount > 0 ? alertCount.toString() : null,
-      badgeStyle: 'bg-[#17191c] text-white rounded-full',
+      badgeStyle: 'bg-brand-yellow text-brand-gold rounded-full',
       allowedRoles: ['admin', 'cliente', 'tecnico', 'supervisor'],
     },
     {
@@ -83,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Diagnóstico IA',
       icon: <Sparkles className="w-4 h-4" />,
       badge: 'IA',
-      badgeStyle: 'bg-[#f2f2f3] text-[#17191c] rounded-full',
+      badgeStyle: 'bg-garden-mint text-garden-deep rounded-full',
       allowedRoles: ['admin', 'cliente', 'supervisor'],
     },
     {
@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="w-64 shrink-0 bg-console-sidebar text-console-sidebar-muted border-r border-console-sidebar-border flex flex-col justify-between p-5 hidden md:flex font-sans">
       <div className="space-y-6">
         <div>
-          <span className="apple-badge-orange uppercase tracking-[0.08em] px-2.5 block mb-3 text-[11px] font-semibold">
+          <span className="garden-badge uppercase tracking-[0.08em] px-2.5 block mb-3 text-[11px] font-semibold">
             Menú de Consola
           </span>
           <nav className="space-y-1">
@@ -120,7 +120,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-[13px] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-yellow ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-full text-[13px] transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-garden-leaf ${
                     isActive
                       ? 'bg-console-sidebar-active text-white font-semibold shadow-xs'
                       : 'text-console-sidebar-muted font-medium hover:bg-console-sidebar-panel hover:text-white'

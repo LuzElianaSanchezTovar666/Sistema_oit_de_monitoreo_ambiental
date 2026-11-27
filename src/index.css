@@ -339,10 +339,10 @@
 }
 
 /* Eco Leaf Badge */
-.apple-badge-orange {
-  background-color: var(--color-brand-yellow);
-  border: 1px solid var(--color-brand-yellow-border);
-  color: var(--color-brand-gold);
+.garden-badge {
+  background-color: var(--color-garden-mint);
+  border: 1px solid var(--color-garden-border);
+  color: var(--color-brand-forest);
   border-radius: 6px;
   padding: 4px 8px;
   font-family: var(--font-sf-pro-text);
@@ -350,6 +350,12 @@
   font-weight: 600;
   line-height: 16px;
   letter-spacing: -0.12px;
+}
+
+.garden-badge-warning {
+  background-color: var(--color-brand-yellow);
+  border-color: var(--color-brand-yellow-border);
+  color: var(--color-brand-gold);
 }
 
 .apple-inline-link {
@@ -425,7 +431,7 @@
 
 /* Alias usados por la consola y por los componentes de telemetría. */
 @theme static {
-  /* Verde para acciones, morado para navegación y amarillo para avisos. */
+  /* Verdes compartidos por la portada y la consola. */
   --color-brand-forest: #194c34;
   --color-garden-deep: #123729;
   --color-garden-paper: #fafbf6;
@@ -433,28 +439,26 @@
   --color-garden-sage: #d7e7d8;
   --color-garden-leaf: #a8d183;
   --color-garden-border: #b3c9b8;
-  --color-brand-plum: #573b82;
-  --color-brand-lavender: #f1ebf8;
-  --color-brand-lavender-border: #d6c8e5;
+  --color-garden-temperature: #447233;
+  --color-garden-humidity: #245b4a;
   --color-brand-yellow: #fff3c9;
   --color-brand-yellow-border: #d3b76b;
   --color-brand-gold: #634606;
-  --color-console-sidebar: #171717;
-  --color-console-sidebar-panel: #262626;
-  --color-console-sidebar-active: #4d4d4d;
-  --color-console-sidebar-border: #656565;
-  --color-console-sidebar-muted: #e5e5e5;
+  --color-console-sidebar: #123729;
+  --color-console-sidebar-panel: #1b4836;
+  --color-console-sidebar-active: #326648;
+  --color-console-sidebar-border: #729d7d;
+  --color-console-sidebar-muted: #eaf4e7;
   --color-console-sidebar-status: #bce6c8;
-  --color-console-session: #efe3bb;
   --color-console-on-solid: #ffffff;
   --color-console-danger: var(--color-crimson-danger);
-  --color-console-info: #145a78;
+  --color-console-info: #245b4a;
   --color-console-muted: var(--color-slate);
   --color-console-accent: var(--color-canopy);
   --color-console-warning: var(--color-signal-yellow);
   --color-deep-abyss: var(--color-sheet-white);
-  --color-cream-paper: #cfdcd3;
-  --color-sheet-white: #f5f8f3;
+  --color-cream-paper: #d7e7d8;
+  --color-sheet-white: #fafbf6;
   --color-bark: #172c21;
   --color-slate: #405b4b;
   --color-sage-mist: #738779;
@@ -475,9 +479,9 @@
   --console-green: #246044;
   --console-amber: #784500;
   --console-red: #a51e2c;
-  --console-blue: #145a78;
+  --console-blue: var(--color-console-info);
   --console-muted: #405b4b;
-  --console-table-heading: var(--color-brand-lavender);
+  --console-table-heading: var(--color-garden-sage);
   background-color: var(--color-cream-paper);
   color: var(--color-pure-white);
   color-scheme: light;
@@ -561,7 +565,7 @@
 }
 
 .console-content :is(button, a, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid var(--color-brand-plum);
+  outline: 2px solid var(--color-brand-forest);
   outline-offset: 2px;
   box-shadow: 0 0 0 2px #ffffff;
 }

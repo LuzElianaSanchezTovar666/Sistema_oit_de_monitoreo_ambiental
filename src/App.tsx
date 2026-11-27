@@ -752,7 +752,7 @@ export default function App() {
                     {FIELD_SIMULATOR_ENABLED && activeTab === 'simulator' && (
                       <div className="space-y-6">
                         <div className="bg-sheet-white p-8 rounded-[16px] space-y-4">
-                          <span className="apple-badge-orange inline-block">ENTORNO DE PRUEBAS E2E</span>
+                          <span className="garden-badge inline-block">ENTORNO DE PRUEBAS E2E</span>
                           <h3 className="apple-card-heading text-bark">
                             Simulador de Campo &amp; Pruebas de Resiliencia
                           </h3>

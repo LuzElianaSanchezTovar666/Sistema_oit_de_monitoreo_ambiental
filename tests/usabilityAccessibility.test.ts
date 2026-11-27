@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { getDefaultTabForRole } from '../src/services/authService';
 import { formatToBogotaDateTime, formatToBogotaDate, formatToBogotaTime } from '../src/utils/dateFormatter';
 
@@ -45,25 +46,33 @@ test('RNF-01: Usabilidad - Acceso a temperatura actual en < 10 segundos para Ope
 });
 
 test('RNF-01: Accesibilidad - Ratios de contraste WCAG 2.1 AA (>= 4.5:1 para texto normal)', () => {
-  const white = '#FFFFFF';
-  const forest = '#1B4332'; // Bosque profundo
-  const bark = '#2D3142';   // Corteza
-  const slate = '#64748B';  // Pizarra
-  const terracotta = '#D8572A'; // Terracota
+  const css = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
+  const colors = new Map(Array.from(css.matchAll(/--color-([\w-]+):\s*(#[\da-f]{6});/gi), ([, name, hex]) => [name, hex]));
+  const textPairs = [
+    ['console-sidebar-muted', 'console-sidebar'],
+    ['console-sidebar-status', 'console-sidebar-panel'],
+    ['console-on-solid', 'console-sidebar-active'],
+    ['console-on-solid', 'brand-forest'],
+    ['garden-deep', 'garden-leaf'],
+    ['bark', 'garden-sage'],
+    ['slate', 'sheet-white'],
+    ['brand-gold', 'brand-yellow'],
+  ];
+  const chartPairs = [
+    ['garden-humidity', 'garden-sage'],
+    ['garden-temperature', 'garden-sage'],
+    ['crimson-danger', 'garden-sage'],
+  ];
 
-  const contrastForest = getContrastRatio(forest, white);
-  assert.ok(contrastForest >= 4.5, `Contraste Bosque/Blanco (${contrastForest.toFixed(2)}) debe ser >= 4.5:1`);
-  assert.ok(contrastForest >= 7.0, `Bosque profundo cumple nivel AAA (${contrastForest.toFixed(2)} >= 7.0:1)`);
-
-  const contrastBark = getContrastRatio(bark, white);
-  assert.ok(contrastBark >= 4.5, `Contraste Corteza/Blanco (${contrastBark.toFixed(2)}) debe ser >= 4.5:1`);
-  assert.ok(contrastBark >= 7.0, `Corteza cumple nivel AAA (${contrastBark.toFixed(2)} >= 7.0:1)`);
-
-  const contrastSlate = getContrastRatio(slate, white);
-  assert.ok(contrastSlate >= 4.5, `Contraste Pizarra/Blanco (${contrastSlate.toFixed(2)}) debe ser >= 4.5:1`);
-
-  const contrastTerracotta = getContrastRatio(terracotta, white);
-  assert.ok(contrastTerracotta >= 3.0, `Contraste Terracota/Blanco (${contrastTerracotta.toFixed(2)}) debe ser >= 3.0:1`);
+  for (const [minimum, pairs] of [[4.5, textPairs], [3, chartPairs]] as const) {
+    for (const [fg, bg] of pairs) {
+      const foreground = colors.get(fg);
+      const background = colors.get(bg);
+      assert.ok(foreground && background, `Colores definidos para ${fg} y ${bg}`);
+      const contrast = getContrastRatio(foreground, background);
+      assert.ok(contrast >= minimum, `Contraste ${fg}/${bg} (${contrast.toFixed(2)}) debe ser >= ${minimum}:1`);
+    }
+  }
 });
 
 test('RNF-12: Formateador en frontend convierte explícitamente a America/Bogota (UTC-5)', () => {

@@ -204,7 +204,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                   Ficha Técnica e Historial por Dispositivo (RF-20)
                 </h2>
                 {dev && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-brand-yellow text-brand-gold border border-brand-yellow-border">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-garden-mint text-garden-deep border border-garden-border">
                     {dev.codigo || dev.id_dispositivo}
                   </span>
                 )}
@@ -291,7 +291,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                 onClick={() => setActiveTab('general')}
                 className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'general'
-                    ? 'border-brand-plum bg-brand-plum text-white'
+                    ? 'border-canopy bg-canopy text-white'
                     : 'border-transparent text-slate-text hover:text-pure-white'
                 }`}
               >
@@ -302,7 +302,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                 onClick={() => setActiveTab('mqtt')}
                 className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'mqtt'
-                    ? 'border-brand-plum bg-brand-plum text-white'
+                    ? 'border-canopy bg-canopy text-white'
                     : 'border-transparent text-slate-text hover:text-pure-white'
                 }`}
               >
@@ -313,7 +313,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                 onClick={() => setActiveTab('sensores')}
                 className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'sensores'
-                    ? 'border-brand-plum bg-brand-plum text-white'
+                    ? 'border-canopy bg-canopy text-white'
                     : 'border-transparent text-slate-text hover:text-pure-white'
                 }`}
               >
@@ -324,7 +324,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                 onClick={() => setActiveTab('mantenimientos')}
                 className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'mantenimientos'
-                    ? 'border-brand-plum bg-brand-plum text-white'
+                    ? 'border-canopy bg-canopy text-white'
                     : 'border-transparent text-slate-text hover:text-pure-white'
                 }`}
               >

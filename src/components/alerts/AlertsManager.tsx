@@ -457,8 +457,8 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                           <span
                             className={`text-[10px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-[5px] ${
                               alt.nivel === 'CRITICA'
-                                ? 'bg-[#15803d] text-sheet-white'
-                                : 'apple-badge-orange'
+                                ? 'bg-crimson-danger text-white'
+                                : 'garden-badge garden-badge-warning'
                             }`}
                           >
                             {alt.nivel === 'CRITICA' ? 'CRÍTICA' : 'ADVERTENCIA'}
@@ -580,7 +580,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                     <div className="flex flex-wrap items-center gap-2">
                       <span
                         className={`text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded-[5px] ${
-                          detailAlert.nivel === 'CRITICA' ? 'bg-[#15803d] text-sheet-white' : 'apple-badge-orange'
+                          detailAlert.nivel === 'CRITICA' ? 'bg-crimson-danger text-white' : 'garden-badge garden-badge-warning'
                         }`}
                       >
                         {detailAlert.nivel === 'CRITICA' ? 'CRÍTICA' : 'ADVERTENCIA'}

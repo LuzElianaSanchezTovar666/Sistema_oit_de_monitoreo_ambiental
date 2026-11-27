@@ -164,7 +164,7 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
                   Laboratorio de Pruebas en Celulares y Redes Lentas (Throttling)
                 </h4>
               </div>
-              <span className="apple-badge-orange font-mono">
+              <span className="garden-badge font-mono">
                 PERFIL ACTIVO: {netProfile.toUpperCase()} · {viewProfile.toUpperCase()}
               </span>
             </div>
@@ -289,7 +289,7 @@ export const PerformanceMonitorModal: React.FC<PerformanceMonitorModalProps> = (
                         className={`px-2 py-0.5 rounded-[5px] text-[10px] font-semibold shrink-0 ${
                           job.status === 'COMPLETED'
                             ? 'bg-canopy/15 text-canopy'
-                            : 'apple-badge-orange'
+                            : 'garden-badge'
                         }`}
                       >
                         {job.status} ({job.progressPct}%)

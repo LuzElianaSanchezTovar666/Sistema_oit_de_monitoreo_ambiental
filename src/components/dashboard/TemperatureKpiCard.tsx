@@ -37,7 +37,7 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
     > = {
       NOMINAL: {
         label: 'NOMINAL',
-        className: 'bg-[#f2f2f3] text-[#17191c]',
+        className: 'bg-garden-mint text-garden-deep',
         Icon: CheckCircle2,
       },
       'FUERA DE RANGO': {
@@ -47,12 +47,12 @@ export const TemperatureKpiCard: React.FC<TemperatureKpiCardProps> = React.memo(
       },
       SIN_CONFIGURACION: {
         label: 'Sin configuración',
-        className: 'bg-[#f2f2f3] text-[#777b86]',
+        className: 'bg-garden-mint text-slate',
         Icon: Clock,
       },
       ESPERANDO_DATOS: {
         label: 'ESPERANDO DATOS',
-        className: 'bg-[#f2f2f3] text-[#777b86]',
+        className: 'bg-garden-mint text-slate',
         Icon: Clock,
       },
     };

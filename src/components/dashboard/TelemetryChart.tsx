@@ -145,7 +145,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           <h3 className="text-[17px] font-semibold tracking-[-0.374px] text-bark flex items-center gap-2">
             <span>Serie Temporal de Telemetría</span>
             <span className="text-xs text-slate font-normal">· {locationName}</span>
-            <span className="px-2.5 py-0.5 rounded-full bg-[#fbe1d1] text-[#5d2a1a] text-[11px] font-medium">Sensor {sensorType}</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-garden-sage text-garden-deep text-[11px] font-medium">Sensor {sensorType}</span>
           </h3>
           <p className="text-[12px] text-slate mt-0.5">
             Lecturas registradas en MySQL
@@ -201,7 +201,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 onClick={() => setTimeWindow(w)}
                 className={`px-3 py-1 rounded-full transition-colors uppercase cursor-pointer ${
                   timeWindow === w
-                    ? 'bg-[#17191c] text-white font-medium'
+                    ? 'bg-brand-forest text-white font-medium'
                     : 'text-[#777b86] hover:text-[#17191c]'
                 }`}
               >
@@ -293,7 +293,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 y1={tempMinY}
                 x2={width - padding.right}
                 y2={tempMinY}
-                stroke="#0284C7"
+                stroke="var(--color-signal-yellow)"
                 strokeWidth="1.2"
                 strokeDasharray="4 4"
               />
@@ -301,7 +301,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 x={width - padding.right}
                 y={tempMinY - 4}
                 textAnchor="end"
-                className="fill-[#0284C7] text-[9px] font-mono font-medium"
+                className="fill-signal-yellow text-[9px] font-mono font-medium"
               >
                 Mín {limites.temp_min}°C
               </text>
@@ -315,7 +315,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
               <path
                 d={tempPath}
                 fill="none"
-                stroke="#16A34A"
+                stroke="var(--color-garden-temperature)"
                 strokeWidth="2.4"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -328,7 +328,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             <path
               d={humPath}
               fill="none"
-              stroke="#0284C7"
+              stroke="var(--color-garden-humidity)"
               strokeWidth="2.2"
               strokeDasharray={metricMode === 'dual' ? '2 2' : undefined}
               strokeLinecap="round"
@@ -427,18 +427,18 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         <div className="flex items-center gap-5">
           {tempEnabled && (
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-1 bg-canopy rounded-full" />
+              <span className="w-3 h-1 bg-garden-temperature rounded-full" />
               <span>Temperatura (°C)</span>
             </div>
           )}
           {humEnabled && (
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-1 bg-[#53d5f4] rounded-full" />
+              <span className="w-3 h-1 bg-garden-humidity rounded-full" />
               <span>Humedad (%RH)</span>
             </div>
           )}
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#c084fc] shadow-[0_0_6px_#c084fc]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-crimson-danger" />
             <span>Anomalía en sensor</span>
           </div>
         </div>

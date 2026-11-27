@@ -285,7 +285,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                     {c.point.es_anomalia_ia && (
                       <polygon
                         points={`${c.x},${c.y - 6} ${c.x + 5},${c.y} ${c.x},${c.y + 6} ${c.x - 5},${c.y}`}
-                        fill="var(--color-brand-plum)"
+                        fill="var(--color-signal-yellow)"
                         stroke="#FFFFFF"
                         strokeWidth="1.2"
                       />
@@ -360,7 +360,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                         ? `${activeCoord.point.temperatura.toFixed(2)} °C`
                         : '—'}
                     </span>
-                    <span className="text-[#53d5f4]">
+                    <span className="text-garden-humidity">
                       Humedad:{' '}
                       {activeCoord.point.humedad !== null
                         ? `${activeCoord.point.humedad.toFixed(1)} %RH`
@@ -370,7 +370,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                   </div>
                 </div>
                 {activeCoord.point.score_anomalia_ia !== null && activeCoord.point.score_anomalia_ia !== undefined && (
-                  <span className="px-2 py-0.5 rounded-[5px] bg-brand-lavender text-brand-plum font-semibold">
+                  <span className="px-2 py-0.5 rounded-[5px] bg-brand-yellow text-brand-gold font-semibold">
                     IA Score: {activeCoord.point.score_anomalia_ia.toFixed(3)}
                     {activeCoord.point.es_anomalia_ia ? ' (Anomalía)' : ''}
                   </span>
@@ -392,7 +392,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
               Fuera de umbral
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rotate-45 bg-brand-plum" />
+              <span className="w-2.5 h-2.5 rotate-45 bg-signal-yellow" />
               {anomaliasDisponibles ? 'Anomalía IA (RF-18)' : 'Anomalía IA (RF-18 pendiente)'}
             </span>
           </div>
@@ -470,7 +470,7 @@ export const TrendChartPanel: React.FC<TrendChartPanelProps> = React.memo(
             title="Tendencia de Temperatura (°C)"
             unit="°C"
             isHumidity={false}
-            strokeColor="var(--color-neon-pulse)"
+            strokeColor="var(--color-garden-temperature)"
             points={series}
             limitMeta={tempLimits}
             anomaliasDisponibles={Boolean(trendData?.anomalias_ia_disponibles)}
@@ -481,11 +481,11 @@ export const TrendChartPanel: React.FC<TrendChartPanelProps> = React.memo(
             title="Tendencia de Humedad Relativa (%RH)"
             unit="%RH"
             isHumidity={true}
-            strokeColor="#53d5f4"
+            strokeColor="var(--color-garden-humidity)"
             points={series}
             limitMeta={humLimits}
             anomaliasDisponibles={Boolean(trendData?.anomalias_ia_disponibles)}
-            icon={<Droplets className="w-4 h-4 text-[#53d5f4]" />}
+            icon={<Droplets className="w-4 h-4 text-garden-humidity" />}
           />
         </div>
       </div>

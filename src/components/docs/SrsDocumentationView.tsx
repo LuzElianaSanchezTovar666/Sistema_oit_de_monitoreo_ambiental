@@ -287,7 +287,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                   className="h-8 w-auto object-contain"
                 />
               </div>
-              <span className="apple-badge-orange font-mono">PROYECTO ADSO · SENA</span>
+              <span className="garden-badge font-mono">PROYECTO ADSO · SENA</span>
               <span className="px-3 py-1 rounded-[8px] bg-cream-paper border border-sage-mist text-canopy text-xs font-mono">
                 MVP · 4 Semanas · Metodología Scrum
               </span>
@@ -402,7 +402,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
         <div className="space-y-[24px]">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-[16px]">
             <div className="lg:col-span-5 bg-sheet-white rounded-[16px] p-6 space-y-4">
-              <span className="apple-badge-orange">1.1 PLANTEAMIENTO Y 1.2 OBJETIVO GENERAL</span>
+              <span className="garden-badge">1.1 PLANTEAMIENTO Y 1.2 OBJETIVO GENERAL</span>
               <h3 className="apple-card-heading text-bark">
                 Problema y Propuesta de Solución
               </h3>
@@ -586,7 +586,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
                       <span className="font-mono text-xs font-semibold text-bark">
                         {rnf.codigo}
                       </span>
-                      <span className="apple-badge-orange font-mono">{rnf.cat}</span>
+                      <span className="garden-badge font-mono">{rnf.cat}</span>
                     </div>
                     <p className="text-xs text-slate leading-snug">{rnf.desc}</p>
                   </div>
@@ -682,7 +682,7 @@ export const SrsDocumentationView: React.FC<SrsDocumentationViewProps> = React.m
               {planSemanas.map((sem) => (
                 <div key={sem.semana} className="bg-cream-paper p-4 rounded-[16px] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="apple-badge-orange font-mono">{sem.semana}</span>
+                    <span className="garden-badge font-mono">{sem.semana}</span>
                     <span className="text-[11px] font-mono text-canopy">100% Completado</span>
                   </div>
                   <h4 className="text-sm font-semibold text-bark">{sem.titulo}</h4>
