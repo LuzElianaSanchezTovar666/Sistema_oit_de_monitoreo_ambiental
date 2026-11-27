@@ -386,7 +386,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
       )}
 
       {/* Grid de Métricas Principales en Tiempo Real — Feature Metric Tiles (28px radius, 16px padding, no shadow) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Tarjeta 1: Temperatura Actual °C (RF-08, solo si está habilitada en RF-05) */}
         {tempEnabled && (
           <TemperatureKpiCard
@@ -428,8 +428,8 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           </div>
         )}
 
-        <div className="bg-sheet-white rounded-[16px] p-4">
-          <h3 className="flex items-center gap-2 text-sm font-semibold"><BrainCircuit className="h-4 w-4" /> Diagnóstico de la lectura</h3>
+        <div className="bg-brand-lavender border border-brand-lavender-border rounded-[16px] p-4">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-brand-plum"><BrainCircuit className="h-4 w-4" /> Diagnóstico de la lectura</h3>
           <p className="mt-2 text-xs text-slate">
             {rf08Snapshot?.z_score_disponible && rf08Snapshot.z_score !== null && !rf08Stale &&
               !isDeviceUnavailable(rf08Snapshot.dispositivo_id)

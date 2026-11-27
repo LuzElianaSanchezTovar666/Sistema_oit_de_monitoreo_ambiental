@@ -435,8 +435,8 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
             <span className="text-[11px] text-slate-text font-mono mt-0.5 block">Silencio superado</span>
           </div>
 
-          <div className="p-3.5 rounded-[16px] bg-deep-abyss border border-graphite-fill">
-            <span className="text-[11px] font-mono text-slate-text uppercase block">Advertencia / Error</span>
+          <div className="p-3.5 rounded-[16px] bg-brand-yellow/55 border border-brand-yellow-border">
+            <span className="text-[11px] font-mono text-brand-gold uppercase block">Advertencia / Error</span>
             <div className="text-xl font-bold text-pure-white mt-0.5 flex items-baseline gap-1">
               <span className={stats.warning + stats.errorCnt > 0 ? "text-signal-yellow" : "text-pure-white"}>
                 {stats.warning + stats.errorCnt}
@@ -446,8 +446,8 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
             <span className="text-[11px] text-slate-text font-mono mt-0.5 block">Retraso o fallo</span>
           </div>
 
-          <div className="p-3.5 rounded-[16px] bg-deep-abyss border border-graphite-fill">
-            <span className="text-[11px] font-mono text-slate-text uppercase block">Señal Débil (&lt; -80 dBm)</span>
+          <div className="p-3.5 rounded-[16px] bg-brand-yellow/55 border border-brand-yellow-border">
+            <span className="text-[11px] font-mono text-brand-gold uppercase block">Señal Débil (&lt; -80 dBm)</span>
             <div className="text-xl font-bold text-pure-white mt-0.5 flex items-baseline gap-1">
               <span className={stats.weakSignal > 0 ? "text-signal-yellow" : "text-pure-white"}>
                 {stats.weakSignal}

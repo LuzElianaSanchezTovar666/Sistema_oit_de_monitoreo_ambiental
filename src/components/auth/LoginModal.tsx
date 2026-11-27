@@ -6,61 +6,11 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  Cpu,
-  Thermometer,
-  ShieldCheck,
   AlertCircle,
   ArrowLeft,
-  Shield,
-  Wrench,
-  Activity,
-  UserCheck,
 } from 'lucide-react';
 import { Usuario } from '../../types/iot';
 import { fetchCurrentUser, loginWithCredentials } from '../../services/authService';
-
-export const DEMO_ROLE_CREDENTIALS = [
-  {
-    role: 'Administrador',
-    title: 'Administrador',
-    email: 'admin@simoa.org',
-    password: 'AdminPassword123!',
-    desc: 'Acceso total y configuración',
-    color: 'border-[#C8E6C9] bg-white text-[#0D3B1E] hover:bg-[#E8F5E9] hover:border-[#1B5E20]',
-    badge: 'bg-[#E8F5E9] text-[#1B5E20]',
-    icon: Shield,
-  },
-  {
-    role: 'Técnico',
-    title: 'Técnico (Sensores IoT)',
-    email: 'tecnico@simoa.org',
-    password: 'TecnicoPassword123!',
-    desc: 'Calibración y red de sensores',
-    color: 'border-[#A5D6A7] bg-[#E8F5E9] text-[#1B5E20] hover:bg-[#C8E6C9]',
-    badge: 'bg-[#C8E6C9] text-[#1B5E20]',
-    icon: Wrench,
-  },
-  {
-    role: 'Operador',
-    title: 'Operador',
-    email: 'operador@simoa.org',
-    password: 'OperadorPassword123!',
-    desc: 'Monitoreo en tiempo real',
-    color: 'border-[#C8E6C9] bg-white text-[#0D3B1E] hover:bg-[#E8F5E9] hover:border-[#1B5E20]',
-    badge: 'bg-[#E8F5E9] text-[#1B5E20]',
-    icon: Activity,
-  },
-  {
-    role: 'Supervisor',
-    title: 'Supervisor',
-    email: 'supervisor@simoa.org',
-    password: 'SupervisorPassword123!',
-    desc: 'Supervisión y reportes',
-    color: 'border-[#C8E6C9] bg-white text-[#0D3B1E] hover:bg-[#E8F5E9] hover:border-[#1B5E20]',
-    badge: 'bg-[#E8F5E9] text-[#1B5E20]',
-    icon: UserCheck,
-  },
-];
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -111,7 +61,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       onLoginSuccess(verifiedProfile);
       if (onClose) onClose();
     } catch (err: any) {
-      setError(err?.message || 'Error de conexión con el servidor de autenticación.');
+      setError(err?.message || 'No pudimos conectar con SIMOA. Inténtalo de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -125,7 +75,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     <div className={containerClass}>
       <div className="w-full max-w-4xl bg-white text-[#0D3B1E] rounded-[28px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-[#C8E6C9] shadow-[0_8px_30px_rgba(13,59,30,0.12)]">
         {/* Panel izquierdo — Identidad Oficial SIMOA */}
-        <div className="md:col-span-5 bg-[#F2F8F4] text-[#0D3B1E] p-8 sm:p-10 flex flex-col justify-between space-y-8 border-b md:border-b-0 md:border-r border-[#C8E6C9]">
+        <div className="md:col-span-5 bg-brand-lavender text-brand-plum p-8 sm:p-10 flex flex-col justify-center border-b md:border-b-0 md:border-r border-brand-lavender-border">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <img
@@ -133,45 +83,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 alt="SIMOA"
                 className="h-10 w-auto object-contain"
               />
-              <span className="text-[12px] text-[#3B694C] border-l border-[#C8E6C9] pl-3 font-semibold">
-                Acceso Consola
-              </span>
             </div>
-            <h2 className="text-[24px] font-semibold text-[#0D3B1E] leading-tight pt-2">
-              Supervisión ambiental con precisión técnica y rigor de campo.
+            <h2 className="text-[24px] font-semibold text-brand-plum leading-tight pt-2">
+              Monitoreo ambiental SIMOA
             </h2>
             <p className="text-[15px] text-[#3B694C] leading-relaxed">
-              Inicia sesión con credenciales autorizadas para gestionar nodos ESP32, configurar umbrales
-              y auditar series temporales de temperatura y humedad.
+              Consulta las lecturas de tus sensores y revisa las alertas desde un solo lugar.
             </p>
           </div>
 
-          <div className="space-y-3 pt-4 border-t border-[#C8E6C9] text-[13px] text-[#3B694C]">
-            <div className="flex items-center gap-2.5">
-              <ShieldCheck className="w-4 h-4 text-[#1B5E20]" />
-              <span>Autenticación de 4 roles técnicos con token JWT</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Thermometer className="w-4 h-4 text-[#15803D]" />
-              <span>Sondas DHT22, BME280 y Sensirion SHT31</span>
-            </div>
-            <div className="flex items-center gap-2.5">
-              <Cpu className="w-4 h-4 text-[#1B5E20]" />
-              <span>Conexión segura MQTTS TLS 1.3</span>
-            </div>
-          </div>
         </div>
 
-        {/* Panel derecho — Formulario de Acceso y Demo Roles */}
-        <div className="md:col-span-7 bg-white p-8 sm:p-10 flex flex-col justify-between space-y-6">
+        {/* Formulario de acceso */}
+        <div className="md:col-span-7 bg-white p-8 sm:p-10 flex flex-col justify-center">
           <div className="space-y-5">
             <div className="flex items-center justify-between">
-              <div>
-                <span className="apple-badge-orange uppercase tracking-[0.08em] font-semibold">INICIAR SESIÓN</span>
                 <h3 className="text-[22px] font-semibold text-[#0D3B1E] mt-1">
-                  Credenciales de acceso
+                  Iniciar sesión
                 </h3>
-              </div>
               {onBackToLanding && (
                 <button
                   type="button"
@@ -193,35 +122,35 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[14px] font-semibold text-[#0D3B1E] mb-1.5">
+                <label htmlFor="simoa-login-email" className="block text-[14px] font-semibold text-[#0D3B1E] mb-1.5">
                   Correo electrónico
                 </label>
                 <div className="relative flex items-center">
                   <Mail className="absolute left-4 w-4 h-4 text-[#3B694C] pointer-events-none" />
                   <input
-                    type="email"
+                    id="simoa-login-email" type="email" autoComplete="username"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="usuario@simoa.org"
-                    className="apple-pill-input w-full pl-11"
+                    placeholder="correo@ejemplo.com"
+                    className="h-11 w-full rounded-full border border-sage-mist bg-sheet-white text-sm text-bark placeholder:text-slate focus:border-canopy focus-visible:outline-2 focus-visible:outline-canopy pl-11 pr-4"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[14px] font-semibold text-[#0D3B1E] mb-1.5">
+                <label htmlFor="simoa-login-password" className="block text-[14px] font-semibold text-[#0D3B1E] mb-1.5">
                   Contraseña
                 </label>
                 <div className="relative flex items-center">
                   <Lock className="absolute left-4 w-4 h-4 text-[#3B694C] pointer-events-none" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    id="simoa-login-password" autoComplete="current-password" type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="apple-pill-input w-full pl-11 pr-11"
+                    className="h-11 w-full rounded-full border border-sage-mist bg-sheet-white text-sm text-bark placeholder:text-slate focus:border-canopy focus-visible:outline-2 focus-visible:outline-canopy pl-11 pr-11"
                   />
                   <button
                     type="button"
@@ -242,11 +171,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                    Autenticando...
+                    Iniciando sesión…
                   </>
                 ) : (
                   <>
-                    Ingresar a la consola
+                    Ingresar
                     <ArrowRight className="w-4 h-4 ml-1" />
                   </>
                 )}
@@ -254,34 +183,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </form>
           </div>
 
-          {/* Selector rápido de perfiles demo */}
-          <div className="pt-5 border-t border-[#C8E6C9] space-y-3">
-            <span className="apple-badge-orange uppercase tracking-[0.08em] inline-block font-semibold">
-              ACCESO RÁPIDO POR ROL
-            </span>
-            <div className="grid grid-cols-2 gap-2.5">
-              {DEMO_ROLE_CREDENTIALS.map((cred) => {
-                const IconComponent = cred.icon;
-                return (
-                  <button
-                    key={cred.role}
-                    type="button"
-                    onClick={() => {
-                      setEmail(cred.email);
-                      setPassword(cred.password);
-                    }}
-                    className={`p-3 rounded-[16px] border text-left transition-colors cursor-pointer flex flex-col justify-between space-y-1 ${cred.color}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-[13px] font-medium leading-tight">{cred.title}</span>
-                      <IconComponent className="w-3.5 h-3.5 opacity-80" />
-                    </div>
-                    <span className="text-[11px] opacity-70 leading-tight">{cred.desc}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
       </div>
     </div>

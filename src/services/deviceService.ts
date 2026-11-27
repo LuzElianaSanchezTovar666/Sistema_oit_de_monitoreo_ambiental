@@ -1,3 +1,5 @@
+import type { VariableMedida } from './sensorService';
+
 export type DispositivoTipo = 'ESP32' | 'ESP8266' | 'Gateway';
 export type DispositivoEstado =
   | 'PENDIENTE'
@@ -402,7 +404,7 @@ export interface FichaSensorDTO {
   dispositivo_id: string;
   identificador: string;
   modelo: 'DHT22' | 'BME280' | 'SHT31';
-  variables_medidas: string[];
+  variables_medidas: Array<VariableMedida | string>;
   fecha_instalacion: string;
   ultima_calibracion: string;
   estado: string;
