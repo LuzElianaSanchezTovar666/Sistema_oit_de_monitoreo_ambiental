@@ -8,7 +8,6 @@ import {
   Loader2,
   Cpu,
   Thermometer,
-  Leaf,
   ShieldCheck,
   AlertCircle,
   ArrowLeft,
@@ -27,8 +26,8 @@ export const DEMO_ROLE_CREDENTIALS = [
     email: 'admin@simoa.org',
     password: 'AdminPassword123!',
     desc: 'Acceso total y configuración',
-    color: 'border-[#1e3a2b] bg-[#0e1713] text-white hover:bg-[#122219]',
-    badge: 'bg-[#122219] text-[#4ade80] border border-[#22c55e]/40',
+    color: 'border-[#ececec] bg-white text-[#17191c] hover:bg-[#f2f2f3]',
+    badge: 'bg-[#f2f2f3] text-[#17191c]',
     icon: Shield,
   },
   {
@@ -37,8 +36,8 @@ export const DEMO_ROLE_CREDENTIALS = [
     email: 'tecnico@simoa.org',
     password: 'TecnicoPassword123!',
     desc: 'Calibración y red de sensores',
-    color: 'border-[#a855f7]/40 bg-[#1b102b] text-[#c084fc] hover:bg-[#25143d]',
-    badge: 'bg-[#1b102b] text-[#c084fc] border border-[#a855f7]/50',
+    color: 'border-[#fbe1d1] bg-[#fbe1d1]/30 text-[#5d2a1a] hover:bg-[#fbe1d1]/60',
+    badge: 'bg-[#fbe1d1] text-[#5d2a1a]',
     icon: Wrench,
   },
   {
@@ -47,8 +46,8 @@ export const DEMO_ROLE_CREDENTIALS = [
     email: 'operador@simoa.org',
     password: 'OperadorPassword123!',
     desc: 'Monitoreo en tiempo real',
-    color: 'border-[#1e3a2b] bg-[#0e1713] text-white hover:bg-[#122219]',
-    badge: 'bg-[#122219] text-[#4ade80] border border-[#22c55e]/40',
+    color: 'border-[#ececec] bg-white text-[#17191c] hover:bg-[#f2f2f3]',
+    badge: 'bg-[#f2f2f3] text-[#17191c]',
     icon: Activity,
   },
   {
@@ -57,8 +56,8 @@ export const DEMO_ROLE_CREDENTIALS = [
     email: 'supervisor@simoa.org',
     password: 'SupervisorPassword123!',
     desc: 'Supervisión y reportes',
-    color: 'border-[#1e3a2b] bg-[#0e1713] text-white hover:bg-[#122219]',
-    badge: 'bg-[#122219] text-[#4ade80] border border-[#22c55e]/40',
+    color: 'border-[#ececec] bg-white text-[#17191c] hover:bg-[#f2f2f3]',
+    badge: 'bg-[#f2f2f3] text-[#17191c]',
     icon: UserCheck,
   },
 ];
@@ -119,229 +118,168 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const containerClass = fullPage
-    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-[#070b09]'
-    : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#070b09]/85 backdrop-blur-md';
+    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-white font-sans'
+    : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#17191c]/30 backdrop-blur-sm font-sans';
 
   return (
     <div className={containerClass}>
-      <div className="w-full max-w-4xl bg-[#0a0f0d] text-white rounded-[12px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-dashed border-[#1e3a2b] shadow-2xl">
-        {/* Panel izquierdo — Identidad de SIMOA (Invernadero Oscuro + Verde + Acento Morado) */}
-        <div className="md:col-span-5 bg-[#0e1713] text-white p-7 sm:p-9 flex flex-col justify-between space-y-8 border-b md:border-b-0 md:border-r border-dashed border-[#1e3a2b]">
+      <div className="w-full max-w-4xl bg-white text-[#17191c] rounded-[24px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-[#ececec] shadow-[0_0_0_1px_rgba(0,0,0,0.05),0_8px_40px_rgba(0,0,0,0.1)]">
+        {/* Panel izquierdo — Identidad Editorial SIMOA */}
+        <div className="md:col-span-5 bg-[#fafafb] text-[#17191c] p-8 sm:p-10 flex flex-col justify-between space-y-8 border-b md:border-b-0 md:border-r border-[#ececec]">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[22.5px] border border-[#1e3a2b] bg-[#122219] text-[#4ade80] text-[10px] font-medium tracking-wide uppercase">
-              <Leaf className="w-3.5 h-3.5 text-[#22c55e]" />
-              <span>Monitoreo de Invernadero</span>
+            <div className="flex items-center gap-3">
+              <span className="text-[24px] font-serif font-normal text-[#17191c]">
+                SIMOA
+              </span>
+              <span className="text-[12px] text-[#979799] border-l border-[#ececec] pl-3">
+                Acceso Consola
+              </span>
             </div>
-
-            <div>
-              <h1 className="text-[41px] font-medium uppercase leading-[0.95] text-white">SIMOA</h1>
-              <p className="text-xs uppercase font-semibold tracking-wide text-[#4ade80] mt-2">
-                Control Ambiental para tu Invernadero
-              </p>
-            </div>
-
-            <div className="border-t border-dashed border-[#1e3a2b] pt-4">
-              <p className="text-sm text-[#94a398] leading-relaxed font-normal">
-                Supervisa en tiempo real el clima de tus cultivos, recibe alertas oportunas ante
-                cambios bruscos y mantén el control de cada sensor IoT desde un solo lugar.
-              </p>
-            </div>
+            <h2 className="text-[26px] font-serif font-normal text-[#17191c] leading-tight pt-2">
+              Supervisión ambiental con rigor editorial y técnico.
+            </h2>
+            <p className="text-[15px] text-[#777b86] leading-relaxed">
+              Inicia sesión con credenciales autorizadas para gestionar nodos ESP32, configurar umbrales
+              y auditar series temporales de temperatura y humedad.
+            </p>
           </div>
 
-          <div className="space-y-3 text-xs text-white">
+          <div className="space-y-3 pt-4 border-t border-[#ececec] text-[13px] text-[#777b86]">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[12px] border border-dashed border-[#1e3a2b] bg-[#122219] flex items-center justify-center shrink-0">
-                <Leaf className="w-4 h-4 text-[#22c55e]" />
-              </div>
-              <span className="font-medium text-[#d1dcd4]">Zonas de Germinación, Cultivo, Climatización y Fertirriego</span>
+              <ShieldCheck className="w-4 h-4 text-[#17191c]" />
+              <span>Autenticación de 4 roles técnicos con token JWT</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[12px] border border-dashed border-[#a855f7]/40 bg-[#1b102b] flex items-center justify-center shrink-0">
-                <Thermometer className="w-4 h-4 text-[#c084fc]" />
-              </div>
-              <span className="font-medium text-[#d1dcd4]">Sensores de temperatura, humedad y alertas en tiempo real</span>
+              <Thermometer className="w-4 h-4 text-[#5d2a1a]" />
+              <span>Sondas DHT22, BME280 y Sensirion SHT31</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[12px] border border-dashed border-[#1e3a2b] bg-[#122219] flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-4 h-4 text-[#22c55e]" />
-              </div>
-              <span className="font-medium text-[#d1dcd4]">Acceso seguro personalizado según tu perfil</span>
+              <Cpu className="w-4 h-4 text-[#17191c]" />
+              <span>Conexión segura MQTTS TLS 1.3</span>
             </div>
           </div>
         </div>
 
-        {/* Panel derecho — Formulario de Inicio de Sesión (Fondo Oscuro + Textos Blancos) */}
-        <div className="md:col-span-7 p-7 sm:p-10 bg-[#0a0f0d] text-white flex flex-col justify-center space-y-6">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <img
-                src="/assets/images/simoa-logo.webp"
-                alt="SIMOA"
-                className="h-9 w-auto object-contain"
-              />
-            </div>
-            {onBackToLanding && (
-              <button
-                type="button"
-                onClick={onBackToLanding}
-                className="inline-flex items-center gap-1.5 text-xs font-medium uppercase text-[#4ade80] hover:text-white underline underline-offset-4 cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                Volver al inicio
-              </button>
-            )}
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-medium uppercase leading-[0.95] text-white">
-              Iniciar sesión
-            </h2>
-            <p className="text-xs sm:text-sm text-[#94a398] mt-2 font-normal">
-              Ingresa tus credenciales registradas para acceder a tu panel de control.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
-            <div>
-              <label
-                htmlFor="simoa-login-email"
-                className="block text-[11px] font-medium uppercase tracking-wide text-[#94a398] mb-1.5"
-              >
-                Correo electrónico
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 absolute left-1 top-3 text-[#22c55e]" />
-                <input
-                  id="simoa-login-email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  placeholder="usuario@invernadero.org"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (error) setError('');
-                  }}
-                  className="w-full pl-8 pr-4 py-2.5 text-sm bg-transparent border-b border-[#1e3a2b] rounded-none text-white placeholder-[#64748b] focus:outline-none focus:border-[#22c55e]"
-                />
+        {/* Panel derecho — Formulario de Acceso y Demo Roles */}
+        <div className="md:col-span-7 bg-white p-8 sm:p-10 flex flex-col justify-between space-y-6">
+          <div className="space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="steep-tag uppercase tracking-[0.08em]">INICIAR SESIÓN</span>
+                <h3 className="text-[22px] font-medium text-[#17191c] mt-0.5">
+                  Credenciales de acceso
+                </h3>
               </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="simoa-login-password"
-                className="block text-[11px] font-medium uppercase tracking-wide text-[#94a398] mb-1.5"
-              >
-                Contraseña
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 absolute left-1 top-3 text-[#22c55e]" />
-                <input
-                  id="simoa-login-password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (error) setError('');
-                  }}
-                  className="w-full pl-8 pr-11 py-2.5 text-sm bg-transparent border-b border-[#1e3a2b] rounded-none text-white placeholder-[#64748b] focus:outline-none focus:border-[#22c55e]"
-                />
+              {onBackToLanding && (
                 <button
                   type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  className="absolute right-1 top-2.5 p-1 text-[#94a398] hover:text-white cursor-pointer"
+                  onClick={onBackToLanding}
+                  className="text-[14px] text-[#777b86] hover:text-[#17191c] inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <ArrowLeft className="w-4 h-4" />
+                  Volver
                 </button>
-              </div>
+              )}
             </div>
 
             {error && (
-              <div
-                role="alert"
-                className="flex items-start gap-2 p-3 rounded-[12px] bg-[#162e21] border border-dashed border-[#22c55e] text-[#86efac] text-xs font-medium"
-              >
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#22c55e]" />
+              <div className="p-3.5 rounded-[16px] bg-[#f2f2f3] border border-[#ececec] text-[#5d2a1a] text-[14px] flex items-center gap-2.5">
+                <AlertCircle className="w-4 h-4 text-[#5d2a1a] shrink-0" />
                 <span>{error}</span>
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 px-6 rounded-[36px] bg-[#22c55e] border border-[#16a34a] hover:bg-[#16a34a] disabled:opacity-60 text-[#070b09] text-xs font-semibold uppercase tracking-wide flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verificando credenciales...</span>
-                </>
-              ) : (
-                <>
-                  <span>Ingresar al sistema</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-[14px] font-medium text-[#17191c] mb-1.5">
+                  Correo electrónico
+                </label>
+                <div className="relative flex items-center">
+                  <Mail className="absolute left-4 w-4 h-4 text-[#a3a6af] pointer-events-none" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="usuario@simoa.org"
+                    className="steep-input w-full pl-11"
+                  />
+                </div>
+              </div>
 
-          {/* Selector de Acceso Rápido por Rol */}
-          <div className="pt-4 border-t border-dashed border-[#1e3a2b] space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-medium uppercase tracking-wider text-[#94a398]">
-                Acceso Rápido por Rol (Demostración)
-              </span>
-              <span className="text-[10px] uppercase text-[#4ade80] font-semibold">
-                Clic para autorrellenar
-              </span>
-            </div>
+              <div>
+                <label className="block text-[14px] font-medium text-[#17191c] mb-1.5">
+                  Contraseña
+                </label>
+                <div className="relative flex items-center">
+                  <Lock className="absolute left-4 w-4 h-4 text-[#a3a6af] pointer-events-none" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="steep-input w-full pl-11 pr-11"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 p-1 text-[#a3a6af] hover:text-[#17191c] cursor-pointer"
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              {DEMO_ROLE_CREDENTIALS.map((demo) => {
-                const IconComponent = demo.icon;
-                const isSelected = email === demo.email;
+              <button
+                type="submit"
+                disabled={loading}
+                className="steep-btn-filled w-full py-3 cursor-pointer justify-center"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                    Autenticando...
+                  </>
+                ) : (
+                  <>
+                    Ingresar a la consola
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Selector rápido de perfiles demo */}
+          <div className="pt-5 border-t border-[#ececec] space-y-3">
+            <span className="steep-tag uppercase tracking-[0.08em] block">
+              ACCESO RÁPIDO POR ROL
+            </span>
+            <div className="grid grid-cols-2 gap-2.5">
+              {DEMO_ROLE_CREDENTIALS.map((cred) => {
+                const IconComponent = cred.icon;
                 return (
                   <button
-                    key={demo.role}
+                    key={cred.role}
                     type="button"
                     onClick={() => {
-                      setEmail(demo.email);
-                      setPassword(demo.password);
-                      setError('');
+                      setEmail(cred.email);
+                      setPassword(cred.password);
                     }}
-                    className={`p-2.5 rounded-[12px] border border-dashed text-left transition-colors cursor-pointer flex flex-col justify-between ${demo.color} ${
-                      isSelected
-                        ? 'border-[#22c55e] bg-[#162e21] shadow-sm'
-                        : ''
-                    }`}
+                    className={`p-3 rounded-[16px] border text-left transition-colors cursor-pointer flex flex-col justify-between space-y-1 ${cred.color}`}
                   >
-                    <div className="flex items-center gap-1.5 w-full">
-                      <IconComponent className="w-3.5 h-3.5 shrink-0" />
-                      <span className="text-xs font-semibold uppercase">{demo.title}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[13px] font-medium leading-tight">{cred.title}</span>
+                      <IconComponent className="w-3.5 h-3.5 opacity-80" />
                     </div>
-                    <div className="mt-1.5 text-[10px] space-y-0.5">
-                      <p className="font-mono truncate font-medium">{demo.email}</p>
-                      <p className="text-[9px] opacity-75">{demo.desc}</p>
-                    </div>
+                    <span className="text-[11px] opacity-70 leading-tight">{cred.desc}</span>
                   </button>
                 );
               })}
             </div>
           </div>
-
-          {!fullPage && onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full text-center text-xs uppercase text-[#94a398] hover:text-white cursor-pointer"
-            >
-              Cancelar
-            </button>
-          )}
         </div>
       </div>
     </div>

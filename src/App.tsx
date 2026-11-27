@@ -644,7 +644,7 @@ export default function App() {
             }}
           />
         ) : (
-          <div className="min-h-screen bg-cream-paper text-bark flex flex-col transition-colors">
+          <div className="min-h-screen bg-white text-[#17191c] flex flex-col font-sans transition-colors">
             {/* Top Navigation Bar con sesión real y cierre de sesión */}
             <Navbar
               currentUser={currentUser}
@@ -845,31 +845,31 @@ export default function App() {
         )}
       </Suspense>
 
-      {/* Banner de Alerta Automática en Tiempo Real RF-13 (Paleta Invernadero SIMOA) */}
+      {/* Banner de Alerta Automática en Tiempo Real RF-13 (Estilo Editorial Steep) */}
       {liveAlertBanner && (
         <div
           role="alert"
-          className="fixed top-20 right-6 z-50 max-w-md rounded-[16px] border border-[#22c55e]/40 bg-[#070b09]/95 text-[#f1f5f3] p-4 shadow-2xl backdrop-blur-md transition-all shadow-[0_8px_30px_rgba(0,0,0,0.6)]"
+          className="fixed top-20 right-6 z-50 max-w-md rounded-[20px] border border-[#ececec] bg-white/95 text-[#17191c] p-4 shadow-[0_0_0_1px_rgba(0,0,0,0.05),0_8px_40px_rgba(0,0,0,0.1)] backdrop-blur-md transition-all font-sans"
         >
           <div className="flex items-start gap-3">
-            <AlertOctagon className="w-5 h-5 text-[#22c55e] shrink-0 mt-0.5" />
+            <AlertOctagon className="w-5 h-5 text-[#5d2a1a] shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#121e18] text-[#4ade80] border border-[#1e3a2b]">
+                <span className="text-[11px] font-mono font-medium uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#f2f2f3] text-[#17191c] border border-[#ececec]">
                   {liveAlertBanner.nivel} · {liveAlertBanner.variable_alterada || 'AMBIENTAL'}
                 </span>
                 {liveAlertBanner.provisional && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1b102b] text-[#c084fc] border border-[#a855f7]/40">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#fbe1d1] text-[#5d2a1a]">
                     Sensor IoT
                   </span>
                 )}
               </div>
-              <p className="text-xs font-semibold text-[#f1f5f3] leading-snug">
+              <p className="text-xs font-medium text-[#17191c] leading-snug">
                 {liveAlertBanner.mensaje}
               </p>
-              <p className="text-[11px] text-[#94a398]">
+              <p className="text-[11px] text-[#777b86]">
                 {liveAlertBanner.ubicacion_nombre || liveAlertBanner.ubicacion_id} ·{' '}
-                <span className="text-[#c084fc] font-mono">{liveAlertBanner.sensor_identificador || liveAlertBanner.sensor_id}</span>
+                <span className="text-[#5d2a1a] font-mono">{liveAlertBanner.sensor_identificador || liveAlertBanner.sensor_id}</span>
               </p>
               <div className="flex items-center gap-2 pt-1">
                 <button
@@ -878,7 +878,7 @@ export default function App() {
                     handleAuthorizedTabChange('alerts');
                     setLiveAlertBanner(null);
                   }}
-                  className="text-[11px] font-medium text-neon-pulse hover:underline cursor-pointer"
+                  className="text-[11px] font-medium text-[#17191c] hover:underline cursor-pointer"
                 >
                   Ver en Alertas
                 </button>
@@ -886,7 +886,7 @@ export default function App() {
                   type="button"
                   onClick={() => setAlertSoundEnabled((v) => !v)}
                   title={alertSoundEnabled ? 'Silenciar aviso sonoro' : 'Activar aviso sonoro'}
-                  className="text-[11px] text-slate-text hover:text-pure-white inline-flex items-center gap-1 cursor-pointer ml-auto"
+                  className="text-[11px] text-[#777b86] hover:text-[#17191c] inline-flex items-center gap-1 cursor-pointer ml-auto"
                 >
                   {alertSoundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                   {alertSoundEnabled ? 'Sonido ON' : 'Sonido OFF'}
@@ -897,7 +897,7 @@ export default function App() {
               type="button"
               onClick={() => setLiveAlertBanner(null)}
               aria-label="Cerrar notificación de alerta"
-              className="text-slate-text hover:text-pure-white cursor-pointer"
+              className="text-[#777b86] hover:text-[#17191c] cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -905,15 +905,15 @@ export default function App() {
         </div>
       )}
 
-      {/* Global Toast Notification — SIMOA Eco Capsule */}
+      {/* Global Toast Notification — Steep Artifact Pill */}
       {toastMessage && (
         <div
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-[36px] bg-sheet-white border border-canopy  text-bark text-[14px] font-semibold leading-[18px] tracking-[-0.224px] animate-slideUp"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-full bg-white border border-[#ececec] text-[#17191c] text-[14px] font-normal shadow-[0_4px_24px_rgba(0,0,0,0.08)] animate-slideUp font-sans"
         >
           {toastType === 'success' ? (
-            <Check className="w-4 h-4 text-canopy shrink-0" />
+            <Check className="w-4 h-4 text-[#17191c] shrink-0" />
           ) : (
-            <AlertCircle className="w-4 h-4 text-[#16a34a] shrink-0" />
+            <AlertCircle className="w-4 h-4 text-[#5d2a1a] shrink-0" />
           )}
           <span>{toastMessage}</span>
         </div>

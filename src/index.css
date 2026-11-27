@@ -1,197 +1,279 @@
 @import "tailwindcss";
 
 :root {
-  /* ORYZO AI — Sistema Invernadero Frío: Fondo Negro + Verde Invernadero + Toques Moraditos Sensores */
-  --color-warm-cream: #f1f5f3;
-  --color-walnut-shadow: #070b09;
-  --color-bark-brown: #0e1713;
-  --color-cork-border: #1e3a2b;
-  --color-driftwood: #166534;
-  --color-ember-accent: #22c55e;
-  --color-pure-black: #070b09;
-
-  /* Mapped Console Tokens */
-  --color-obsidian-shell: #070b09;
-  --color-pure-white: #ffffff;
-  --color-mint-frost: #0e1713;
-  --color-deep-abyss: #070b09;
-  --color-charcoal: #121e18;
-  --color-fog-border: #1e3a2b;
-  --color-stone-border: #22c55e;
-  --color-slate-text: #94a398;
-  --color-graphite-fill: #1a3325;
-  --color-neon-pulse: #22c55e;
-  --color-mint-whisper: #162e21;
-  --color-signal-yellow: #22c55e;
-
-  /* Toques Moraditos que representan los Sensores IoT */
-  --color-sensor-purple: #c084fc;
-  --color-sensor-purple-deep: #a855f7;
-  --color-sensor-purple-bg: rgba(168, 85, 247, 0.14);
-  --color-sensor-purple-border: rgba(192, 132, 252, 0.45);
+  /* ==========================================================================
+     STEEP DESIGN SYSTEM — serif analytics on warm paper
+     ========================================================================== */
+  /* Colors */
+  --color-ink-black: #17191c;
+  --color-paper-white: #ffffff;
+  --color-mist-gray: #f2f2f3;
+  --color-fog-white: #fafafb;
+  --color-slate-gray: #777b86;
+  --color-ash-gray: #979799;
+  --color-smoke-gray: #a3a6af;
+  --color-blush-peach: #fbe1d1;
+  --color-sienna-brown: #5d2a1a;
 
   /* Typography — Font Families */
-  --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-arial: 'Arial', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-aeonik: var(--font-halyard-display-variable);
-  --font-aeonikfono: var(--font-halyard-display-variable);
+  --font-signifier: 'Signifier', 'Source Serif 4', 'Newsreader', ui-serif, Georgia, serif;
+  --font-sohne: 'Sohne', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Typography — Scale */
-  --text-subheading: 18px;
-  --leading-subheading: 1;
-  --tracking-subheading: 0px;
-  --text-heading-sm: 24px;
-  --leading-heading-sm: 1.09;
-  --tracking-heading-sm: 0px;
-  --text-body: 29px;
-  --leading-body: 1.26;
-  --tracking-body: 0px;
-  --text-heading: 41px;
-  --leading-heading: 0.9;
-  --tracking-heading: 0px;
-  --text-display: 51px;
-  --leading-display: 0.9;
-  --tracking-display: 0px;
+  --text-caption: 15px;
+  --leading-caption: 1.5;
+  --text-body: 17px;
+  --leading-body: 1.35;
+  --text-body-lg: 20px;
+  --leading-body-lg: 1.35;
+  --text-subheading: 22px;
+  --leading-subheading: 1.5;
+  --text-heading-sm: 26px;
+  --leading-heading-sm: 1.18;
+  --tracking-heading-sm: -0.23px;
+  --text-heading: 44px;
+  --leading-heading: 1.3;
+  --tracking-heading: -0.66px;
+  --text-heading-lg: 64px;
+  --leading-heading-lg: 1.3;
+  --tracking-heading-lg: -0.96px;
+  --text-display: 90px;
+  --leading-display: 1.3;
+  --tracking-display: -2.25px;
 
   /* Typography — Weights */
   --font-weight-regular: 400;
+  --font-weight-w430: 430;
+  --font-weight-w450: 450;
+  --font-weight-w480: 480;
   --font-weight-medium: 500;
 
   /* Spacing */
-  --spacing-6: 6px;
+  --spacing-unit: 4px;
+  --spacing-4: 4px;
   --spacing-8: 8px;
-  --spacing-9: 9px;
-  --spacing-10: 10px;
   --spacing-12: 12px;
-  --spacing-14: 14px;
-  --spacing-18: 18px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
   --spacing-24: 24px;
-  --spacing-31: 31px;
-  --spacing-41: 41px;
-  --spacing-45: 45px;
-  --spacing-68: 68px;
-  --spacing-204: 204px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-64: 64px;
+  --spacing-80: 80px;
+  --spacing-96: 96px;
+  --spacing-124: 124px;
+  --spacing-128: 128px;
+  --spacing-160: 160px;
 
   /* Layout */
-  --card-padding: 24px;
-  --element-gap: 18px;
+  --page-max-width: 1200px;
+  --section-gap: 80px;
+  --card-padding: 20px;
+  --element-gap: 8px;
 
   /* Border Radius */
+  --radius-sm: 0.01px;
   --radius-xl: 12px;
-  --radius-2xl: 22.5px;
-  --radius-3xl: 36px;
-  --radius-full: 9999px;
+  --radius-2xl: 16px;
+  --radius-2xl-2: 20px;
+  --radius-3xl: 24px;
 
   /* Named Radii */
-  --radius-cards: 12px;
-  --radius-inputs: 0px;
-  --radius-full-round: 9999px;
-  --radius-buttons-pill: 36px;
-  --radius-buttons-outlined: 22.5px;
+  --radius-cards: 24px;
+  --radius-images: 12px;
+  --radius-inputs: 16px;
+  --radius-buttons: 9999px;
+  --radius-smallcards: 16px;
+  --radius-elevatedcards: 20px;
+
+  /* Shadows */
+  --shadow-subtle: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+  --shadow-subtle-2: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 8px 40px 0 rgba(0, 0, 0, 0.1);
+  --shadow-subtle-3: 0 0 0 1px rgba(4, 23, 43, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 
   /* Surfaces */
-  --surface-walnut-shadow: #070b09;
-  --surface-bark-brown: #0e1713;
-  --surface-cork-border: #1e3a2b;
-  --surface-warm-cream: #f1f5f3;
+  --surface-canvas: #ffffff;
+  --surface-card-mist: #f2f2f3;
+  --surface-section-fog: #fafafb;
+  --surface-accent-blush: #fbe1d1;
+  --surface-elevated-white: #ffffff;
+
+  /* Semantic Compatibility Mappings */
+  --color-obsidian-shell: #ffffff;
+  --color-pure-white: #17191c;
+  --color-mint-frost: #f2f2f3;
+  --color-deep-abyss: #fafafb;
+  --color-charcoal: #f2f2f3;
+  --color-fog-border: #ececec;
+  --color-stone-border: #e2e2e4;
+  --color-slate-text: #777b86;
+  --color-graphite-fill: #f2f2f3;
+  --color-neon-pulse: #5d2a1a;
+  --color-mint-whisper: #f2f2f3;
+  --color-signal-yellow: #5d2a1a;
+
+  --color-sensor-purple: #5d2a1a;
+  --color-sensor-purple-deep: #17191c;
+  --color-sensor-purple-bg: #fbe1d1;
+  --color-sensor-purple-border: #fbe1d1;
+
+  --color-warm-cream: #17191c;
+  --color-walnut-shadow: #ffffff;
+  --color-bark-brown: #ffffff;
+  --color-cork-border: #ececec;
+  --color-driftwood: #777b86;
+  --color-ember-accent: #fbe1d1;
+  --color-pure-black: #17191c;
+
+  --color-cream-paper: #ffffff;
+  --color-sheet-white: #ffffff;
+  --color-canopy: #17191c;
+  --color-bark: #17191c;
+  --color-ink: #17191c;
+  --color-slate: #777b86;
+  --color-sage-mist: #ececec;
+  --color-pale-sage: #f2f2f3;
+  --color-muted-slate: #979799;
+  --color-mint-pulse: #17191c;
+  --color-orb-violet: #5d2a1a;
 }
 
 @theme {
-  /* Tokens ORYZO AI Fondo Negro Invernadero + Verde + Moradito Sensores */
-  --color-warm-cream: #f1f5f3;
-  --color-walnut-shadow: #070b09;
-  --color-bark-brown: #0e1713;
-  --color-cork-border: #1e3a2b;
-  --color-driftwood: #166534;
-  --color-ember-accent: #22c55e;
-  --color-pure-black: #070b09;
-
-  /* Mapped Console Tokens */
-  --color-obsidian-shell: #070b09;
-  --color-pure-white: #ffffff;
-  --color-mint-frost: #0e1713;
-  --color-deep-abyss: #070b09;
-  --color-charcoal: #121e18;
-  --color-fog-border: #1e3a2b;
-  --color-stone-border: #22c55e;
-  --color-slate-text: #94a398;
-  --color-graphite-fill: #1a3325;
-  --color-neon-pulse: #22c55e;
-  --color-mint-whisper: #162e21;
-  --color-signal-yellow: #22c55e;
-
-  /* Toques Moraditos Sensores */
-  --color-sensor-purple: #c084fc;
-  --color-sensor-purple-deep: #a855f7;
-
-  /* Legacy semantic aliases */
-  --color-cream-paper: #070b09;
-  --color-sheet-white: #0e1713;
-  --color-canopy: #22c55e;
-  --color-bark: #f1f5f3;
-  --color-ink: #f1f5f3;
-  --color-slate: #94a398;
-  --color-sage-mist: #1e3a2b;
-  --color-pale-sage: #121e18;
-  --color-muted-slate: #64748b;
-  --color-mint-pulse: #22c55e;
-  --color-orb-violet: #a855f7;
+  /* Colors */
+  --color-ink-black: #17191c;
+  --color-paper-white: #ffffff;
+  --color-mist-gray: #f2f2f3;
+  --color-fog-white: #fafafb;
+  --color-slate-gray: #777b86;
+  --color-ash-gray: #979799;
+  --color-smoke-gray: #a3a6af;
+  --color-blush-peach: #fbe1d1;
+  --color-sienna-brown: #5d2a1a;
 
   /* Typography */
-  --font-halyard-display-variable: 'halyard-display-variable', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-arial: 'Arial', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-aeonik: var(--font-halyard-display-variable);
-  --font-aeonikfono: var(--font-halyard-display-variable);
+  --font-signifier: 'Signifier', 'Source Serif 4', 'Newsreader', ui-serif, Georgia, serif;
+  --font-sohne: 'Sohne', 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-halyard-display-variable: 'Sohne', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-aeonik: 'Sohne', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-aeonikfono: 'Sohne', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Typography — Scale */
+  --text-caption: 15px;
+  --leading-caption: 1.5;
+  --text-body: 17px;
+  --leading-body: 1.35;
+  --text-body-lg: 20px;
+  --leading-body-lg: 1.35;
+  --text-subheading: 22px;
+  --leading-subheading: 1.5;
+  --text-heading-sm: 26px;
+  --leading-heading-sm: 1.18;
+  --tracking-heading-sm: -0.23px;
+  --text-heading: 44px;
+  --leading-heading: 1.3;
+  --tracking-heading: -0.66px;
+  --text-heading-lg: 64px;
+  --leading-heading-lg: 1.3;
+  --tracking-heading-lg: -0.96px;
+  --text-display: 90px;
+  --leading-display: 1.3;
+  --tracking-display: -2.25px;
 
   /* Spacing */
-  --spacing-6: 6px;
+  --spacing-4: 4px;
   --spacing-8: 8px;
-  --spacing-9: 9px;
-  --spacing-10: 10px;
   --spacing-12: 12px;
-  --spacing-14: 14px;
-  --spacing-18: 18px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
   --spacing-24: 24px;
-  --spacing-31: 31px;
-  --spacing-41: 41px;
-  --spacing-45: 45px;
-  --spacing-68: 68px;
-  --spacing-204: 204px;
+  --spacing-28: 28px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-64: 64px;
+  --spacing-80: 80px;
+  --spacing-96: 96px;
+  --spacing-124: 124px;
+  --spacing-128: 128px;
+  --spacing-160: 160px;
 
   /* Border Radius */
+  --radius-sm: 0.01px;
   --radius-xl: 12px;
-  --radius-2xl: 22.5px;
-  --radius-3xl: 36px;
-  --radius-full: 9999px;
+  --radius-2xl: 16px;
+  --radius-2xl-2: 20px;
+  --radius-3xl: 24px;
+
+  /* Shadows */
+  --shadow-subtle: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 24px 0 rgba(0, 0, 0, 0.08);
+  --shadow-subtle-2: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 8px 40px 0 rgba(0, 0, 0, 0.1);
+  --shadow-subtle-3: 0 0 0 1px rgba(4, 23, 43, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Semantic Aliases for compatibility */
+  --color-cream-paper: #ffffff;
+  --color-sheet-white: #ffffff;
+  --color-canopy: #17191c;
+  --color-bark: #17191c;
+  --color-ink: #17191c;
+  --color-slate: #777b86;
+  --color-sage-mist: #ececec;
+  --color-pale-sage: #f2f2f3;
+  --color-muted-slate: #979799;
+  --color-mint-pulse: #17191c;
+  --color-orb-violet: #5d2a1a;
+  --color-warm-cream: #17191c;
+  --color-walnut-shadow: #ffffff;
+  --color-bark-brown: #ffffff;
+  --color-cork-border: #ececec;
+  --color-driftwood: #777b86;
+  --color-ember-accent: #fbe1d1;
+  --color-obsidian-shell: #ffffff;
+  --color-pure-white: #17191c;
+  --color-mint-frost: #f2f2f3;
+  --color-deep-abyss: #fafafb;
+  --color-charcoal: #f2f2f3;
+  --color-fog-border: #ececec;
+  --color-stone-border: #e2e2e4;
+  --color-slate-text: #777b86;
+  --color-graphite-fill: #f2f2f3;
+  --color-neon-pulse: #5d2a1a;
+  --color-mint-whisper: #f2f2f3;
+  --color-signal-yellow: #5d2a1a;
+  --color-sensor-purple: #5d2a1a;
+  --color-sensor-purple-deep: #17191c;
 }
 
 @layer base {
   html {
-    background-color: var(--color-walnut-shadow);
-    color: var(--color-warm-cream);
-    font-family: var(--font-halyard-display-variable);
-    font-feature-settings: "ss01" on;
+    background-color: var(--color-paper-white, #ffffff);
+    color: var(--color-ink-black, #17191c);
+    font-family: var(--font-sohne);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
   }
 
   body {
-    background-color: var(--color-walnut-shadow);
-    color: var(--color-warm-cream);
-    font-family: var(--font-halyard-display-variable);
+    background-color: var(--color-paper-white, #ffffff);
+    color: var(--color-ink-black, #17191c);
+    font-family: var(--font-sohne);
     font-weight: 400;
-    font-size: 16px;
-    line-height: 1.45;
+    font-size: 17px;
+    line-height: 1.35;
     letter-spacing: 0px;
-    font-feature-settings: "ss01" on;
   }
 
-  h1, h2, h3, .font-display {
-    font-family: var(--font-halyard-display-variable);
+  h1, h2 {
+    font-family: var(--font-signifier);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    color: var(--color-ink-black, #17191c);
+  }
+
+  h3, h4, h5, h6 {
+    font-family: var(--font-sohne);
     font-weight: 500;
-    letter-spacing: 0px;
-    font-feature-settings: "ss01" on;
+    color: var(--color-ink-black, #17191c);
   }
 
   code, kbd, samp, pre, .font-mono {
@@ -199,332 +281,250 @@
   }
 
   select option {
-    background-color: var(--color-bark-brown);
-    color: var(--color-warm-cream);
+    background-color: #ffffff;
+    color: #17191c;
   }
 }
 
 /* ============================================================================
-   SISTEMA EDITORIAL ORYZO AI — INVERNADERO FRÍO: FONDO NEGRO + VERDE + SENSORES MORADITOS
+   STEEP COMPONENT UTILITIES
    ============================================================================ */
 
-.oryzo-divider {
-  border-top: 1px dashed var(--color-cork-border, #1e3a2b);
-}
-
-.oryzo-pill-btn {
-  background-color: #22c55e;
-  color: #070b09;
-  border-radius: var(--radius-buttons-pill, 36px);
-  padding: 14px 24px;
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background-color 0.18s ease;
-}
-.oryzo-pill-btn:hover {
-  background-color: #16a34a;
-}
-
-.oryzo-ghost-btn {
-  background-color: transparent;
-  color: #4ade80;
-  border: 1px solid var(--color-cork-border, #1e3a2b);
-  border-radius: var(--radius-buttons-outlined, 22.5px);
-  padding: 7.5px 18px;
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background-color 0.18s ease, border-color 0.18s ease;
-}
-.oryzo-ghost-btn:hover {
-  background-color: #121e18;
-  border-color: #22c55e;
-}
-
-.oryzo-input {
-  background-color: transparent;
-  border: none;
-  border-bottom: 1px solid var(--color-cork-border, #1e3a2b);
-  border-radius: var(--radius-inputs, 0px);
-  color: #ffffff;
-  padding: 10px 4px;
-  font-family: var(--font-halyard-display-variable);
-  font-size: 15px;
-  transition: border-color 0.18s ease;
-}
-.oryzo-input:focus {
-  outline: none;
-  border-bottom-color: #22c55e;
-}
-
-.oryzo-card {
-  background-color: var(--color-bark-brown, #0e1713);
-  border: 1px dashed var(--color-cork-border, #1e3a2b);
-  border-radius: var(--radius-cards, 12px);
-  padding: var(--card-padding, 24px);
-  box-shadow: none;
-}
-
-.oryzo-body {
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 400;
-  font-size: clamp(16px, 1.8vw, 29px);
-  line-height: var(--leading-body, 1.26);
-  letter-spacing: 0px;
-  color: #94a398;
-}
-
-.oryzo-vertical-label {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 600;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #4ade80;
-}
-
-.sauce-display {
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  font-size: clamp(36px, 5vw, 51px);
-  line-height: 0.95;
-  letter-spacing: 0px;
-  text-transform: uppercase;
-  color: #ffffff;
-}
-
-.sauce-heading {
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  font-size: clamp(26px, 3.6vw, 41px);
-  line-height: 0.95;
-  letter-spacing: 0px;
-  text-transform: uppercase;
-  color: #ffffff;
-}
-
-.sauce-eyebrow {
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 600;
-  font-size: 10px;
-  line-height: 1.2;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #4ade80;
-}
-
-.sauce-stat-value {
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  font-size: clamp(32px, 3.5vw, 41px);
-  line-height: 0.95;
-  color: #22c55e;
-  font-variant-numeric: tabular-nums;
-}
-
-.sauce-btn-primary {
-  background-color: #22c55e;
-  color: #070b09;
-  border: 1px solid #16a34a;
-  border-radius: 36px;
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  padding: 14px 24px;
-  transition: filter 0.18s ease, background-color 0.18s ease;
-}
-
-.sauce-btn-primary:hover {
-  background-color: #16a34a;
-}
-
-.sauce-btn-ghost {
-  background-color: #0e1713;
-  color: #4ade80;
-  border: 1px solid #1e3a2b;
-  border-radius: 22.5px;
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  font-size: 12px;
-  text-transform: uppercase;
-  padding: 7.5px 18px;
-  transition: background-color 0.18s ease, border-color 0.18s ease;
-}
-
-.sauce-btn-ghost:hover {
-  background-color: #121e18;
-  border-color: #22c55e;
-}
-
-.sauce-card-mint {
-  background-color: #0e1713;
-  color: #f1f5f3;
-  border: 1px dashed #1e3a2b;
-  border-radius: 12px;
-  box-shadow: none;
-}
-
-.sauce-card-dark {
-  background-color: #0e1713;
-  color: #f1f5f3;
-  border: 1px dashed #1e3a2b;
-  border-radius: 12px;
-  box-shadow: none;
-}
-
-.sauce-input, .oryzo-input {
-  background-color: transparent;
-  border: none;
-  border-bottom: 1px solid var(--color-cork-border, #1e3a2b);
-  border-radius: var(--radius-inputs, 0px);
-  color: #ffffff;
-  padding: 10px 4px;
-  font-family: var(--font-halyard-display-variable);
-  font-size: 15px;
-  transition: border-color 0.18s ease;
-}
-
-.sauce-input:focus, .oryzo-input:focus {
-  outline: none;
-  border-bottom-color: #22c55e;
-}
-
-/* Console component utilities */
-.apple-card-heading {
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  font-size: 18px;
-  line-height: 1.05;
-  text-transform: uppercase;
-  color: #ffffff;
-}
-
-.apple-metric-display {
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  font-size: clamp(28px, 3vw, 41px);
-  line-height: 0.95;
-  color: #22c55e;
-  font-variant-numeric: tabular-nums;
-}
-
-.apple-body {
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.35;
-  color: #94a398;
-}
-
+/* Pill Button — Filled (#17191c fill, white text, 9999px radius) */
+.steep-btn-filled,
+.oryzo-pill-btn,
+.sauce-btn-primary,
 .apple-blue-pill {
-  background-color: #22c55e;
-  color: #070b09;
-  border: 1px solid #16a34a;
-  border-radius: 36px;
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 600;
-  text-transform: uppercase;
-  transition: background-color 0.18s ease;
+  background-color: #17191c !important;
+  color: #ffffff !important;
+  border: 1px solid #17191c !important;
+  border-radius: 9999px !important;
+  padding: 10px 24px !important;
+  font-family: var(--font-sohne) !important;
+  font-weight: 400 !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  text-transform: none !important;
+  letter-spacing: 0px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+  transition: background-color 0.18s ease, transform 0.12s ease !important;
+  cursor: pointer !important;
 }
 
+.steep-btn-filled:hover,
+.oryzo-pill-btn:hover,
+.sauce-btn-primary:hover,
 .apple-blue-pill:hover {
-  background-color: #16a34a;
+  background-color: #33363d !important;
 }
 
+/* Pill Button — Ghost (transparent fill, #17191c border, #17191c text) */
+.steep-btn-ghost,
+.oryzo-ghost-btn,
+.sauce-btn-ghost,
 .apple-white-outline-pill {
-  background-color: #0e1713;
-  color: #4ade80;
-  border: 1px solid #1e3a2b;
-  border-radius: 22.5px;
-  padding-left: 16px;
-  padding-right: 16px;
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  text-transform: uppercase;
-  transition: background-color 0.18s ease;
+  background-color: transparent !important;
+  color: #17191c !important;
+  border: 1px solid #17191c !important;
+  border-radius: 9999px !important;
+  padding: 10px 24px !important;
+  font-family: var(--font-sohne) !important;
+  font-weight: 400 !important;
+  font-size: 16px !important;
+  line-height: 1.2 !important;
+  text-transform: none !important;
+  letter-spacing: 0px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  transition: background-color 0.18s ease, border-color 0.18s ease !important;
+  cursor: pointer !important;
 }
 
+.steep-btn-ghost:hover,
+.oryzo-ghost-btn:hover,
+.sauce-btn-ghost:hover,
 .apple-white-outline-pill:hover {
-  background-color: #121e18;
+  background-color: #f2f2f3 !important;
 }
 
+/* Neutral Card (Mist Gray #f2f2f3, 24px radius, no shadow) */
+.steep-card-neutral,
+.oryzo-card,
+.sauce-card-mint,
+.sauce-card-dark {
+  background-color: #f2f2f3 !important;
+  border-radius: 24px !important;
+  border: none !important;
+  padding: 24px !important;
+  box-shadow: none !important;
+  color: #17191c !important;
+}
+
+/* Accent Peach Card (#fbe1d1 background, #5d2a1a text and strokes) */
+.steep-card-peach {
+  background-color: #fbe1d1 !important;
+  color: #5d2a1a !important;
+  border-radius: 24px !important;
+  border: none !important;
+  padding: 32px 24px !important;
+  box-shadow: none !important;
+}
+
+/* Floating Product Artifact (White, 20px radius, subtle elevation) */
+.steep-card-artifact {
+  background-color: #ffffff !important;
+  border-radius: 20px !important;
+  box-shadow: 0 0 0 1px rgba(4, 23, 43, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  padding: 20px !important;
+  color: #17191c !important;
+}
+
+/* Input / Composer (#ffffff, 1px solid #ececec, 16px radius) */
+.steep-input,
+.oryzo-input,
+.sauce-input,
 .apple-pill-input,
 .apple-pill-select {
-  background-color: #0e1713;
-  border: 1px solid #1e3a2b;
-  color: #ffffff;
-  border-radius: 10px;
-  padding-left: 12px;
-  padding-right: 12px;
-  font-family: var(--font-halyard-display-variable);
-  font-size: 14px;
+  background-color: #ffffff !important;
+  border: 1px solid #ececec !important;
+  border-radius: 16px !important;
+  color: #17191c !important;
+  padding: 12px 16px !important;
+  font-family: var(--font-sohne) !important;
+  font-size: 16px !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
 }
 
+.steep-input:focus,
+.oryzo-input:focus,
+.sauce-input:focus,
 .apple-pill-input:focus,
 .apple-pill-select:focus {
-  outline: none;
-  border-color: #22c55e;
+  outline: none !important;
+  border-color: #17191c !important;
+  box-shadow: 0 0 0 1px #17191c !important;
 }
 
-.apple-badge-orange {
-  background-color: #121e18;
-  border: 1px dashed #22c55e;
-  color: #4ade80;
-  border-radius: 36px;
-  padding: 2px 10px;
-  font-family: var(--font-halyard-display-variable);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+/* Typography styles */
+.steep-display,
+.sauce-display {
+  font-family: var(--font-signifier) !important;
+  font-weight: 400 !important;
+  font-size: clamp(44px, 6vw, 90px) !important;
+  line-height: 1.15 !important;
+  letter-spacing: -2.25px !important;
+  text-transform: none !important;
+  color: #17191c !important;
 }
 
-.apple-inline-link {
-  color: #4ade80;
-  font-family: var(--font-halyard-display-variable);
-  font-weight: 500;
-  text-transform: uppercase;
+.steep-heading,
+.sauce-heading {
+  font-family: var(--font-signifier) !important;
+  font-weight: 400 !important;
+  font-size: clamp(32px, 4vw, 44px) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.66px !important;
+  text-transform: none !important;
+  color: #17191c !important;
 }
 
-.apple-inline-link:hover {
-  text-decoration: underline;
+.steep-subheading {
+  font-family: var(--font-sohne) !important;
+  font-weight: 400 !important;
+  font-size: 20px !important;
+  line-height: 1.4 !important;
+  color: #777b86 !important;
 }
 
-/* Toques Moraditos que representan los Sensores IoT */
+.steep-tag {
+  font-family: var(--font-sohne) !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  color: #979799 !important;
+}
+
+.steep-link {
+  color: #17191c !important;
+  font-family: var(--font-sohne) !important;
+  font-weight: 400 !important;
+  font-size: 16px !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  transition: opacity 0.15s ease !important;
+}
+.steep-link:hover {
+  text-decoration: underline !important;
+}
+
+/* Category & Tag Markers */
+.apple-badge-orange,
 .sensor-badge-purple {
-  background-color: rgba(168, 85, 247, 0.14);
-  border: 1px solid rgba(192, 132, 252, 0.45);
-  color: #c084fc;
-  border-radius: 36px;
-  padding: 2px 10px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 11px;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  background-color: transparent !important;
+  border: none !important;
+  color: #979799 !important;
+  font-family: var(--font-sohne) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  padding: 0 !important;
 }
 
 .sensor-chip {
-  background-color: #1b102b;
-  border: 1px solid rgba(192, 132, 252, 0.35);
-  color: #d8b4fe;
+  background-color: #fbe1d1 !important;
+  color: #5d2a1a !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  padding: 4px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.apple-card-heading {
+  font-family: var(--font-sohne) !important;
+  font-weight: 500 !important;
+  font-size: 18px !important;
+  line-height: 1.2 !important;
+  text-transform: none !important;
+  color: #17191c !important;
+}
+
+.apple-metric-display,
+.sauce-stat-value {
+  font-family: var(--font-sohne) !important;
+  font-weight: 500 !important;
+  font-size: clamp(28px, 3.5vw, 44px) !important;
+  line-height: 1.1 !important;
+  color: #17191c !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.apple-body,
+.oryzo-body {
+  font-family: var(--font-sohne) !important;
+  font-weight: 400 !important;
+  font-size: 17px !important;
+  line-height: 1.35 !important;
+  color: #777b86 !important;
+}
+
+.apple-inline-link {
+  color: #17191c !important;
+  font-family: var(--font-sohne) !important;
+  font-weight: 400 !important;
+}
+
+.apple-inline-link:hover {
+  text-decoration: underline !important;
+}
+
+/* Modal and Dropdown shadows */
+.steep-shadow-modal {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 8px 40px 0 rgba(0, 0, 0, 0.1) !important;
 }

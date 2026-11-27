@@ -304,10 +304,10 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
               <button
                 key={loc.id_ubicacion}
                 onClick={() => onSelectLocation(loc.id_ubicacion)}
-                className={`flex items-center gap-2 px-4 py-1.5 text-[12px] tracking-[-0.12px] rounded-[8px] transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-4 py-1.5 text-[13px] rounded-full transition-colors whitespace-nowrap cursor-pointer ${
                   isSelected
-                    ? 'bg-canopy text-sheet-white font-semibold'
-                    : 'text-slate hover:text-bark'
+                    ? 'bg-[#17191c] text-white font-medium'
+                    : 'text-[#777b86] hover:text-[#17191c]'
                 }`}
               >
                 <span className="truncate max-w-[160px]" title={loc.nombre}>
@@ -412,7 +412,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
           <div className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-[12px] font-semibold text-slate">Presión Atmosférica</span>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-[5px] font-semibold bg-[#1b102b] text-[#c084fc] border border-[#a855f7]/40">
+              <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full font-medium bg-[#fbe1d1] text-[#5d2a1a]">
                 SENSOR BME280
               </span>
             </div>

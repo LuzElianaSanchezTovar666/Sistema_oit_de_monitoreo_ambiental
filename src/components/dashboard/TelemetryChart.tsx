@@ -145,7 +145,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           <h3 className="text-[17px] font-semibold tracking-[-0.374px] text-bark flex items-center gap-2">
             <span>Serie Temporal de Telemetría</span>
             <span className="text-xs text-slate font-normal">· {locationName}</span>
-            <span className="sensor-badge-purple text-[10px]">Sensor {sensorType}</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-[#fbe1d1] text-[#5d2a1a] text-[11px] font-medium">Sensor {sensorType}</span>
           </h3>
           <p className="text-[12px] text-slate mt-0.5">
             Lecturas registradas en MySQL
@@ -154,14 +154,14 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Selector de métricas habilitadas en RF-05 */}
-          <div className="flex items-center p-1 bg-cream-paper rounded-[8px] text-[12px]">
+          <div className="flex items-center p-1 bg-[#f2f2f3] rounded-full text-[12px]">
             {tempEnabled && (
               <button
                 onClick={() => setMetricMode('temp')}
-                className={`px-3 py-1 rounded-[8px] transition-colors ${
+                className={`px-3 py-1 rounded-full transition-colors cursor-pointer ${
                   metricMode === 'temp'
-                    ? 'bg-cream-paper text-canopy font-semibold'
-                    : 'text-slate hover:text-bark'
+                    ? 'bg-white text-[#17191c] font-medium shadow-sm'
+                    : 'text-[#777b86] hover:text-[#17191c]'
                 }`}
               >
                 Temp (°C)
@@ -170,10 +170,10 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             {humEnabled && (
               <button
                 onClick={() => setMetricMode('hum')}
-                className={`px-3 py-1 rounded-[8px] transition-colors ${
+                className={`px-3 py-1 rounded-full transition-colors cursor-pointer ${
                   metricMode === 'hum'
-                    ? 'bg-cream-paper text-[#53d5f4] font-semibold'
-                    : 'text-slate hover:text-bark'
+                    ? 'bg-white text-[#17191c] font-medium shadow-sm'
+                    : 'text-[#777b86] hover:text-[#17191c]'
                 }`}
               >
                 Humedad (%RH)
@@ -182,10 +182,10 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             {tempEnabled && humEnabled && (
               <button
                 onClick={() => setMetricMode('dual')}
-                className={`px-3 py-1 rounded-[8px] transition-colors ${
+                className={`px-3 py-1 rounded-full transition-colors cursor-pointer ${
                   metricMode === 'dual'
-                    ? 'bg-cream-paper text-bark font-semibold'
-                    : 'text-slate hover:text-bark'
+                    ? 'bg-white text-[#17191c] font-medium shadow-sm'
+                    : 'text-[#777b86] hover:text-[#17191c]'
                 }`}
               >
                 Ambas
@@ -194,15 +194,15 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           </div>
 
           {/* Selector de Rango de Tiempo */}
-          <div className="flex items-center p-1 bg-cream-paper rounded-[8px] text-[12px]">
+          <div className="flex items-center p-1 bg-[#f2f2f3] rounded-full text-[12px]">
             {(['1h', '4h', '24h'] as const).map((w) => (
               <button
                 key={w}
                 onClick={() => setTimeWindow(w)}
-                className={`px-3 py-1 rounded-[8px] transition-colors uppercase ${
+                className={`px-3 py-1 rounded-full transition-colors uppercase cursor-pointer ${
                   timeWindow === w
-                    ? 'bg-canopy text-sheet-white font-semibold'
-                    : 'text-slate hover:text-bark'
+                    ? 'bg-[#17191c] text-white font-medium'
+                    : 'text-[#777b86] hover:text-[#17191c]'
                 }`}
               >
                 {w}

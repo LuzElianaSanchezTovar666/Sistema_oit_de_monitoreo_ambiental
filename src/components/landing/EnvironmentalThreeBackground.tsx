@@ -1,12 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 
 /**
- * Fondo interactivo de gráficas de sensores e invernadero para SIMOA:
- * - Retícula milimetrada estilo estación agrometeorológica
- * - Siluetas vectoriales sutiles de naves de invernadero
- * - Curvas animadas en tiempo real de Temperatura (°C) y Humedad Relativa (%RH)
- * - Nodos de sensores pulsantes con lecturas ambientales y flujo de datos
- * - Parallax suave con el cursor y soporte para prefers-reduced-motion
+ * Fondo interactivo editorial estilo Steep para SIMOA:
+ * - Canvas Paper White con retícula hairline sutil
+ * - Curvas gesturales de telemetría en trazos Sienna Brown (#5d2a1a) y Slate Gray (#777b86)
+ * - Nodos de sensores IoT con micro-destello y anillos en tono Blush Peach (#fbe1d1)
+ * - Parallax fluido con el cursor del mouse y respeto a prefers-reduced-motion
  */
 export const EnvironmentalThreeBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -43,56 +42,13 @@ export const EnvironmentalThreeBackground: React.FC = () => {
     window.addEventListener('resize', resize);
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-    // Nodos de sensores IoT distribuidos en zonas del invernadero (Toques moraditos que representan los sensores)
+    // Nodos de sensores IoT (Steep Minimal: Ink Black / Sienna Brown con halo Peach)
     const sensorNodes = [
-      { rx: 0.14, ry: 0.34, label: '23.6 °C · GERMINACIÓN (DHT22)', color: '#c084fc', phase: 0.0 },
-      { rx: 0.38, ry: 0.52, label: '68 %RH · CULTIVO A1 (BME280)', color: '#a855f7', phase: 1.4 },
-      { rx: 0.64, ry: 0.38, label: '22.1 °C · CLIMATIZACIÓN (SHT31)', color: '#c084fc', phase: 2.7 },
-      { rx: 0.84, ry: 0.60, label: '74 %RH · FERTIRRIEGO (ESP32)', color: '#a855f7', phase: 4.1 },
+      { rx: 0.12, ry: 0.32, label: '23.4 °C · GERMINACIÓN (DHT22)', color: '#5d2a1a', phase: 0.0 },
+      { rx: 0.42, ry: 0.54, label: '62 %RH · CULTIVO A1 (BME280)', color: '#17191c', phase: 1.4 },
+      { rx: 0.68, ry: 0.36, label: '22.8 °C · CLIMATIZACIÓN (SHT31)', color: '#5d2a1a', phase: 2.7 },
+      { rx: 0.88, ry: 0.62, label: '0.04 σ · ANOMALÍA Z-SCORE', color: '#17191c', phase: 4.1 },
     ];
-
-    const drawGreenhouseSilhouette = (cx: number, baseY: number, w: number, h: number, alpha: number) => {
-      ctx.save();
-      ctx.strokeStyle = `rgba(34, 197, 94, ${alpha * 2.2})`;
-      ctx.lineWidth = 1.4;
-
-      const x0 = cx - w / 2;
-      const x1 = cx + w / 2;
-      const wallTopY = baseY - h * 0.55;
-      const peakY = baseY - h;
-
-      // Estructura principal a dos aguas del invernadero (verde brillante que resalta en fondo negro)
-      ctx.beginPath();
-      ctx.moveTo(x0, baseY);
-      ctx.lineTo(x0, wallTopY);
-      ctx.lineTo(cx, peakY);
-      ctx.lineTo(x1, wallTopY);
-      ctx.lineTo(x1, baseY);
-      ctx.closePath();
-      ctx.stroke();
-
-      // Costillas internas / paneles en tono verde botánico
-      ctx.strokeStyle = `rgba(74, 222, 128, ${alpha * 2.5})`;
-      ctx.lineWidth = 0.9;
-      for (let i = 1; i <= 3; i++) {
-        const px = x0 + (w * i) / 4;
-        const roofY = i <= 2
-          ? wallTopY - ((wallTopY - peakY) * i) / 2
-          : wallTopY - ((wallTopY - peakY) * (4 - i)) / 2;
-        ctx.beginPath();
-        ctx.moveTo(px, baseY);
-        ctx.lineTo(px, roofY);
-        ctx.stroke();
-      }
-
-      // Línea de cumbrera y viga horizontal
-      ctx.beginPath();
-      ctx.moveTo(x0, wallTopY);
-      ctx.lineTo(x1, wallTopY);
-      ctx.stroke();
-
-      ctx.restore();
-    };
 
     const drawTelemetryWave = (
       t: number,
@@ -106,7 +62,7 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       parallaxY: number
     ) => {
       ctx.save();
-      const step = 16;
+      const step = 20;
       const points: Array<{ x: number; y: number }> = [];
 
       for (let x = 0; x <= width + step; x += step) {
@@ -115,12 +71,12 @@ export const EnvironmentalThreeBackground: React.FC = () => {
           baseY +
           parallaxY +
           Math.sin(normX * Math.PI * freq + t * speed) * amp +
-          Math.cos(normX * Math.PI * (freq * 1.7) - t * speed * 0.6) * (amp * 0.45);
+          Math.cos(normX * Math.PI * (freq * 1.5) - t * speed * 0.5) * (amp * 0.35);
         points.push({ x, y });
       }
 
-      // Área degradada bajo la curva de la gráfica
-      const grad = ctx.createLinearGradient(0, baseY - amp * 1.5, 0, height);
+      // Área degradada sutil bajo la curva
+      const grad = ctx.createLinearGradient(0, baseY - amp * 1.2, 0, height);
       grad.addColorStop(0, fillTop);
       grad.addColorStop(1, fillBottom);
 
@@ -134,23 +90,15 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       ctx.fillStyle = grad;
       ctx.fill();
 
-      // Línea principal de la gráfica de sensor
+      // Trazo fino gestural estilo Steep
       ctx.beginPath();
       for (let i = 0; i < points.length; i++) {
         if (i === 0) ctx.moveTo(points[i].x, points[i].y);
         else ctx.lineTo(points[i].x, points[i].y);
       }
       ctx.strokeStyle = strokeColor;
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 1.3;
       ctx.stroke();
-
-      // Puntos de muestreo sobre la curva
-      ctx.fillStyle = strokeColor;
-      for (let i = 4; i < points.length; i += 9) {
-        ctx.beginPath();
-        ctx.arc(points[i].x, points[i].y, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
 
       ctx.restore();
     };
@@ -165,13 +113,13 @@ export const EnvironmentalThreeBackground: React.FC = () => {
 
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Retícula sutil de gráfica agrometeorológica en tono verdecito sobre blanco
+      // 1. Retícula hairline muy sutil sobre Paper White (#ffffff)
       ctx.save();
-      ctx.strokeStyle = 'rgba(34, 197, 94, 0.08)';
+      ctx.strokeStyle = 'rgba(23, 25, 28, 0.035)';
       ctx.lineWidth = 1;
-      const gridSize = 64;
-      const offsetX = (mouse.x * -12) % gridSize;
-      const offsetY = (mouse.y * -12) % gridSize;
+      const gridSize = 72;
+      const offsetX = (mouse.x * -8) % gridSize;
+      const offsetY = (mouse.y * -8) % gridSize;
 
       for (let x = offsetX; x < width; x += gridSize) {
         ctx.beginPath();
@@ -187,49 +135,44 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       }
       ctx.restore();
 
-      // 2. Siluetas arquitectónicas de invernaderos en el fondo
-      drawGreenhouseSilhouette(width * 0.22 + mouse.x * 10, height * 0.86 + mouse.y * 6, 260, 150, 0.16);
-      drawGreenhouseSilhouette(width * 0.52 + mouse.x * 14, height * 0.88 + mouse.y * 8, 320, 180, 0.13);
-      drawGreenhouseSilhouette(width * 0.80 + mouse.x * 10, height * 0.85 + mouse.y * 6, 240, 140, 0.15);
-
-      // 3. Curva de Humedad Relativa (%RH - Verde menta frío que resalta sobre negro)
+      // 2. Curva inferior de Humedad en tono Slate Gray suave
       drawTelemetryWave(
         elapsed,
-        height * 0.62,
-        34,
-        3.2,
-        0.55,
-        'rgba(74, 222, 128, 0.85)',
-        'rgba(34, 197, 94, 0.20)',
-        'rgba(7, 11, 9, 0.0)',
-        mouse.y * 12
-      );
-
-      // 4. Curva de Temperatura (°C - Verde esmeralda brillante que resalta sobre negro)
-      drawTelemetryWave(
-        elapsed,
-        height * 0.48,
+        height * 0.65,
         28,
-        2.6,
-        0.75,
-        'rgba(34, 197, 94, 0.90)',
-        'rgba(74, 222, 128, 0.22)',
-        'rgba(7, 11, 9, 0.0)',
-        mouse.y * 18
+        2.8,
+        0.45,
+        'rgba(119, 123, 134, 0.45)',
+        'rgba(242, 242, 243, 0.65)',
+        'rgba(255, 255, 255, 0.0)',
+        mouse.y * 10
       );
 
-      // 5. Conexiones y nodos de sensores del invernadero (Toques moraditos que representan los sensores)
+      // 3. Curva principal gestural en Sienna Brown (#5d2a1a) con velo Peach suave
+      drawTelemetryWave(
+        elapsed,
+        height * 0.52,
+        22,
+        2.2,
+        0.65,
+        'rgba(93, 42, 26, 0.75)',
+        'rgba(251, 225, 209, 0.35)',
+        'rgba(255, 255, 255, 0.0)',
+        mouse.y * 14
+      );
+
+      // 4. Conexiones punteadas y nodos de sensores IoT
       ctx.save();
       const computedNodes = sensorNodes.map((n) => ({
         ...n,
-        x: n.rx * width + mouse.x * 16,
-        y: n.ry * height + Math.sin(elapsed * 0.9 + n.phase) * 8 + mouse.y * 10,
+        x: n.rx * width + mouse.x * 12,
+        y: n.ry * height + Math.sin(elapsed * 0.8 + n.phase) * 6 + mouse.y * 8,
       }));
 
-      // Enlaces punteados entre sensores en tono moradito
-      ctx.strokeStyle = 'rgba(168, 85, 247, 0.45)';
+      // Enlaces hairline punteados
+      ctx.strokeStyle = 'rgba(119, 123, 134, 0.25)';
       ctx.setLineDash([4, 6]);
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 1;
       ctx.beginPath();
       for (let i = 0; i < computedNodes.length - 1; i++) {
         ctx.moveTo(computedNodes[i].x, computedNodes[i].y);
@@ -238,33 +181,32 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Dibujar cada sensor IoT con pulso moradito suave y etiqueta de lectura contrastada
+      // Dibujar cada sensor IoT
       computedNodes.forEach((node) => {
-        const pulseRadius = 12 + Math.sin(elapsed * 2.2 + node.phase) * 5;
+        const pulseRadius = 10 + Math.sin(elapsed * 2.0 + node.phase) * 4;
 
-        // Anillo de pulso del sensor (Moradito)
+        // Halo Blush Peach (#fbe1d1)
         ctx.beginPath();
         ctx.arc(node.x, node.y, pulseRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = `${node.color}66`;
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
+        ctx.fillStyle = 'rgba(251, 225, 209, 0.55)';
+        ctx.fill();
 
-        // Núcleo del sensor (Moradito brillante)
+        // Núcleo del sensor
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 4.5, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, 4, 0, Math.PI * 2);
         ctx.fillStyle = node.color;
         ctx.fill();
 
-        // Punto central blanco para destello de telemetría activa
+        // Micro-centro blanco
         ctx.beginPath();
-        ctx.arc(node.x, node.y, 1.8, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, 1.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
         ctx.fill();
 
-        // Etiqueta legible en lavanda / blanco sobre fondo negro
-        ctx.font = '600 11px ui-monospace, SFMono-Regular, Menlo, monospace';
-        ctx.fillStyle = '#f3e8ff';
-        ctx.fillText(node.label, node.x + 14, node.y + 4);
+        // Tipografía Sohne 14px Slate Gray
+        ctx.font = '400 13px Inter, -apple-system, sans-serif';
+        ctx.fillStyle = '#777b86';
+        ctx.fillText(node.label, node.x + 16, node.y + 4);
       });
       ctx.restore();
 
@@ -285,7 +227,7 @@ export const EnvironmentalThreeBackground: React.FC = () => {
   return (
     <div
       aria-hidden="true"
-      className="fixed inset-0 z-0 pointer-events-none overflow-hidden"
+      className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-white"
     >
       <canvas ref={canvasRef} className="block w-full h-full" />
     </div>

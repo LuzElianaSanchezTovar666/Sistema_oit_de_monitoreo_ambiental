@@ -38,10 +38,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onBackToLanding,
 }) => {
   const roleIcons: Record<UserRole, React.ReactNode> = {
-    admin: <Shield className="w-3.5 h-3.5 text-neon-pulse" />,
-    cliente: <UserCheck className="w-3.5 h-3.5 text-neon-pulse" />,
-    tecnico: <Wrench className="w-3.5 h-3.5 text-neon-pulse" />,
-    supervisor: <Eye className="w-3.5 h-3.5 text-neon-pulse" />,
+    admin: <Shield className="w-3.5 h-3.5 text-[#17191c]" />,
+    cliente: <UserCheck className="w-3.5 h-3.5 text-[#17191c]" />,
+    tecnico: <Wrench className="w-3.5 h-3.5 text-[#17191c]" />,
+    supervisor: <Eye className="w-3.5 h-3.5 text-[#17191c]" />,
   };
 
   const roleLabels: Record<UserRole, string> = {
@@ -64,37 +64,38 @@ export const Navbar: React.FC<NavbarProps> = ({
   const visibleNavItems = navItems.filter((item) => item.allowedRoles.includes(currentUser.rol));
 
   return (
-    <div className="sticky top-0 z-30">
-      {/* Announcement Bar — Neon Pulse (#76a9ff) */}
-      <div className="w-full bg-neon-pulse text-obsidian-shell px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-normal">
+    <div className="sticky top-0 z-30 font-sans">
+      {/* Announcement Bar — Quiet Fog White */}
+      <div className="w-full bg-[#fafafb] border-b border-[#ececec] text-[#777b86] px-6 py-2 flex items-center justify-center gap-2.5 text-[13px] font-normal">
         <span
           className={`w-2 h-2 rounded-full shrink-0 ${
-            isStreaming ? 'bg-obsidian-shell' : 'bg-graphite-fill'
+            isStreaming ? 'bg-[#17191c]' : 'bg-[#a3a6af]'
           }`}
         />
         <span className="truncate">
-          Consola SIMOA · Sesión autenticada ({roleLabels[currentUser.rol]})
+          Consola SIMOA · Sesión activa ({roleLabels[currentUser.rol]})
         </span>
       </div>
 
-      {/* Top Navigation — Obsidian Shell (#10213d), 72px height */}
-      <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-obsidian-shell border-b border-graphite-fill/50">
-        {/* Brand Logo */}
+      {/* Top Navigation — Paper White (#ffffff), 72px height */}
+      <header className="flex items-center justify-between gap-6 px-6 h-[72px] bg-white/95 backdrop-blur-md border-b border-[#ececec]">
+        {/* Brand Logo / Serif Title */}
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={onBackToLanding}
             title="Volver a la página principal SIMOA"
-            className="px-3 py-1.5 rounded-[56px] bg-mint-frost flex items-center focus:outline-none cursor-pointer"
+            className="flex items-center gap-2.5 focus:outline-none cursor-pointer"
           >
-            <img
-              src="/assets/images/simoa-logo.webp"
-              alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-              className="h-10 sm:h-11 w-auto object-contain"
-            />
+            <span className="text-[22px] font-serif font-normal text-[#17191c] tracking-tight">
+              SIMOA
+            </span>
+            <span className="hidden sm:inline-block text-[12px] text-[#979799] border-l border-[#ececec] pl-2.5">
+              Consola
+            </span>
           </button>
         </div>
 
-        {/* Navigation Links — 56px pill tabs filtered by RBAC */}
+        {/* Navigation Links — Pill tabs */}
         <nav className="hidden lg:flex items-center gap-1.5">
           {visibleNavItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -102,14 +103,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`px-4 py-2 rounded-[56px] text-[14px] transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-2 ${
+                className={`px-4 py-2 rounded-full text-[14px] transition-colors whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'bg-neon-pulse text-obsidian-shell font-semibold shadow-[0_0_12px_rgba(34,197,94,0.35)]'
-                    : 'text-pure-white font-normal hover:bg-deep-abyss'
+                    ? 'bg-[#17191c] text-white font-normal'
+                    : 'text-[#17191c] font-normal hover:bg-[#f2f2f3]'
                 }`}
               >
                 {item.id === 'sensors' && (
-                  <span className="w-2 h-2 rounded-full bg-[#c084fc] shadow-[0_0_6px_#c084fc]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#5d2a1a]" />
                 )}
                 {item.label}
               </button>
@@ -119,26 +120,28 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Actions & Authenticated Profile */}
         <div className="flex items-center gap-2.5 shrink-0">
-          {onToggleStreaming && <button
-            onClick={onToggleStreaming}
-            title={isStreaming ? 'Pausar transmisión en vivo' : 'Reanudar transmisión en vivo'}
-            className="hidden sm:flex items-center gap-2 px-4 py-2 text-[13px] rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse transition-colors cursor-pointer"
-          >
-            <Radio
-              className={`w-3.5 h-3.5 ${
-                isStreaming ? 'text-neon-pulse' : 'text-slate-text'
-              }`}
-            />
-            <span className="font-normal">{isStreaming ? 'En línea' : 'Pausado'}</span>
-          </button>}
+          {onToggleStreaming && (
+            <button
+              onClick={onToggleStreaming}
+              title={isStreaming ? 'Pausar transmisión en vivo' : 'Reanudar transmisión en vivo'}
+              className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 text-[13px] rounded-full border border-[#ececec] bg-white text-[#17191c] hover:bg-[#f2f2f3] transition-colors cursor-pointer"
+            >
+              <Radio
+                className={`w-3.5 h-3.5 ${
+                  isStreaming ? 'text-[#17191c]' : 'text-[#a3a6af]'
+                }`}
+              />
+              <span className="font-normal">{isStreaming ? 'En línea' : 'Pausado'}</span>
+            </button>
+          )}
 
           {onOpenSimulator && (['admin', 'tecnico'] as UserRole[]).includes(currentUser.rol) && (
             <button
               onClick={onOpenSimulator}
-              className="sauce-btn-primary flex items-center gap-2 px-4 py-2 text-[14px] cursor-pointer"
+              className="steep-btn-filled flex items-center gap-2 px-4 py-1.5 text-[13px] cursor-pointer"
               title="Abrir Simulador de Sensores"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-obsidian-shell" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-white" />
               <span className="hidden md:inline">Simulador</span>
             </button>
           )}
@@ -146,12 +149,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           {(['admin', 'cliente', 'supervisor'] as UserRole[]).includes(currentUser.rol) && (
             <button
               onClick={onOpenAlerts}
-              className="relative p-2.5 text-pure-white hover:border-neon-pulse rounded-[56px] bg-deep-abyss border border-graphite-fill transition-colors cursor-pointer"
+              className="relative p-2 text-[#17191c] hover:bg-[#f2f2f3] rounded-full border border-[#ececec] bg-white transition-colors cursor-pointer"
               title="Ver alertas"
             >
               <Bell className="w-4 h-4" />
               {activeAlertCount > 0 && (
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-medium text-obsidian-shell bg-neon-pulse rounded-full font-mono tabular-nums leading-none">
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] font-medium text-white bg-[#17191c] rounded-full font-mono tabular-nums leading-none">
                   {activeAlertCount}
                 </span>
               )}
@@ -159,15 +162,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
 
           {/* Authenticated User Badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-[56px] bg-deep-abyss border border-graphite-fill">
-            <div className="w-7 h-7 rounded-full bg-neon-pulse flex items-center justify-center font-medium text-[12px] text-obsidian-shell">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#ececec] bg-[#fafafb]">
+            <div className="w-7 h-7 rounded-full bg-[#17191c] flex items-center justify-center font-medium text-[12px] text-white">
               {currentUser.nombre.charAt(0)}
             </div>
             <div className="hidden sm:flex flex-col">
-              <span className="text-[13px] font-medium text-pure-white whitespace-nowrap leading-tight">
+              <span className="text-[13px] font-medium text-[#17191c] whitespace-nowrap leading-tight">
                 {currentUser.nombre}
               </span>
-              <span className="text-[11px] text-slate-text flex items-center gap-1">
+              <span className="text-[11px] text-[#777b86] flex items-center gap-1">
                 {roleIcons[currentUser.rol]}
                 {roleLabels[currentUser.rol]}
               </span>
@@ -178,7 +181,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onLogout}
             title="Cerrar sesión"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-[56px] bg-deep-abyss border border-graphite-fill text-pure-white hover:border-neon-pulse hover:text-neon-pulse text-[13px] transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#ececec] bg-white text-[#17191c] hover:bg-[#f2f2f3] text-[13px] transition-colors cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Salir</span>
