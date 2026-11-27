@@ -68,12 +68,22 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   const containerClass = fullPage
-    ? 'min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-garden-sage font-sans'
+    ? 'relative isolate min-h-screen w-full flex items-center justify-center overflow-hidden p-4 sm:p-6 bg-garden-deep font-sans'
     : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0A2E17]/65 backdrop-blur-md font-sans';
 
   return (
     <div className={containerClass}>
-      <div className="w-full max-w-4xl bg-white text-[#0D3B1E] rounded-[28px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-[#C8E6C9] shadow-[0_8px_30px_rgba(13,59,30,0.12)]">
+      {fullPage && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+          <img
+            src="/assets/images/simoa-greenhouse.webp"
+            alt=""
+            className="size-full scale-105 object-cover object-center blur-lg"
+          />
+          <div className="absolute inset-0 bg-garden-deep/50" />
+        </div>
+      )}
+      <div className="relative w-full max-w-4xl bg-white text-[#0D3B1E] rounded-[28px] overflow-hidden grid grid-cols-1 md:grid-cols-12 border border-[#C8E6C9] shadow-[0_8px_30px_rgba(13,59,30,0.12)]">
         {/* Panel izquierdo — Identidad Oficial SIMOA */}
         <div className="md:col-span-5 bg-garden-mint text-garden-deep p-8 sm:p-10 flex flex-col justify-center border-b md:border-b-0 md:border-r border-garden-border">
           <div className="space-y-4">
