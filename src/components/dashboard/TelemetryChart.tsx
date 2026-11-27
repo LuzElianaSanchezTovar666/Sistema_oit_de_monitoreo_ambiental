@@ -233,8 +233,8 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
         >
           <defs>
             <linearGradient id="tempGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-neon-pulse)" stopOpacity="0.24" />
-              <stop offset="100%" stopColor="var(--color-neon-pulse)" stopOpacity="0.02" />
+              <stop offset="0%" stopColor="#fbe1d1" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -249,15 +249,15 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                   y1={y}
                   x2={width - padding.right}
                   y2={y}
-                  stroke="var(--color-stone-border)"
-                  strokeOpacity="0.6"
+                  stroke="#ececec"
+                  strokeOpacity="0.8"
                   strokeDasharray="3 3"
                 />
                 <text
                   x={padding.left - 8}
                   y={y + 3}
                   textAnchor="end"
-                  className="fill-slate-text text-[10px] font-mono tabular-nums"
+                  className="fill-[#777b86] text-[10px] font-mono tabular-nums"
                 >
                   {val.toFixed(1)}°
                 </text>
@@ -268,13 +268,13 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
           {/* Líneas de Límites Operacionales de Temperatura */}
           {(metricMode === 'temp' || metricMode === 'dual') && (
             <>
-              {/* Límite Máximo (Pulse Red #15803d) */}
+              {/* Límite Máximo */}
               <line
                 x1={padding.left}
                 y1={tempMaxY}
                 x2={width - padding.right}
                 y2={tempMaxY}
-                stroke="#15803d"
+                stroke="#5d2a1a"
                 strokeWidth="1.2"
                 strokeDasharray="4 4"
               />
@@ -282,18 +282,18 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 x={width - padding.right}
                 y={tempMaxY - 4}
                 textAnchor="end"
-                className="fill-[#15803d] text-[9px] font-mono font-medium"
+                className="fill-[#5d2a1a] text-[9px] font-mono font-medium"
               >
                 Máx {limites.temp_max}°C
               </text>
 
-              {/* Límite Mínimo (Signal Orange #D97706) */}
+              {/* Límite Mínimo */}
               <line
                 x1={padding.left}
                 y1={tempMinY}
                 x2={width - padding.right}
                 y2={tempMinY}
-                stroke="#D97706"
+                stroke="#777b86"
                 strokeWidth="1.2"
                 strokeDasharray="4 4"
               />
@@ -301,7 +301,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 x={width - padding.right}
                 y={tempMinY - 4}
                 textAnchor="end"
-                className="fill-[#D97706] text-[9px] font-mono font-medium"
+                className="fill-[#777b86] text-[9px] font-mono font-medium"
               >
                 Mín {limites.temp_min}°C
               </text>
@@ -315,7 +315,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
               <path
                 d={tempPath}
                 fill="none"
-                stroke="var(--color-neon-pulse)"
+                stroke="#5d2a1a"
                 strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -328,7 +328,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             <path
               d={humPath}
               fill="none"
-              stroke="#53d5f4"
+              stroke="#777b86"
               strokeWidth="2.2"
               strokeDasharray={metricMode === 'dual' ? '2 2' : undefined}
               strokeLinecap="round"
@@ -336,7 +336,7 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
             />
           )}
 
-          {/* Puntos de anomalía destacados en el trazado (Sensor Purple Halo #c084fc con núcleo #a855f7) */}
+          {/* Puntos de anomalía destacados en el trazado (Steep Peach Halo #fbe1d1 con núcleo Sienna Brown #5d2a1a) */}
           {tempPoints.map((pt, i) => {
             if (!pt.reading.valor_anomalo) return null;
             return (
@@ -344,16 +344,16 @@ export const TelemetryChart: React.FC<TelemetryChartProps> = ({
                 <circle
                   cx={pt.x}
                   cy={pt.y}
-                  r="6.5"
-                  fill="#c084fc"
-                  fillOpacity="0.45"
+                  r="7"
+                  fill="#fbe1d1"
+                  fillOpacity="0.8"
                   className="animate-pulse"
                 />
                 <circle
                   cx={pt.x}
                   cy={pt.y}
                   r="3.5"
-                  fill="#a855f7"
+                  fill="#5d2a1a"
                 />
                 <circle cx={pt.x} cy={pt.y} r="1.5" fill="#ffffff" />
               </g>

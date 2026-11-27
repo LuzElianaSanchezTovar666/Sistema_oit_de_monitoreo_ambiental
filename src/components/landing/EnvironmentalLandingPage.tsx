@@ -1,27 +1,20 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
-  Thermometer,
-  Cpu,
-  LineChart,
-  AlertTriangle,
-  BrainCircuit,
-  FileSpreadsheet,
   ArrowRight,
-  CheckCircle2,
-  Send,
   Menu,
   X,
-  Server,
-  ShieldCheck,
-  Radio,
-  ChevronLeft,
-  ChevronRight,
   AtSign,
   Clock,
-  Sparkles,
+  ChevronRight,
   Layers,
+  Sparkles,
+  Shield,
+  Activity,
+  Cpu,
+  LineChart,
 } from 'lucide-react';
 import { HeroSkeleton } from '../common/SkeletonLoader';
+import { EnvironmentalThreeBackground } from './EnvironmentalThreeBackground';
 
 interface EnvironmentalLandingPageProps {
   onEnterSystem: (initialTab?: string) => void;
@@ -35,131 +28,18 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
   skeletonMode,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeFeatureTab, setActiveFeatureTab] = useState(0);
-
-  // Contact form state
-  const [contactName, setContactName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [contactHardwareModel, setContactHardwareModel] = useState('ESP32-WROOM + Sensor DHT22');
-  const [contactMessage, setContactMessage] = useState('');
-  const [contactSent, setContactSent] = useState(false);
-
-  // AI composer state for hero floating card
   const [composerQuery, setComposerQuery] = useState('');
-
-  const handleContactSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    setContactSent(true);
-    setTimeout(() => {
-      setContactName('');
-      setContactEmail('');
-      setContactMessage('');
-      setContactSent(false);
-    }, 4000);
-  }, []);
-
-  const featureTabs = [
-    {
-      id: 'telemetry',
-      label: 'Telemetría',
-      category: 'FLUJO CONTINUO',
-      title: 'Supervisión térmica e higrométrica sin puntos ciegos.',
-      desc: 'Visualiza lecturas de temperatura (°C) y humedad relativa (%RH) con bandas de tolerancia, cálculo de Z-Score y registro histórico listo para auditoría.',
-      metricA: { label: 'Temperatura media', value: '23.4 °C', delta: '↑ 0.2° vs promedio histórico' },
-      metricB: { label: 'Humedad relativa', value: '61.8 %RH', delta: 'Estable en banda 40–70%' },
-      metricC: { label: 'Score anomalía IA', value: '0.04 σ', delta: 'Isolation Forest nominal' },
-    },
-    {
-      id: 'devices',
-      label: 'Nodos ESP32',
-      category: 'GESTIÓN EDGE',
-      title: 'Control centralizado de microcontroladores y sondas.',
-      desc: 'Administra direcciones MAC, latidos PINGREQ, intensidad WiFi RSSI y calibración de sensores DHT22, BME280 y SHT31 desde un solo panel.',
-      metricA: { label: 'Nodos en línea', value: '12 / 12', delta: 'Latencia media 18 ms' },
-      metricB: { label: 'Sondas activas', value: '24', delta: 'DHT22 · BME280 · SHT31' },
-      metricC: { label: 'Disponibilidad mes', value: '99.94%', delta: 'Reconexión automática' },
-    },
-    {
-      id: 'alerts',
-      label: 'Alertas 5 min',
-      category: 'SEGURIDAD OPERATIVA',
-      title: 'Notificaciones precisas sin saturación por falsos positivos.',
-      desc: 'El motor anti-rebote consolida excursiones térmicas en ventanas de 5 minutos, clasifica severidad y registra la causa raíz de cada incidencia.',
-      metricA: { label: 'Ventana debounce', value: '5 min', delta: 'Sin spam de eventos' },
-      metricB: { label: 'Incidencias hoy', value: '0', delta: '100% en rango óptimo' },
-      metricC: { label: 'Respuesta alerta', value: '< 1.2 s', delta: 'Aviso visual y sonoro' },
-    },
-    {
-      id: 'ai',
-      label: 'Diagnóstico IA',
-      category: 'MACHINE LEARNING',
-      title: 'Detecta fallos de climatización antes de perder muestras.',
-      desc: 'Isolation Forest y Z-Score 3σ evalúan correlaciones anómalas entre temperatura y humedad para diagnosticar fallas en menos de 200 ms.',
-      metricA: { label: 'Latencia inferencia', value: '142 ms', delta: 'Por cada muestra MQTT' },
-      metricB: { label: 'Sensibilidad 3σ', value: '3.0 σ', delta: 'Control multivariante' },
-      metricC: { label: 'Tramas aisladas', value: '0', delta: 'Integridad JSON 100%' },
-    },
-  ];
-
-  const capabilities = [
-    {
-      icon: <Thermometer className="w-5 h-5 text-[#17191c]" />,
-      category: 'TELEMETRÍA',
-      metric: '±0.2 °C',
-      title: 'Registro de temperatura y humedad',
-      desc: 'Captura periódica en recintos críticos con sondas calibradas DHT22, BME280 y SHT31.',
-      tab: 'dashboard',
-    },
-    {
-      icon: <Cpu className="w-5 h-5 text-[#17191c]" />,
-      category: 'HARDWARE',
-      metric: 'ESP32',
-      title: 'Supervisión de dispositivos IoT',
-      desc: 'Control de latidos PINGREQ, validación de dirección MAC y estado Online/Offline.',
-      tab: 'devices',
-    },
-    {
-      icon: <LineChart className="w-5 h-5 text-[#17191c]" />,
-      category: 'ANALÍTICA',
-      metric: '1 Hz',
-      title: 'Históricos y series temporales',
-      desc: 'Gráficas continuas con bandas de tolerancia, umbrales y exportación CSV certificada.',
-      tab: 'analytics',
-    },
-    {
-      icon: <AlertTriangle className="w-5 h-5 text-[#17191c]" />,
-      category: 'RESILIENCIA',
-      metric: '5 min',
-      title: 'Alertas con debouncing anti-rebote',
-      desc: 'Notificaciones inmediatas ante excursiones térmicas evitando falsos positivos.',
-      tab: 'alerts',
-    },
-    {
-      icon: <BrainCircuit className="w-5 h-5 text-[#17191c]" />,
-      category: 'INFERENCIA',
-      metric: '< 200 ms',
-      title: 'Diagnóstico predictivo de anomalías',
-      desc: 'Isolation Forest y Z-Score 3σ que identifican fallos antes de comprometer el recinto.',
-      tab: 'ai',
-    },
-    {
-      icon: <FileSpreadsheet className="w-5 h-5 text-[#17191c]" />,
-      category: 'AUDITORÍA',
-      metric: '99.9%',
-      title: 'Trazabilidad y reportes de cumplimiento',
-      desc: 'Estadísticas consolidadas (Mín, Máx, Promedio y Desviación Estándar) listas para auditoría.',
-      tab: 'analytics',
-    },
-  ];
-
-  const currentFeature = featureTabs[activeFeatureTab];
+  const [activeTab, setActiveTab] = useState<'metrics' | 'exploration' | 'reporting'>('metrics');
 
   return (
     <div className="relative min-h-screen bg-white text-[#17191c] selection:bg-[#fbe1d1] selection:text-[#5d2a1a] overflow-x-hidden font-sans">
-      {/* 1. TOP NAVIGATION — Steep Whisper-Quiet Header */}
+      {/* Steep Ambient Glow Background Aura */}
+      <EnvironmentalThreeBackground />
+
+      {/* 1. TOP NAVIGATION — Steep Pure Header */}
       <header className="relative z-30 bg-white/70 backdrop-blur-md">
         <div className="max-w-[1240px] mx-auto px-6 h-[76px] flex items-center justify-between gap-6">
-          {/* Logo Brand: Geometric Icon + Steep style wordmark */}
+          {/* Logo Brand: Geometric Icon + Steep Wordmark */}
           <a href="#inicio" className="flex items-center gap-2.5 shrink-0 focus:outline-none">
             <div className="w-7 h-7 rounded-full bg-[#17191c] flex items-center justify-center text-white">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
@@ -173,28 +53,28 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
           {/* Nav Items Center */}
           <nav className="hidden lg:flex items-center gap-8 text-[15px] font-normal text-[#17191c]">
-            <a href="#modulos" className="hover:text-[#777b86] transition-colors">
+            <a href="#product" className="hover:text-[#777b86] transition-colors">
               Product
             </a>
-            <a href="#capacidades" className="hover:text-[#777b86] transition-colors">
+            <a href="#resources" className="hover:text-[#777b86] transition-colors">
               Resources
             </a>
-            <a href="#arquitectura" className="hover:text-[#777b86] transition-colors">
+            <a href="#customers" className="hover:text-[#777b86] transition-colors">
               Customers
             </a>
-            <a href="#contacto" className="hover:text-[#777b86] transition-colors">
+            <a href="#pricing" className="hover:text-[#777b86] transition-colors">
               Pricing
             </a>
           </nav>
 
           {/* Right CTAs */}
           <div className="flex items-center gap-5">
-            <a
-              href="#contacto"
-              className="hidden sm:inline-block text-[15px] text-[#17191c] hover:underline cursor-pointer"
+            <button
+              onClick={() => onEnterSystem('analytics')}
+              className="hidden sm:inline-block text-[15px] text-[#17191c] hover:underline cursor-pointer bg-transparent border-none p-0"
             >
               Book a demo
-            </a>
+            </button>
             <button
               onClick={() => onEnterSystem('dashboard')}
               className="steep-btn-filled text-[15px] px-5 py-2"
@@ -214,10 +94,10 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         {mobileMenuOpen && (
           <div className="lg:hidden bg-white border-t border-[#ececec] px-6 py-6 space-y-4 text-[16px]">
             {[
-              { href: '#modulos', label: 'Product' },
-              { href: '#capacidades', label: 'Resources' },
-              { href: '#arquitectura', label: 'Customers' },
-              { href: '#contacto', label: 'Pricing' },
+              { href: '#product', label: 'Product' },
+              { href: '#resources', label: 'Resources' },
+              { href: '#customers', label: 'Customers' },
+              { href: '#pricing', label: 'Pricing' },
             ].map((item) => (
               <a
                 key={item.href}
@@ -243,27 +123,17 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         )}
       </header>
 
-      {/* 2. HERO SECTION — Exact Steep Collage with Peach Glow Aura and 4 Floating Artifacts */}
-      <section id="inicio" className="relative z-10 pt-8 pb-32 px-6 overflow-visible">
-        {/* Soft Radial Peach/Mist Glow Aura Mesh matching exact screenshot */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none z-0"
-          style={{
-            background:
-              'radial-gradient(circle at 72% 38%, rgba(251, 225, 209, 0.85) 0%, rgba(251, 225, 209, 0.40) 30%, rgba(255, 255, 255, 0) 65%), radial-gradient(circle at 20% 32%, rgba(235, 240, 248, 0.60) 0%, rgba(255, 255, 255, 0) 50%)',
-          }}
-        />
-
+      {/* 2. HERO SECTION — Exact Steep Screenshot Composition */}
+      <section id="inicio" className="relative z-10 pt-6 pb-28 px-6">
         {skeletonMode ? (
-          <div className="max-w-[1240px] mx-auto relative z-10">
+          <div className="max-w-[1240px] mx-auto">
             <HeroSkeleton />
           </div>
         ) : (
-          <div className="max-w-[1240px] mx-auto relative z-10">
+          <div className="max-w-[1240px] mx-auto">
             {/* Center Editorial Typography Headline */}
-            <div className="max-w-[780px] mx-auto text-center pt-8 pb-14 space-y-6">
-              <h1 className="font-serif font-normal text-[#17191c] text-[52px] sm:text-[70px] lg:text-[84px] leading-[1.08] tracking-[-0.035em]">
+            <div className="max-w-[800px] mx-auto text-center pt-8 pb-14 space-y-6">
+              <h1 className="font-serif font-normal text-[#17191c] text-[54px] sm:text-[72px] lg:text-[86px] leading-[1.08] tracking-[-0.035em]">
                 AI analytics for faster <br />
                 insights and <span className="italic font-serif">zero chaos</span>
               </h1>
@@ -275,12 +145,12 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               <div className="pt-2 flex items-center justify-center gap-4">
                 <button
                   onClick={() => onEnterSystem('dashboard')}
-                  className="steep-btn-filled text-[15px] px-6 py-2.5 shadow-sm"
+                  className="steep-btn-filled text-[15px] px-6 py-2.5"
                 >
                   Get started
                 </button>
                 <button
-                  onClick={() => onEnterSystem('dashboard')}
+                  onClick={() => onEnterSystem('analytics')}
                   className="steep-btn-ghost text-[15px] px-6 py-2.5"
                 >
                   Book a demo
@@ -405,7 +275,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     <div className="w-10 h-10 rounded-full bg-[#dcfce7] border border-[#86efac] text-[#166534] font-medium text-[13px] flex items-center justify-center shadow-sm">
                       JB
                     </div>
-                    {/* Little mouse pointer cursor arrow */}
+                    {/* Mouse pointer cursor arrow */}
                     <svg viewBox="0 0 16 16" className="w-4 h-4 text-[#166534] -ml-1 -mt-3 fill-current drop-shadow-sm">
                       <path d="M2 2l11 4.5-5 1.5-1.5 5L2 2z" />
                     </svg>
@@ -457,7 +327,6 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 {/* AF Avatar Pointer Bubble */}
                 <div className="relative">
                   <div className="absolute -top-3 -right-3 z-20 flex items-center">
-                    {/* Mouse cursor pointer arrow */}
                     <svg viewBox="0 0 16 16" className="w-4 h-4 text-[#1d4ed8] -mr-1 -mt-3 fill-current drop-shadow-sm">
                       <path d="M2 2l11 4.5-5 1.5-1.5 5L2 2z" />
                     </svg>
@@ -499,346 +368,326 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         )}
       </section>
 
-      {/* 3. EDITORIAL ACCENT CARD (#fbe1d1 Blush Peach) */}
+      {/* 3. BRAND ROW — Monochromatic Quiet Logos */}
+      <section className="relative z-10 py-12 px-6 border-y border-[#ececec] bg-white">
+        <div className="max-w-[1240px] mx-auto flex flex-wrap items-center justify-between gap-8 text-[#979799] text-[15px] font-medium tracking-tight">
+          <span className="hover:text-[#17191c] transition-colors">LINEAR</span>
+          <span className="hover:text-[#17191c] transition-colors">PITCH</span>
+          <span className="hover:text-[#17191c] transition-colors">ARC</span>
+          <span className="hover:text-[#17191c] transition-colors">FRAMER</span>
+          <span className="hover:text-[#17191c] transition-colors">RETOOL</span>
+          <span className="hover:text-[#17191c] transition-colors">VERCEL</span>
+        </div>
+      </section>
+
+      {/* 4. FEATURE SECTION ON FOG WHITE (#fafafb) */}
+      <section id="product" className="relative z-10 py-24 px-6 bg-[#fafafb]">
+        <div className="max-w-[1240px] mx-auto space-y-16">
+          <div className="max-w-[760px] space-y-4">
+            <span className="steep-tag uppercase tracking-[0.08em] block">
+              PLATAFORMA INTEGRAL
+            </span>
+            <h2 className="font-serif font-normal text-[#17191c] text-[44px] sm:text-[56px] leading-[1.12] tracking-[-0.025em]">
+              A new standard for modern analytics.
+            </h2>
+            <p className="text-[18px] text-[#777b86] leading-relaxed">
+              Steep connects directly to your metric layer and telemetry sources, providing an
+              editorial canvas for exploration, decision-making, and automated alerts.
+            </p>
+          </div>
+
+          {/* 3-Column Grid of Neutral Feature Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="steep-card-neutral p-8 flex flex-col justify-between space-y-6 hover:bg-[#eaeaea] transition-colors">
+              <div className="space-y-4">
+                <span className="steep-tag uppercase tracking-[0.08em]">GOVERNED METRICS</span>
+                <h3 className="text-[22px] font-medium text-[#17191c]">Unified semantic layer</h3>
+                <p className="text-[16px] text-[#777b86] leading-relaxed">
+                  Define your environmental and operational thresholds once. Everyone in your team
+                  explores with the same audited source of truth.
+                </p>
+              </div>
+              <div>
+                <button
+                  onClick={() => onEnterSystem('devices')}
+                  className="steep-link font-medium cursor-pointer"
+                >
+                  Explore metrics →
+                </button>
+              </div>
+            </div>
+
+            <div className="steep-card-neutral p-8 flex flex-col justify-between space-y-6 hover:bg-[#eaeaea] transition-colors">
+              <div className="space-y-4">
+                <span className="steep-tag uppercase tracking-[0.08em]">AI INTELLIGENCE</span>
+                <h3 className="text-[22px] font-medium text-[#17191c]">Conversational answers</h3>
+                <p className="text-[16px] text-[#777b86] leading-relaxed">
+                  Ask questions in plain language. Steep inspects multivariate Z-Scores and Isolation Forest
+                  to deliver instant anomaly breakdowns without query friction.
+                </p>
+              </div>
+              <div>
+                <button
+                  onClick={() => onEnterSystem('ai')}
+                  className="steep-link font-medium cursor-pointer"
+                >
+                  Explore AI →
+                </button>
+              </div>
+            </div>
+
+            <div className="steep-card-neutral p-8 flex flex-col justify-between space-y-6 hover:bg-[#eaeaea] transition-colors">
+              <div className="space-y-4">
+                <span className="steep-tag uppercase tracking-[0.08em]">AUDIT & EXPORT</span>
+                <h3 className="text-[22px] font-medium text-[#17191c]">Editorial reporting</h3>
+                <p className="text-[16px] text-[#777b86] leading-relaxed">
+                  Build beautiful presentations, monitor real-time charts, and export GxP-ready CSV records
+                  with zero extra formatting required.
+                </p>
+              </div>
+              <div>
+                <button
+                  onClick={() => onEnterSystem('analytics')}
+                  className="steep-link font-medium cursor-pointer"
+                >
+                  Explore reports →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. THE SIGNATURE ACCENT PEACH CARD (#fbe1d1) */}
       <section className="relative z-10 py-16 px-6 bg-white">
         <div className="max-w-[1240px] mx-auto steep-card-peach grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-          <div className="md:col-span-2 space-y-3">
+          <div className="md:col-span-2 space-y-4">
             <span className="text-[13px] uppercase tracking-[0.1em] text-[#5d2a1a] font-medium">
-              TRAZABILIDAD AMBIENTAL CALIBRADA
+              EDITORIAL EXCELLENCE
             </span>
-            <h2 className="text-[32px] md:text-[38px] font-serif font-normal text-[#5d2a1a] leading-tight">
-              Diseñado para recintos donde cada décima de grado cuenta.
+            <h2 className="text-[34px] md:text-[42px] font-serif font-normal text-[#5d2a1a] leading-tight">
+              The power of governed metrics with the speed of AI.
             </h2>
-            <p className="text-[17px] text-[#5d2a1a]/85 max-w-[620px] leading-relaxed">
-              SIMOA consolida lecturas continuas de sensores IoT con validación estricta de umbrales
-              y alertas anti-rebote, garantizando una cadena térmica auditable bajo estándares técnicos.
+            <p className="text-[18px] text-[#5d2a1a]/85 max-w-[640px] leading-relaxed">
+              "Steep eliminates the disconnect between telemetry engineering and operational teams.
+              We replaced four disparate reporting tools with one serene, trustworthy interface."
             </p>
+            <div className="text-[14px] text-[#5d2a1a]/70 pt-2 font-medium">
+              Elena Rostova · VP of Engineering &amp; Environmental Systems
+            </div>
           </div>
           <div className="flex md:justify-end">
             <button
-              onClick={() => onEnterSystem('analytics')}
+              onClick={() => onEnterSystem('dashboard')}
               className="bg-[#5d2a1a] text-[#fbe1d1] px-6 py-3 rounded-full text-[15px] font-medium hover:bg-[#431d11] transition-colors cursor-pointer inline-flex items-center gap-2"
             >
-              Ver trazabilidad
+              Start exploring
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </section>
 
-      {/* 4. MODULES PREVIEW — Neutral Card Surface with Clean Tab Switcher */}
-      <section id="modulos" className="relative z-10 py-20 px-6 bg-[#fafafb]">
+      {/* 6. INTERACTIVE PRODUCT PREVIEW TAB SECTION */}
+      <section id="resources" className="relative z-10 py-24 px-6 bg-[#fafafb] border-t border-[#ececec]">
         <div className="max-w-[1240px] mx-auto space-y-12">
-          <div className="max-w-[720px] space-y-4">
-            <span className="steep-tag uppercase tracking-[0.08em]">MÓDULOS DE CONSOLA</span>
-            <h2 className="steep-heading font-serif font-normal">
-              {currentFeature.title}
-            </h2>
-            <p className="steep-subheading">
-              {currentFeature.desc}
-            </p>
-          </div>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="max-w-[620px] space-y-3">
+              <span className="steep-tag uppercase tracking-[0.08em]">PRODUCT ARCHITECTURE</span>
+              <h2 className="font-serif font-normal text-[#17191c] text-[40px] sm:text-[48px] leading-tight">
+                Designed for teams that value precision.
+              </h2>
+            </div>
 
-          {/* Module Selector Buttons */}
-          <div className="flex items-center gap-3 flex-wrap">
-            {featureTabs.map((tab, idx) => {
-              const isActive = idx === activeFeatureTab;
-              return (
+            {/* Tab buttons */}
+            <div className="flex items-center gap-2 bg-white p-1 rounded-full border border-[#ececec]">
+              {[
+                { id: 'metrics', label: 'Metrics' },
+                { id: 'exploration', label: 'Exploration' },
+                { id: 'reporting', label: 'Reporting' },
+              ].map((t) => (
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveFeatureTab(idx)}
-                  className={`px-5 py-2.5 rounded-full text-[15px] transition-colors cursor-pointer ${
-                    isActive
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id as any)}
+                  className={`px-5 py-2 rounded-full text-[14px] transition-colors cursor-pointer ${
+                    activeTab === t.id
                       ? 'bg-[#17191c] text-white font-normal'
-                      : 'bg-white text-[#17191c] border border-[#ececec] hover:bg-[#f2f2f3]'
+                      : 'text-[#777b86] hover:text-[#17191c]'
                   }`}
                 >
-                  {tab.label}
+                  {t.label}
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
 
-          {/* Feature Showcase Artifact */}
-          <div className="steep-card-artifact p-8 sm:p-10 space-y-8">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#ececec] pb-4">
+          {/* Interactive Floating Product Artifact */}
+          <div className="steep-card-artifact p-8 sm:p-12 space-y-8">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#ececec] pb-6">
               <div>
-                <span className="steep-tag">{currentFeature.category}</span>
-                <h3 className="text-[22px] font-medium text-[#17191c] mt-1">
-                  {currentFeature.label} · Consola en vivo
+                <span className="steep-tag">LIVE TELEMETRY STREAM</span>
+                <h3 className="text-[26px] font-medium text-[#17191c] mt-1">
+                  {activeTab === 'metrics'
+                    ? 'Governed Operational Telemetry'
+                    : activeTab === 'exploration'
+                    ? 'Anomaly Detection & Inferences'
+                    : 'Certified Audit Reports'}
                 </h3>
               </div>
-              <span className="inline-flex items-center gap-2 text-[13px] text-[#777b86]">
-                <span className="w-2 h-2 rounded-full bg-[#17191c]" />
-                Enlace activo MQTTS
+              <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#f2f2f3] text-[13px] text-[#17191c] font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#17191c] animate-pulse" />
+                Live Connection Active
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[currentFeature.metricA, currentFeature.metricB, currentFeature.metricC].map((m) => (
-                <div key={m.label} className="steep-card-neutral p-6 space-y-2">
-                  <div className="text-[14px] text-[#777b86]">{m.label}</div>
-                  <div className="text-[36px] font-medium text-[#17191c] tabular-nums leading-none">
-                    {m.value}
-                  </div>
-                  <div className="text-[13px] text-[#979799] pt-1">{m.delta}</div>
+              <div className="steep-card-neutral p-6 space-y-2">
+                <div className="text-[14px] text-[#777b86]">Mean Temperature</div>
+                <div className="text-[36px] font-medium text-[#17191c] tabular-nums leading-none">
+                  23.4 °C
                 </div>
-              ))}
+                <div className="text-[13px] text-[#979799] pt-1">↑ 0.2° within nominal band</div>
+              </div>
+
+              <div className="steep-card-neutral p-6 space-y-2">
+                <div className="text-[14px] text-[#777b86]">Relative Humidity</div>
+                <div className="text-[36px] font-medium text-[#17191c] tabular-nums leading-none">
+                  61.8 %RH
+                </div>
+                <div className="text-[13px] text-[#979799] pt-1">Optimal tolerance (40–70%)</div>
+              </div>
+
+              <div className="steep-card-neutral p-6 space-y-2">
+                <div className="text-[14px] text-[#777b86]">Z-Score ML Score</div>
+                <div className="text-[36px] font-medium text-[#17191c] tabular-nums leading-none">
+                  0.04 σ
+                </div>
+                <div className="text-[13px] text-[#979799] pt-1">Isolation Forest active</div>
+              </div>
             </div>
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-4 flex justify-end">
               <button
-                onClick={() =>
-                  onEnterSystem(
-                    currentFeature.id === 'ai'
-                      ? 'ai'
-                      : currentFeature.id === 'devices'
-                      ? 'devices'
-                      : currentFeature.id === 'alerts'
-                      ? 'alerts'
-                      : 'dashboard'
-                  )
-                }
-                className="steep-link font-medium cursor-pointer"
+                onClick={() => onEnterSystem('dashboard')}
+                className="steep-btn-filled text-[15px] px-6 py-2.5"
               >
-                Abrir vista completa de {currentFeature.label} →
+                Open live console →
               </button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 5. CAPABILITIES & ARCHITECTURE */}
-      <section id="capacidades" className="relative z-10 py-24 px-6 bg-white">
-        <div className="max-w-[1240px] mx-auto space-y-16">
-          <div id="arquitectura" className="max-w-[700px] space-y-4">
-            <span className="steep-tag uppercase tracking-[0.08em]">ARQUITECTURA Y CAPACIDADES</span>
-            <h2 className="steep-heading font-serif font-normal">
-              Ingeniería de monitoreo construida para operar con serenidad y precisión.
-            </h2>
-            <p className="steep-subheading">
-              Cada componente ha sido diseñado para priorizar fiabilidad, legibilidad y rigor técnico.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {capabilities.map((cap) => (
-              <div
-                key={cap.title}
-                className="steep-card-neutral p-8 flex flex-col justify-between space-y-6 hover:bg-[#ebebee] transition-colors"
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="steep-tag">{cap.category}</span>
-                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#17191c] shadow-sm">
-                      {cap.icon}
-                    </div>
-                  </div>
-                  <div className="text-[32px] font-medium text-[#17191c] tabular-nums">
-                    {cap.metric}
-                  </div>
-                  <h3 className="text-[20px] font-medium text-[#17191c]">{cap.title}</h3>
-                  <p className="text-[15px] text-[#777b86] leading-relaxed">{cap.desc}</p>
-                </div>
-                <div>
-                  <button
-                    onClick={() => onEnterSystem(cap.tab)}
-                    className="steep-link text-[14px] cursor-pointer"
-                  >
-                    Ver en consola →
-                  </button>
-                </div>
-              </div>
-            ))}
+      {/* 7. CTA SECTION */}
+      <section id="pricing" className="relative z-10 py-28 px-6 bg-white text-center">
+        <div className="max-w-[780px] mx-auto space-y-6">
+          <span className="steep-tag uppercase tracking-[0.08em] block">
+            GET STARTED TODAY
+          </span>
+          <h2 className="font-serif font-normal text-[#17191c] text-[48px] sm:text-[64px] leading-tight tracking-[-0.03em]">
+            Ready for analytics <br />
+            without chaos?
+          </h2>
+          <p className="text-[18px] text-[#777b86] max-w-[520px] mx-auto leading-relaxed">
+            Join the teams building trustworthy data cultures with Steep. Sign in with your account
+            or request a dedicated deployment.
+          </p>
+          <div className="pt-4 flex items-center justify-center gap-4">
+            <button
+              onClick={() => onEnterSystem('dashboard')}
+              className="steep-btn-filled text-[16px] px-7 py-3"
+            >
+              Get started
+            </button>
+            <button
+              onClick={() => onEnterSystem('analytics')}
+              className="steep-btn-ghost text-[16px] px-7 py-3"
+            >
+              Book a demo
+            </button>
           </div>
         </div>
       </section>
 
-      {/* 6. CONTACT & DEPLOYMENT */}
-      <section id="contacto" className="relative z-10 py-20 px-6 bg-[#fafafb] border-t border-[#ececec]">
-        <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <div className="space-y-6">
-            <span className="steep-tag uppercase tracking-[0.08em]">CONTACTO TÉCNICO</span>
-            <h2 className="steep-heading font-serif font-normal">
-              Integra SIMOA en tus recintos ambientales.
-            </h2>
-            <p className="text-[17px] text-[#777b86] leading-relaxed">
-              Solicita asistencia técnica o prueba el simulador de campo integrado para calibrar
-              umbrales térmicos, validar debouncing de 5 minutos y verificar alertas automáticas.
-            </p>
-            <div className="space-y-3 pt-2 text-[15px] text-[#17191c]">
-              <div className="flex items-center gap-3">
-                <Server className="w-4 h-4 text-[#5d2a1a]" />
-                <span>Protocolo seguro MQTTS TLS 1.3 (Broker dedicado)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <ShieldCheck className="w-4 h-4 text-[#5d2a1a]" />
-                <span>Trazabilidad auditada y registro inalterable de incidencias</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Radio className="w-4 h-4 text-[#5d2a1a]" />
-                <span>Compatibilidad nativa con nodos ESP32 y sensores I2C/OneWire</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Clean Editorial Contact Form */}
-          <div className="steep-card-artifact p-8 space-y-5">
-            <form onSubmit={handleContactSubmit} className="space-y-4">
-              <div>
-                <label className="block text-[14px] font-medium text-[#17191c] mb-1.5">
-                  Nombre completo
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
-                  placeholder="Ej. Dra. Carmen Silva"
-                  className="steep-input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-[14px] font-medium text-[#17191c] mb-1.5">
-                  Correo electrónico
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
-                  placeholder="nombre@organizacion.org"
-                  className="steep-input w-full"
-                />
-              </div>
-              <div>
-                <label className="block text-[14px] font-medium text-[#17191c] mb-1.5">
-                  Hardware o recintos
-                </label>
-                <select
-                  value={contactHardwareModel}
-                  onChange={(e) => setContactHardwareModel(e.target.value)}
-                  className="steep-input w-full"
-                >
-                  <option value="ESP32-WROOM + Sensor DHT22">ESP32-WROOM + Sensor DHT22</option>
-                  <option value="ESP32 + Sensor Bosch BME280">ESP32 + Sensor Bosch BME280</option>
-                  <option value="Gateway Industrial + Sensirion SHT31">Gateway Industrial + Sensirion SHT31</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[14px] font-medium text-[#17191c] mb-1.5">
-                  Requerimiento o mensaje
-                </label>
-                <textarea
-                  rows={3}
-                  required
-                  value={contactMessage}
-                  onChange={(e) => setContactMessage(e.target.value)}
-                  placeholder="Describe los recintos o variables ambientales a monitorear..."
-                  className="steep-input w-full"
-                />
-              </div>
-
-              {contactSent ? (
-                <div className="p-4 rounded-[16px] bg-[#f2f2f3] text-[#17191c] text-[15px] flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#17191c]" />
-                  Solicitud registrada. Nos comunicaremos a la brevedad.
-                </div>
-              ) : (
-                <button
-                  type="submit"
-                  className="steep-btn-filled w-full justify-center"
-                >
-                  <Send className="w-4 h-4 mr-1" />
-                  Enviar solicitud
-                </button>
-              )}
-            </form>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. FOOTER */}
-      <footer className="relative z-10 bg-white text-[#777b86] border-t border-[#ececec] py-16 px-6">
-        <div className="max-w-[1240px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+      {/* 8. FOOTER — Quiet Paper White */}
+      <footer id="customers" className="relative z-10 bg-white text-[#777b86] border-t border-[#ececec] py-16 px-6">
+        <div className="max-w-[1240px] mx-auto grid grid-cols-1 md:grid-cols-5 gap-10">
           <div className="space-y-4 md:col-span-2">
-            <span className="text-[20px] font-serif font-normal text-[#17191c]">
-              Steep · SIMOA
-            </span>
-            <p className="text-[15px] text-[#777b86] max-w-[360px] leading-relaxed">
-              Sistema Inteligente de Monitoreo Ambiental. Telemetría continua, control de nodos
-              y detección estadística de anomalías térmicas e higrométricas.
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#17191c]" />
+              <span className="text-[20px] font-serif font-normal text-[#17191c]">Steep</span>
+            </div>
+            <p className="text-[15px] text-[#777b86] max-w-[320px] leading-relaxed">
+              AI analytics platform built on governed metrics. Fast, collaborative and beautifully designed.
             </p>
           </div>
 
-          <div className="space-y-3 text-[15px]">
-            <span className="steep-tag uppercase tracking-[0.08em] block">CONSOLA</span>
+          <div className="space-y-3 text-[14px]">
+            <span className="steep-tag uppercase tracking-[0.08em] block font-medium">PRODUCT</span>
             <ul className="space-y-2 text-[#777b86]">
               <li>
-                <button
-                  onClick={() => onEnterSystem('dashboard')}
-                  className="hover:text-[#17191c] cursor-pointer"
-                >
-                  Monitoreo en vivo
+                <button onClick={() => onEnterSystem('dashboard')} className="hover:text-[#17191c] cursor-pointer">
+                  Metrics Layer
                 </button>
               </li>
               <li>
-                <button
-                  onClick={() => onEnterSystem('devices')}
-                  className="hover:text-[#17191c] cursor-pointer"
-                >
-                  Dispositivos
+                <button onClick={() => onEnterSystem('ai')} className="hover:text-[#17191c] cursor-pointer">
+                  AI Exploration
                 </button>
               </li>
               <li>
-                <button
-                  onClick={() => onEnterSystem('analytics')}
-                  className="hover:text-[#17191c] cursor-pointer"
-                >
-                  Histórico y exportación
+                <button onClick={() => onEnterSystem('analytics')} className="hover:text-[#17191c] cursor-pointer">
+                  Reports
                 </button>
               </li>
               <li>
-                <button
-                  onClick={() => onEnterSystem('ai')}
-                  className="hover:text-[#17191c] cursor-pointer"
-                >
-                  Diagnóstico IA
+                <button onClick={() => onEnterSystem('devices')} className="hover:text-[#17191c] cursor-pointer">
+                  Integrations
                 </button>
               </li>
             </ul>
           </div>
 
-          <div className="space-y-3 text-[15px]">
-            <span className="steep-tag uppercase tracking-[0.08em] block">SISTEMA</span>
+          <div className="space-y-3 text-[14px]">
+            <span className="steep-tag uppercase tracking-[0.08em] block font-medium">RESOURCES</span>
             <ul className="space-y-2 text-[#777b86]">
               <li>
-                <a href="#modulos" className="hover:text-[#17191c]">
-                  Módulos
-                </a>
+                <a href="#product" className="hover:text-[#17191c]">Documentation</a>
               </li>
               <li>
-                <a href="#capacidades" className="hover:text-[#17191c]">
-                  Capacidades
-                </a>
+                <a href="#pricing" className="hover:text-[#17191c]">Changelog</a>
               </li>
               <li>
-                <a href="#arquitectura" className="hover:text-[#17191c]">
-                  Arquitectura
-                </a>
+                <a href="#customers" className="hover:text-[#17191c]">Community</a>
               </li>
               <li>
-                <a href="#contacto" className="hover:text-[#17191c]">
-                  Contacto
-                </a>
+                <a href="#inicio" className="hover:text-[#17191c]">Security</a>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-3 text-[14px]">
+            <span className="steep-tag uppercase tracking-[0.08em] block font-medium">COMPANY</span>
+            <ul className="space-y-2 text-[#777b86]">
+              <li>
+                <a href="#inicio" className="hover:text-[#17191c]">About</a>
+              </li>
+              <li>
+                <a href="#customers" className="hover:text-[#17191c]">Customers</a>
+              </li>
+              <li>
+                <a href="#inicio" className="hover:text-[#17191c]">Careers</a>
+              </li>
+              <li>
+                <a href="#inicio" className="hover:text-[#17191c]">Privacy Policy</a>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="max-w-[1240px] mx-auto mt-12 pt-8 border-t border-[#ececec] flex flex-wrap items-center justify-between gap-4 text-[14px] text-[#979799]">
-          <span>© 2026 SIMOA · Sistema Inteligente de Monitoreo Ambiental</span>
-          <span>Consola IoT · Luz Eliana Sánchez Tovar</span>
+          <span>© 2026 Steep Analytics. All rights reserved.</span>
+          <span>Powered by SIMOA Technical Engine</span>
         </div>
       </footer>
     </div>

@@ -37,22 +37,22 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
     > = {
       NOMINAL: {
         label: 'NOMINAL',
-        className: 'bg-canopy/15 text-canopy',
+        className: 'bg-[#f2f2f3] text-[#17191c]',
         Icon: CheckCircle2,
       },
       'FUERA DE RANGO': {
         label: 'FUERA DE RANGO',
-        className: 'bg-[#15803d]/20 text-[#15803d]',
+        className: 'bg-[#fbe1d1] text-[#5d2a1a]',
         Icon: AlertTriangle,
       },
       SIN_CONFIGURACION: {
         label: 'Sin configuración',
-        className: 'bg-cream-paper text-slate',
+        className: 'bg-[#f2f2f3] text-[#777b86]',
         Icon: Clock,
       },
       ESPERANDO_DATOS: {
         label: 'ESPERANDO DATOS',
-        className: 'bg-cream-paper text-slate',
+        className: 'bg-[#f2f2f3] text-[#777b86]',
         Icon: Clock,
       },
     };
@@ -62,10 +62,8 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
 
     const valueColor =
       humState === 'FUERA DE RANGO'
-        ? 'text-[#15803d]'
-        : humState === 'NOMINAL'
-          ? 'text-canopy'
-          : 'text-slate';
+        ? 'text-[#5d2a1a]'
+        : 'text-[#17191c]';
 
     const zScoreDisplay =
       effectiveHum !== null && snapshot?.z_score_disponible && snapshot.z_score !== null
@@ -76,23 +74,23 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
 
     return (
       <div
-        className="bg-sheet-white rounded-[16px] p-[16px] space-y-3 flex flex-col justify-between transition-all duration-300"
+        className="bg-white rounded-[20px] p-5 border border-[#ececec] shadow-[0_0_0_1px_rgba(4,23,43,0.04),0_8px_16px_-4px_rgba(0,0,0,0.04)] space-y-4 flex flex-col justify-between font-sans"
         aria-label={`Humedad relativa actual en ${locationName}`}
       >
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <span className="text-[12px] font-semibold text-slate flex items-center gap-1.5">
-              <Droplets className="w-4 h-4 text-canopy shrink-0" />
+            <span className="text-[13px] font-medium text-[#777b86] flex items-center gap-1.5">
+              <Droplets className="w-4 h-4 text-[#17191c] shrink-0" />
               <span>Humedad Relativa</span>
             </span>
-            <p className="text-[11px] text-slate truncate mt-0.5" title={locationName}>
+            <p className="text-[12px] text-[#979799] truncate mt-0.5" title={locationName}>
               {snapshot?.ubicacion_nombre || locationName}
               {snapshot?.sensor_identificador ? ` · ${snapshot.sensor_identificador}` : ''}
             </p>
           </div>
 
           <span
-            className={`text-[11px] font-mono px-2 py-0.5 rounded-[5px] font-semibold inline-flex items-center gap-1 shrink-0 transition-colors duration-300 ${badge.className}`}
+            className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1 shrink-0 ${badge.className}`}
           >
             <BadgeIcon className="w-3 h-3" aria-hidden="true" />
             <span>{badge.label}</span>
@@ -100,54 +98,45 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
         </div>
 
         <div>
-          <div className={`apple-metric-display tabular-nums transition-colors duration-300 ${valueColor}`}>
+          <div className={`text-[36px] font-medium tabular-nums leading-none ${valueColor}`}>
             {effectiveHum !== null ? effectiveHum.toFixed(1) : '--'}
-            <span className="text-[20px] font-normal text-slate ml-1">%RH</span>
+            <span className="text-[18px] font-normal text-[#777b86] ml-1">%RH</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate mt-2 font-mono">
+          <div className="flex flex-wrap items-center justify-between gap-1 text-[12px] text-[#777b86] mt-2 font-mono">
             <span>
               {humMin !== null && humMax !== null
-                ? `Rango óptimo: ${humMin.toFixed(0)} % - ${humMax.toFixed(0)} %`
-                : 'Rango óptimo: Sin configuración'}
+                ? `Banda: ${humMin.toFixed(0)}% - ${humMax.toFixed(0)}%`
+                : 'Rango: Sin configurar'}
             </span>
-            <span title={snapshot?.z_score_motivo || 'Z-Score higrométrico RF-09'}>
+            <span title={snapshot?.z_score_motivo || 'Z-Score estadístico RF-09'}>
               Z: {zScoreDisplay}
             </span>
           </div>
         </div>
 
-        {/* Barra proporcional 0% - 100% RH */}
+        {/* Indicador de barra para humedad relativa Steep */}
         <div className="space-y-1.5">
           <div
-            className="relative w-full bg-cream-paper rounded-full h-2 overflow-hidden"
+            className="relative w-full bg-[#f2f2f3] rounded-full h-2 overflow-hidden"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={effectiveHum !== null ? effectiveHum : undefined}
-            aria-label="Humedad relativa en escala 0 a 100 %RH"
+            aria-label="Indicador de humedad relativa"
           >
-            {humMin !== null && humMax !== null && humMax > humMin && (
-              <div
-                className="absolute top-0 bottom-0 bg-canopy/20 transition-all duration-300"
-                style={{
-                  left: `${Math.max(0, humMin)}%`,
-                  width: `${Math.min(100, humMax) - Math.max(0, humMin)}%`,
-                }}
-              />
-            )}
             <div
-              className={`h-full transition-all duration-300 ${
-                humState === 'FUERA DE RANGO' ? 'bg-[#15803d]' : 'bg-canopy'
+              className={`h-full rounded-full transition-all duration-300 ${
+                humState === 'FUERA DE RANGO' ? 'bg-[#5d2a1a]' : 'bg-[#17191c]'
               }`}
               style={{ width: `${barPct}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between text-[10px] font-mono text-slate">
-            <span className="inline-flex items-center gap-1">
+          <div className="flex items-center justify-between text-[11px] font-mono text-[#777b86]">
+            <span className="inline-flex items-center gap-1.5">
               <Radio
-                className={`w-2.5 h-2.5 ${streamConnected ? 'text-canopy' : 'text-slate'}`}
+                className={`w-2.5 h-2.5 ${streamConnected ? 'text-[#17191c]' : 'text-[#a3a6af]'}`}
                 aria-hidden="true"
               />
               {streamConnected ? 'EN VIVO' : 'RECONECTANDO'}
@@ -155,7 +144,7 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
             <span>
               {snapshot?.fecha_hora_utc && effectiveHum !== null
                 ? new Date(snapshot.fecha_hora_utc).toLocaleTimeString()
-                : 'Sin lectura reciente'}
+                : 'Sin lectura'}
             </span>
           </div>
         </div>
