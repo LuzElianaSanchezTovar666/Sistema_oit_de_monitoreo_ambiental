@@ -1,10 +1,14 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+import os
+from pathlib import Path
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .config import get_settings
 from .database import run_migrations
-from .routers import alertas, auth, configuraciones, dispositivos, ia, mantenimientos, mediciones, mqtt, protected_simoa, reportes, sensores, ubicaciones
+from .routers import alertas, auth, cambios, configuraciones, dispositivos, ia, mantenimientos, mediciones, mqtt, protected_simoa, reportes, sensores, ubicaciones
 from .services.alerts_service import alerts_service
 from .services.device_connectivity import connectivity_monitor
 from .services.mqtt_ingest import mqtt_service
@@ -43,6 +47,7 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(auth.router)
+    app.include_router(cambios.router)
     app.include_router(ubicaciones.router)
     app.include_router(dispositivos.router)
     app.include_router(sensores.router)
@@ -63,6 +68,17 @@ def create_app() -> FastAPI:
     )
     def health_check():
         return {"status": "ok", "service": "simoa-auth-backend"}
+
+    @app.middleware("http")
+    async def prevent_api_cache(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
+        return response
+
+    frontend_dir = Path(os.getenv("SIMOA_FRONTEND_DIR") or Path(__file__).resolve().parents[2] / "dist")
+    if (frontend_dir / "index.html").is_file():
+        app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
 
     return app
 

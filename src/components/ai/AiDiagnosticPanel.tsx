@@ -14,8 +14,9 @@ import {
   RotateCcw,
   Cpu,
 } from 'lucide-react';
-import { Ubicacion, Dispositivo, Sensor, Medicion, Alerta } from '../../types/iot';
-import { buildEntityIndexes } from '../../services/performanceEngine';
+import { Ubicacion } from '../../types/iot';
+import { fetchSensores, SensorDTO } from '../../services/sensorService';
+import { useSiteDataVersion } from '../../services/siteData';
 import {
   fetchAiDiagnostic,
   retrainAiModel,
@@ -24,16 +25,10 @@ import {
 
 interface AiDiagnosticPanelProps {
   locations: Ubicacion[];
-  devices: Dispositivo[];
-  sensors: Sensor[];
-  readingsHistory?: { [sensorId: string]: Medicion[] };
-  activeAlerts?: Alerta[];
 }
 
 export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
   locations,
-  devices,
-  sensors,
 }) => {
   const [selectedLocId, setSelectedLocId] = useState<string>(locations[0]?.id_ubicacion || '');
   const [selectedSensorId, setSelectedSensorId] = useState<string>('');
@@ -43,43 +38,47 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
   const [error, setError] = useState<string>('');
   const [statusMessage, setStatusMessage] = useState<string>('');
 
-  const indexes = useMemo(
-    () => buildEntityIndexes(locations, devices, sensors),
-    [locations, devices, sensors]
+  const [sensors, setSensors] = useState<SensorDTO[]>([]);
+  const catalogRevision = useSiteDataVersion('sensores', 'dispositivos', 'ubicaciones');
+  const dataRevision = useSiteDataVersion('mediciones', 'umbrales');
+  const effectiveLocId = locations.find((location) => location.id_ubicacion === selectedLocId)?.id_ubicacion
+    ?? locations[0]?.id_ubicacion ?? '';
+  const locationSensors = useMemo(
+    () => sensors.filter((sensor) => sensor.ubicacion_id === effectiveLocId),
+    [sensors, effectiveLocId],
   );
+  const activeSensorId = locationSensors.find((sensor) => sensor.id_sensor === selectedSensorId)?.id_sensor
+    ?? locationSensors[0]?.id_sensor ?? '';
 
-  const currentLocation = indexes.locationById.get(selectedLocId) || locations[0];
-  const locationDevices = currentLocation
-    ? indexes.devicesByLocationId.get(currentLocation.id_ubicacion) || []
-    : [];
-
-  const locationSensors = useMemo(() => {
-    if (!currentLocation) return sensors;
-    const devIds = new Set(locationDevices.map((d) => d.id_dispositivo));
-    const matched = sensors.filter((s) => devIds.has(s.dispositivo_id));
-    return matched.length > 0 ? matched : sensors;
-  }, [currentLocation, locationDevices, sensors]);
-
-  const activeSensorId = selectedSensorId || locationSensors[0]?.id_sensor || '';
+  useEffect(() => {
+    let active = true;
+    fetchSensores().then((result) => {
+      if (active) setSensors(result.items);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [catalogRevision]);
 
   const loadDiagnosis = useCallback(async () => {
-    if (!activeSensorId && !selectedLocId) return;
+    if (!effectiveLocId) {
+      setReport(null);
+      return;
+    }
     setLoading(true);
     setError('');
     setStatusMessage('');
     try {
-      const data = await fetchAiDiagnostic(activeSensorId || undefined, selectedLocId || undefined);
+      const data = await fetchAiDiagnostic(activeSensorId || undefined, effectiveLocId);
       setReport(data);
     } catch (err: any) {
       setError(err?.message || 'Error al conectar con el servicio de IA.');
     } finally {
       setLoading(false);
     }
-  }, [activeSensorId, selectedLocId]);
+  }, [activeSensorId, effectiveLocId]);
 
   useEffect(() => {
     loadDiagnosis();
-  }, [loadDiagnosis]);
+  }, [loadDiagnosis, dataRevision]);
 
   const handleRetrain = async () => {
     setRetraining(true);
@@ -98,9 +97,9 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
   const getPatternBadge = (type: string) => {
     switch (type) {
       case 'PICO_REPENTINO':
-        return { label: 'Pico Repentino Térmico', color: 'bg-rose-100 text-rose-800 border-rose-300' };
+        return { label: 'Pico Repentino Térmico', color: 'bg-rose-100 text-console-danger border-rose-300' };
       case 'CAIDA_ABRUPTA':
-        return { label: 'Caída Abrupta Térmica', color: 'bg-sky-100 text-sky-800 border-sky-300' };
+        return { label: 'Caída Abrupta Térmica', color: 'bg-sky-100 text-console-info border-sky-300' };
       case 'DERIVA_TERMICA':
         return { label: 'Deriva Térmica Progresiva', color: 'bg-green-100 text-green-800 border-green-300' };
       case 'OSCILACION_INHABITUAL':
@@ -109,9 +108,9 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
         return { label: 'Posible Fallo de Sensor', color: 'bg-emerald-100 text-emerald-900 border-emerald-400 font-bold' };
       case 'DATOS_INSUFICIENTES':
       case 'NO_EVALUADO':
-        return { label: 'Datos Insuficientes (<50)', color: 'bg-slate-100 text-slate-700 border-slate-300' };
+        return { label: 'Datos Insuficientes (<50)', color: 'bg-slate-100 text-console-muted border-slate-300' };
       default:
-        return { label: 'Comportamiento Nominal', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' };
+        return { label: 'Comportamiento Nominal', color: 'bg-emerald-100 text-console-accent border-emerald-300' };
     }
   };
 
@@ -165,7 +164,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
           </label>
           <select
             id="ai-loc"
-            value={selectedLocId}
+            value={effectiveLocId}
             onChange={(e) => {
               setSelectedLocId(e.target.value);
               setSelectedSensorId('');
@@ -190,7 +189,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
           >
             {locationSensors.map((s) => (
               <option key={s.id_sensor} value={s.id_sensor}>
-                {(s as any).identificador || s.id_sensor} ({s.tipo_sensor || (s as any).modelo || 'DHT22'})
+                {s.identificador} ({s.modelo})
               </option>
             ))}
           </select>
@@ -214,8 +213,8 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
       </div>
 
       {statusMessage && (
-        <div className="p-3 rounded-[10px] bg-sky-50 border border-sky-200 text-sky-800 text-xs flex items-center gap-2">
-          <CheckCircle className="w-4 h-4 text-sky-600 shrink-0" />
+        <div className="p-3 rounded-[10px] bg-sky-50 border border-sky-200 text-console-info text-xs flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-console-info shrink-0" />
           <span>{statusMessage}</span>
         </div>
       )}
@@ -347,7 +346,7 @@ export const AiDiagnosticPanel: React.FC<AiDiagnosticPanelProps> = React.memo(({
             {/* Recomendaciones Operativas */}
             <div className="bg-cream-paper rounded-[12px] p-5 space-y-3">
               <h4 className="text-xs font-semibold text-bark flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-emerald-600" />
+                <CheckCircle className="w-4 h-4 text-console-accent" />
                 <span>Recomendaciones Operativas</span>
               </h4>
               <ul className="space-y-2 text-xs text-slate">

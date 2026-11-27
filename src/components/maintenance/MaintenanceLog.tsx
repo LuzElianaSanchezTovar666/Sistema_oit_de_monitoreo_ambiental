@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useSiteDataVersion } from '../../services/siteData';
 import {
   Wrench,
   Plus,
@@ -18,23 +19,21 @@ import { fetchSensores, SensorDTO } from '../../services/sensorService';
 import { DeviceConnectivityPanel } from '../devices/DeviceConnectivity';
 
 interface MaintenanceLogProps {
-  maintenances: Mantenimiento[];
   connectivity: DeviceConnectivity[] | null;
   currentUser: Usuario;
-  onAddMaintenance: (entry: Mantenimiento) => void;
 }
 
 export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
-  maintenances: initialMaintenances,
   connectivity,
   currentUser,
-  onAddMaintenance,
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [sensors, setSensors] = useState<SensorDTO[]>([]);
   const [backendMaintenances, setBackendMaintenances] = useState<MantenimientoDTO[]>([]);
-  const [loadingList, setLoadingList] = useState(false);
+  const [listError, setListError] = useState('');
+  const requestRef = useRef(0);
+  const revision = useSiteDataVersion('mantenimientos', 'sensores', 'dispositivos');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -42,24 +41,24 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
   const devices = connectivity ?? [];
 
   const loadData = async () => {
-    setLoadingList(true);
+    const request = ++requestRef.current;
     try {
-      const [senRes, mntRes] = await Promise.all([
-        fetchSensores().catch(() => ({ items: [] })),
-        fetchAllMaintenances().catch(() => ({ items: [], total: 0 })),
-      ]);
+      const [senRes, mntRes] = await Promise.all([fetchSensores(), fetchAllMaintenances()]);
+      if (request !== requestRef.current) return;
       setSensors(senRes.items);
       setBackendMaintenances(mntRes.items);
-    } catch {
-      // fallback
-    } finally {
-      setLoadingList(false);
+      setListError('');
+    } catch (err) {
+      if (request === requestRef.current) {
+        setListError(err instanceof Error ? err.message : 'No se pudo consultar la bitácora.');
+      }
     }
   };
 
   useEffect(() => {
     void loadData();
-  }, []);
+    return () => { requestRef.current += 1; };
+  }, [revision]);
 
   const [tipoMnt, setTipoMnt] = useState<Mantenimiento['tipo_mantenimiento']>('CALIBRACION');
   const [descripcion, setDescripcion] = useState('');
@@ -75,7 +74,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
     setFormError('');
 
     try {
-      const res = await createGlobalMaintenance({
+      await createGlobalMaintenance({
         dispositivo_id: selectedDeviceId,
         sensor_id: sens?.id_sensor,
         tipo_mantenimiento: tipoMnt,
@@ -85,22 +84,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
         estado: 'COMPLETADO',
       });
 
-      const newMnt: Mantenimiento = {
-        id_mantenimiento: res.mantenimiento.id_mantenimiento,
-        dispositivo_id: selectedDeviceId,
-        sensor_id: sens?.id_sensor,
-        tecnico_id: currentUser.id_usuario,
-        tecnico_nombre: currentUser.nombre,
-        tipo_mantenimiento: tipoMnt,
-        descripcion,
-        fecha_realizacion: res.mantenimiento.fecha_intervencion,
-        proxima_fecha_sugerida: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-        costo_estimado_usd: costo,
-        estado: 'COMPLETADO',
-      };
-
-      onAddMaintenance(newMnt);
-      setBackendMaintenances((prev) => [res.mantenimiento, ...prev]);
+      void loadData();
       setShowModal(false);
       setDescripcion('');
     } catch (err: any) {
@@ -110,25 +94,13 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
     }
   };
 
-  // Merge backend and local maintenances
-  const displayMaintenances = backendMaintenances.length > 0
-    ? backendMaintenances
-    : initialMaintenances.map((m) => ({
-        ...m,
-        id_usuario_responsable: Number(m.tecnico_id) || null,
-        fecha_intervencion: m.fecha_realizacion,
-        resultado: 'EXITOSO' as const,
-        costo_estimado_usd: m.costo_estimado_usd || 0,
-        estado: 'COMPLETADO' as const,
-      }));
-
   return (
     <div className="space-y-[24px]">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="apple-card-heading text-bark flex items-center gap-2.5">
-            <Wrench className="w-6 h-6 text-[#D97706]" />
+            <Wrench className="w-6 h-6 text-console-warning" />
             <span>Bitácora de Mantenimiento y Calibración Técnica</span>
           </h2>
           <p className="text-[14px] text-slate mt-1">
@@ -157,6 +129,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
       </div>
 
       <DeviceConnectivityPanel devices={connectivity} />
+      {listError && <p role="alert" className="text-console-danger">{listError}</p>}
 
       {/* Grid de Estado de Sensores y Calibración — Feature Metric Tiles (28px radius, 16px padding, no shadow) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
@@ -218,7 +191,7 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-border/40 font-sans">
-              {displayMaintenances.map((mnt) => {
+              {backendMaintenances.map((mnt) => {
                 const dev = devices.find((d) => d.id_dispositivo === mnt.dispositivo_id);
                 const fecha = (mnt as any).fecha_intervencion || mnt.fecha_realizacion;
                 const devName = (mnt as any).dispositivo_nombre || dev?.nombre || mnt.dispositivo_id;
@@ -258,11 +231,11 @@ export const MaintenanceLog: React.FC<MaintenanceLogProps> = ({
 
       {/* Modal: Registrar Intervención */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-deep-abyss/65 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/70 backdrop-blur-md animate-fadeIn">
           <div className="bg-sheet-white border border-sage-mist rounded-[16px] w-full max-w-lg p-6 sm:p-8 space-y-5">
             <div className="flex items-center justify-between border-b border-sage-mist pb-3">
               <h3 className="text-[17px] font-semibold text-bark flex items-center gap-2">
-                <Wrench className="w-5 h-5 text-[#D97706]" />
+                <Wrench className="w-5 h-5 text-console-warning" />
                 <span>Registrar Intervención de Mantenimiento</span>
               </h3>
               <button

@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
+import { useSiteDataVersion } from '../../services/siteData';
 import {
   BrainCircuit,
   AlertOctagon,
@@ -71,6 +72,9 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
   }, [connectivity]);
 
   const [selectedMysqlDeviceId, setSelectedMysqlDeviceId] = useState('ALL');
+  const effectiveDeviceId = mysqlDevicesInLoc?.some((device) => device.id_dispositivo === selectedMysqlDeviceId)
+    ? selectedMysqlDeviceId : 'ALL';
+  const catalogRevision = useSiteDataVersion('ubicaciones', 'dispositivos', 'sensores', 'umbrales');
   const [mysqlMediciones, setMysqlMediciones] = useState<DashboardMedicionDTO[]>([]);
   const [mysqlResumen, setMysqlResumen] = useState<DashboardUbicacionResumenDTO[]>([]);
   const [mysqlSensorConfigs, setMysqlSensorConfigs] = useState<DashboardTelemetrySensorDTO[]>([]);
@@ -184,7 +188,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
       window.clearInterval(snapshotTimer);
       if (es) es.close();
     };
-  }, [currentLocation?.id_ubicacion]);
+  }, [currentLocation?.id_ubicacion, catalogRevision]);
 
   useEffect(() => {
     setSelectedMysqlDeviceId('ALL');
@@ -200,7 +204,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
         fetchDashboardMedicionesPorUbicacion(locId).catch(() => null),
         fetchDashboardTelemetry({
           ubicacion_id: locId,
-          dispositivo_id: selectedMysqlDeviceId !== 'ALL' ? selectedMysqlDeviceId : undefined,
+          dispositivo_id: effectiveDeviceId !== 'ALL' ? effectiveDeviceId : undefined,
           limit: 60,
         }).catch(() => null),
       ]);
@@ -224,7 +228,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
       active = false;
       window.clearInterval(timer);
     };
-  }, [currentLocation?.id_ubicacion, selectedMysqlDeviceId]);
+  }, [currentLocation?.id_ubicacion, effectiveDeviceId, catalogRevision]);
 
   const activeSensorConfig = useMemo(() => {
     if (mysqlSensorConfigs.length === 0) return null;
@@ -262,6 +266,10 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
   const pressureAge = latestTimestamp ? Date.now() - latestTimestamp : Infinity;
   const displayPres = latestMysqlReading && pressureAge >= 0 && pressureAge <= 30_000 &&
     !isDeviceUnavailable(latestMysqlReading.dispositivo_id) ? latestMysqlReading.presion : null;
+
+  if (!currentLocation) {
+    return <p role="status" className="rounded-[16px] bg-sheet-white p-5">No hay ubicaciones activas para monitorear.</p>;
+  }
 
   return (
     <div className="space-y-[24px]">
@@ -370,7 +378,7 @@ export const LiveTelemetryView: React.FC<LiveTelemetryViewProps> = React.memo(({
             )}
           </div>
           <select
-            value={selectedMysqlDeviceId}
+            value={effectiveDeviceId}
             onChange={(e) => setSelectedMysqlDeviceId(e.target.value)}
             aria-label="Filtrar por dispositivo en MySQL"
             className="px-3 py-1.5 rounded-[8px] bg-cream-paper border border-sage-mist text-xs text-bark font-mono"

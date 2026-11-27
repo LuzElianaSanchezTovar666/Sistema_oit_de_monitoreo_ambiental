@@ -10,20 +10,15 @@ import {
   Dispositivo,
   Sensor,
   Alerta,
-  Mantenimiento,
   DLQEntry,
-  Medicion,
 } from './types/iot';
 import {
-  UBICACIONES_INICIALES,
   getStoredDispositivos,
   saveStoredDispositivos,
   getStoredSensores,
   saveStoredSensores,
   getStoredAlertas,
   saveStoredAlertas,
-  getStoredMantenimientos,
-  saveStoredMantenimientos,
   getStoredDLQ,
   saveStoredDLQ,
 } from './services/storage';
@@ -42,6 +37,7 @@ import { HeroSkeleton, CardGridSkeleton } from './components/common/SkeletonLoad
 import { Check, AlertCircle, Smartphone, Loader2, AlertTriangle, AlertOctagon, Volume2, VolumeX, X } from 'lucide-react';
 import { fetchCurrentUser, logoutSession, getDefaultTabForRole } from './services/authService';
 import { fetchUbicaciones } from './services/locationService';
+import { useSiteDataVersion, watchSiteData } from './services/siteData';
 import { DeviceConnectivity, watchDeviceConnectivity } from './services/deviceService';
 import {
   BackendAlertaDTO,
@@ -187,14 +183,18 @@ export default function App() {
   // App entities & real backend authentication state
   const [currentUser, setCurrentUser] = useState<Usuario | null>(null);
   const [authChecking, setAuthChecking] = useState<boolean>(true);
-  const [locations, setLocations] = useState<Ubicacion[]>(UBICACIONES_INICIALES);
-  const [selectedLocationId, setSelectedLocationId] = useState<string>(UBICACIONES_INICIALES[0].id_ubicacion);
+  const [locations, setLocations] = useState<Ubicacion[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState('');
+  const locationsRevision = useSiteDataVersion('ubicaciones');
+  const alertsRevision = useSiteDataVersion('alertas', 'ubicaciones', 'dispositivos', 'sensores');
+  const locationRequest = useRef(0);
 
   const loadLocationsFromMySQL = useCallback(async () => {
+    const request = ++locationRequest.current;
     try {
       const res = await fetchUbicaciones({ estado: 'ACTIVA' });
-      if (res.items.length > 0) {
-        const mapped: Ubicacion[] = res.items.map((u) => ({
+      if (request !== locationRequest.current) return;
+      const mapped: Ubicacion[] = res.items.map((u) => ({
           id_ubicacion: u.ubicacion_id,
           nombre: u.nombre,
           descripcion: u.descripcion || u.tipo,
@@ -204,15 +204,25 @@ export default function App() {
           hum_optima_min: 40,
           hum_optima_max: 70,
         }));
-        setLocations(mapped);
-        setSelectedLocationId((prev) =>
-          mapped.some((m) => m.id_ubicacion === prev) ? prev : mapped[0].id_ubicacion
-        );
-      }
+      setLocations(mapped);
+      setSelectedLocationId((prev) =>
+        mapped.some((location) => location.id_ubicacion === prev) ? prev : (mapped[0]?.id_ubicacion ?? '')
+      );
     } catch {
       // Si el usuario aún no está autenticado, se cargará al iniciar sesión
     }
   }, []);
+
+  useEffect(() => {
+    if (currentUser) return watchSiteData();
+    locationRequest.current += 1;
+    setLocations([]);
+    setSelectedLocationId('');
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (currentUser) void loadLocationsFromMySQL();
+  }, [currentUser, locationsRevision, loadLocationsFromMySQL]);
 
   const [devices, setDevices] = useState<Dispositivo[]>(() => FIELD_SIMULATOR_ENABLED ? getStoredDispositivos() : []);
   const [sensors, setSensors] = useState<Sensor[]>(() => FIELD_SIMULATOR_ENABLED ? getStoredSensores() : []);
@@ -225,7 +235,6 @@ export default function App() {
   const [liveAlertBanner, setLiveAlertBanner] = useState<LiveAlertRecord | null>(null);
   const [alertSoundEnabled, setAlertSoundEnabled] = useState<boolean>(true);
   const notifiedAlertIdsRef = useRef<Set<string>>(new Set());
-  const [maintenances, setMaintenances] = useState<Mantenimiento[]>(getStoredMantenimientos);
   const [dlqEntries, setDlqEntries] = useState<DLQEntry[]>(getStoredDLQ);
 
   // Active navigation tab inside the IoT platform
@@ -243,7 +252,6 @@ export default function App() {
       .then((user) => {
         if (active && user) {
           setCurrentUser(user);
-          loadLocationsFromMySQL();
         }
       })
       .finally(() => {
@@ -252,13 +260,10 @@ export default function App() {
     return () => {
       active = false;
     };
-  }, [loadLocationsFromMySQL]);
+  }, []);
 
   // Streaming telemetry state (initialized synchronously so frame 1 is always complete)
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
-  const [readingsHistory, setReadingsHistory] = useState<{ [sensorId: string]: Medicion[] }>(() =>
-    FIELD_SIMULATOR_ENABLED ? telemetryEngineInstance.generateInitialHistory(getStoredDispositivos(), getStoredSensores()) : {}
-  );
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -273,6 +278,10 @@ export default function App() {
   const handleLogout = useCallback(async () => {
     await logoutSession();
     setCurrentUser(null);
+    setAlerts([]);
+    setLiveAlertBanner(null);
+    setSelectedAlertForModal(null);
+    notifiedAlertIdsRef.current.clear();
     setViewMode('landing');
     showToast('Sesión cerrada correctamente.');
   }, [showToast]);
@@ -325,26 +334,23 @@ export default function App() {
         'ParallelBootstrap:Promise.all(Devices,Sensors,Alerts,Telemetry)',
         'Bootstrap/ParallelLoader',
         async () => {
-          const [loadedDevices, loadedSensors, loadedAlerts, loadedMaint, loadedDlq] =
+          const [loadedDevices, loadedSensors, loadedAlerts, loadedDlq] =
             await Promise.all([
               Promise.resolve(FIELD_SIMULATOR_ENABLED ? getStoredDispositivos() : []),
               Promise.resolve(FIELD_SIMULATOR_ENABLED ? getStoredSensores() : []),
               Promise.resolve(FIELD_SIMULATOR_ENABLED ? getStoredAlertas() : []),
-              Promise.resolve(getStoredMantenimientos()),
               Promise.resolve(getStoredDLQ()),
             ]);
 
           if (!mounted) return;
 
           // Cachear en Redis los catálogos más consultados
-          redisCache.set('catalog:locations', UBICACIONES_INICIALES, 120_000);
           redisCache.set('catalog:devices', loadedDevices, 60_000);
           redisCache.set('catalog:sensors', loadedSensors, 60_000);
 
           setDevices(loadedDevices);
           setSensors(loadedSensors);
           setAlerts(loadedAlerts);
-          setMaintenances(loadedMaint);
           setDlqEntries(loadedDlq);
           setInitialLoading(false);
         }
@@ -357,6 +363,18 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!currentUser || currentUser.rol === 'tecnico') return;
+    let active = true;
+    fetchAlertas().then((persisted) => {
+      if (active) {
+        for (const alert of persisted) notifiedAlertIdsRef.current.add(alert.id_alerta);
+        setAlerts((previous) => mergeAlertsDeduplicated(previous.filter((alert) => alert.provisional), persisted));
+      }
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [currentUser, alertsRevision]);
+
   // RF-13: Canal SSE en tiempo real para alertas automáticas por desborde de límites
   useEffect(() => {
     if (!currentUser) return;
@@ -367,18 +385,6 @@ export default function App() {
     if (!canViewAlerts) return;
 
     let active = true;
-    fetchAlertas()
-      .then((persisted) => {
-        if (!active) return;
-        for (const a of persisted) {
-          notifiedAlertIdsRef.current.add(a.id_alerta);
-        }
-        setAlerts((prev) => mergeAlertsDeduplicated(prev, persisted));
-      })
-      .catch(() => {
-        // Fallback silencioso si el usuario no tiene sesión válida o el endpoint no está disponible aún
-      });
-
     if (typeof EventSource === 'undefined') {
       return () => {
         active = false;
@@ -456,13 +462,6 @@ export default function App() {
         showToast(`¡Alerta detectada!: ${newAlert.mensaje}`, 'alert');
       });
 
-      setReadingsHistory((prev) => {
-        const updated = { ...prev };
-        sensors.forEach((s) => {
-          updated[s.id_sensor] = telemetryEngineInstance.getHistory(s.id_sensor);
-        });
-        return updated;
-      });
     }, 2500);
 
     return () => clearInterval(interval);
@@ -537,19 +536,6 @@ export default function App() {
   const handleAlertUpdated = useCallback((updated: LiveAlertRecord) => {
     setAlerts((prev) => mergeAlertsDeduplicated(prev, [updated]));
   }, []);
-
-  // Optimistic UI Handler: Add Maintenance
-  const handleAddMaintenance = useCallback(
-    (entry: Mantenimiento) => {
-      setMaintenances((prev) => {
-        const updated = [entry, ...prev];
-        queueMicrotask(() => saveStoredMantenimientos(updated));
-        return updated;
-      });
-      showToast('UI Optimista (0ms): Intervención registrada en la bitácora.');
-    },
-    [showToast]
-  );
 
   // Handler: Add to DLQ (Escenario B)
   const handleAddDLQ = useCallback(
@@ -639,7 +625,6 @@ export default function App() {
             onLoginSuccess={(u) => {
               setCurrentUser(u);
               setActiveTab(getDefaultTabForRole(u.rol));
-              loadLocationsFromMySQL();
               showToast(`Sesión iniciada como ${u.nombre}.`);
             }}
           />
@@ -682,7 +667,7 @@ export default function App() {
                       </span>
                       <button
                         onClick={() => setSkeletonMode(false)}
-                        className="px-4 py-1.5 text-xs rounded-[8px] bg-canopy text-sheet-white font-semibold"
+                        className="px-4 py-1.5 text-xs rounded-[8px] bg-canopy text-console-on-solid font-semibold"
                       >
                         Ver Datos Reales
                       </button>
@@ -739,8 +724,7 @@ export default function App() {
                       <AlertsManager
                         alerts={alerts}
                         locations={locations}
-                        devices={devices}
-                        sensors={sensors}
+                        devices={connectivity ?? []}
                         currentUser={currentUser}
                         onAlertUpdated={handleAlertUpdated}
                         onNotify={showToast}
@@ -751,30 +735,17 @@ export default function App() {
                     )}
 
                     {activeTab === 'analytics' && (
-                      <HistoricalAnalytics
-                        locations={locations}
-                        devices={devices}
-                        sensors={sensors}
-                        readingsHistory={readingsHistory}
-                      />
+                      <HistoricalAnalytics />
                     )}
 
                     {activeTab === 'ai' && (
-                      <AiDiagnosticPanel
-                        locations={locations}
-                        devices={devices}
-                        sensors={sensors}
-                        readingsHistory={readingsHistory}
-                        activeAlerts={alerts}
-                      />
+                      <AiDiagnosticPanel locations={locations} />
                     )}
 
                     {activeTab === 'maintenance' && (
                       <MaintenanceLog
-                        maintenances={maintenances}
                         connectivity={connectivity}
                         currentUser={currentUser}
-                        onAddMaintenance={handleAddMaintenance}
                       />
                     )}
 

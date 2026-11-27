@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSiteDataVersion } from '../../services/siteData';
 import {
   AlertTriangle,
   AlertOctagon,
@@ -16,7 +17,7 @@ import {
   X,
   ShieldAlert,
 } from 'lucide-react';
-import { Alerta, AlertState, Ubicacion, Dispositivo, Sensor, Usuario } from '../../types/iot';
+import { Alerta, AlertState, Ubicacion, Dispositivo, Usuario } from '../../types/iot';
 import { useDebounce } from '../../hooks/useDebounce';
 import {
   AlertHistorialItemDTO,
@@ -32,8 +33,7 @@ import {
 interface AlertsManagerProps {
   alerts: LiveAlertRecord[];
   locations: Ubicacion[];
-  devices: Dispositivo[];
-  sensors: Sensor[];
+  devices: Pick<Dispositivo, 'id_dispositivo' | 'nombre'>[];
   currentUser: Usuario;
   onAlertUpdated?: (updated: LiveAlertRecord) => void;
   onNotify?: (msg: string, type?: 'success' | 'alert') => void;
@@ -60,7 +60,6 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
     alerts: liveAlertsProp,
     locations,
     devices,
-    sensors,
     currentUser,
     onAlertUpdated,
     onNotify,
@@ -68,6 +67,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
     onCloseModal,
     onOpenModal,
   }) => {
+    const alertsRevision = useSiteDataVersion('alertas', 'dispositivos', 'ubicaciones', 'sensores');
     const [items, setItems] = useState<LiveAlertRecord[]>([]);
     const [resumen, setResumen] = useState<AlertResumenDTO>({
       total: 0,
@@ -149,7 +149,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
 
     useEffect(() => {
       void loadAlertsFromBackend();
-    }, [loadAlertsFromBackend]);
+    }, [loadAlertsFromBackend, alertsRevision]);
 
     // Refrescar cuando llegan nuevas alertas o cambios de estado en tiempo real vía SSE
     useEffect(() => {
@@ -263,7 +263,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
           </div>
           <div className="bg-sheet-white rounded-[16px] p-4">
             <span className="text-[11px] font-semibold text-slate uppercase tracking-wider">Atendidas</span>
-            <div className="apple-metric-display text-[#D97706] mt-1 tabular-nums">{resumen.atendidas}</div>
+            <div className="apple-metric-display text-console-warning mt-1 tabular-nums">{resumen.atendidas}</div>
           </div>
           <div className="bg-sheet-white rounded-[16px] p-4">
             <span className="text-[11px] font-semibold text-slate uppercase tracking-wider">Resueltas</span>
@@ -297,7 +297,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                 }}
                 className={`px-3.5 py-1.5 rounded-[8px] transition-colors cursor-pointer ${
                   filterStatus === tab.id
-                    ? 'bg-bark text-sheet-white font-semibold'
+                    ? 'bg-bark text-console-on-solid font-semibold'
                     : 'bg-cream-paper text-slate hover:text-bark'
                 }`}
               >
@@ -546,7 +546,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
 
         {/* Modal Detalle, Gestión y Bitácora Auditable (RN-16) */}
         {selectedAlertForModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-deep-abyss/65 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/70 backdrop-blur-md">
             <div className="bg-sheet-white border border-sage-mist rounded-[18px] w-full max-w-2xl p-6 space-y-5 max-h-[92vh] overflow-y-auto">
               <div className="flex items-center justify-between border-b border-sage-mist pb-3">
                 <div>
@@ -663,7 +663,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                             onClick={() => setTargetState('ATENDIDA')}
                             className={`px-3.5 py-1.5 rounded-[8px] text-xs font-semibold cursor-pointer ${
                               targetState === 'ATENDIDA'
-                                ? 'bg-[#D97706] text-sheet-white'
+                                ? 'bg-console-warning text-console-on-solid'
                                 : 'bg-cream-paper text-slate'
                             }`}
                           >
@@ -675,7 +675,7 @@ export const AlertsManager: React.FC<AlertsManagerProps> = React.memo(
                           onClick={() => setTargetState('RESUELTA')}
                           className={`px-3.5 py-1.5 rounded-[8px] text-xs font-semibold cursor-pointer ${
                             targetState === 'RESUELTA'
-                              ? 'bg-canopy text-sheet-white'
+                              ? 'bg-canopy text-console-on-solid'
                               : 'bg-cream-paper text-slate'
                           }`}
                         >

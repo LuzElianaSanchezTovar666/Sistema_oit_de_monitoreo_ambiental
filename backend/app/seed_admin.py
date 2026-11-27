@@ -19,10 +19,16 @@ def seed_initial_admin() -> None:
         )
         sys.exit(1)
 
-    pw_hash = hash_password(password)
     run_migrations()
 
     with db_cursor() as cursor:
+        cursor.execute(
+            "SELECT id_usuario FROM usuarios WHERE rol = 'Administrador' AND estado = 'activo' LIMIT 1 FOR UPDATE"
+        )
+        if cursor.fetchone():
+            print("Ya existe un administrador activo en SIMOA.")
+            return
+
         cursor.execute("SELECT id_usuario FROM usuarios WHERE correo = %s LIMIT 1", (email,))
         existing = cursor.fetchone()
         if existing:
@@ -34,7 +40,7 @@ def seed_initial_admin() -> None:
             INSERT INTO usuarios (nombre, correo, password_hash, rol, estado)
             VALUES (%s, %s, %s, 'Administrador', 'activo')
             """,
-            (name, email, pw_hash),
+            (name, email, hash_password(password)),
         )
         print(f"Administrador inicial creado exitosamente: {email} (id={cursor.lastrowid})")
 

@@ -15,7 +15,7 @@ import {
   CheckCircle2,
   Loader2,
 } from 'lucide-react';
-import { Ubicacion, Dispositivo, Sensor, Medicion } from '../../types/iot';
+import { useSiteDataVersion } from '../../services/siteData';
 import { SkeletonBox } from '../common/SkeletonLoader';
 import { TrendChartPanel } from './TrendChartPanel';
 import { fetchUbicaciones, UbicacionDTO } from '../../services/locationService';
@@ -27,19 +27,19 @@ import {
   fetchSensores,
   HistoricalQueryResponseDTO,
   HistoricalTrendResponseDTO,
-  LocationTemperatureSnapshotDTO,
   SensorDTO,
   validateHistoricalDateRange,
 } from '../../services/sensorService';
 
-interface HistoricalAnalyticsProps {
-  locations?: Ubicacion[];
-  devices?: Dispositivo[];
-  sensors?: Sensor[];
-  readingsHistory?: { [sensorId: string]: Medicion[] };
+interface HistoricalFilters {
+  ubicacion_id: string;
+  dispositivo_id: string;
+  sensor_id: string;
+  fecha_inicio: string;
+  fecha_fin: string;
 }
 
-export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.memo(() => {
+export const HistoricalAnalytics: React.FC = React.memo(() => {
   const [ubicaciones, setUbicaciones] = useState<UbicacionDTO[]>([]);
   const [dispositivos, setDispositivos] = useState<DispositivoDTO[]>([]);
   const [sensores, setSensores] = useState<SensorDTO[]>([]);
@@ -57,7 +57,9 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
   const [error, setError] = useState<string>('');
   const [result, setResult] = useState<HistoricalQueryResponseDTO | null>(null);
   const [trendData, setTrendData] = useState<HistoricalTrendResponseDTO | null>(null);
-  const [liveFollow, setLiveFollow] = useState<boolean>(false);
+  const [liveFollow, setLiveFollow] = useState(true);
+  const catalogRevision = useSiteDataVersion('ubicaciones', 'dispositivos', 'sensores');
+  const historyRevision = useSiteDataVersion('mediciones', 'umbrales');
 
   // RF-16 y RF-17: Estados de generación y descarga de reportes y exportación CSV
   const [reportFormat, setReportFormat] = useState<'pdf' | 'excel'>('pdf');
@@ -67,6 +69,8 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
   const [reportMessage, setReportMessage] = useState<string>('');
 
   const abortRef = useRef<AbortController | null>(null);
+  const pendingRefresh = useRef(false);
+  const lastQuery = useRef<{ page: number; size: number; filters: HistoricalFilters } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -83,7 +87,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
     return () => {
       active = false;
     };
-  }, []);
+  }, [catalogRevision]);
 
   // Selectores dependientes respetando relaciones reales en MySQL
   const filteredDispositivos = useMemo(() => {
@@ -131,15 +135,24 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
   };
 
   const executeQuery = useCallback(
-    async (targetPage: number, targetPageSize: number, overrides?: {
-      ubicacion_id?: string;
-      dispositivo_id?: string;
-      sensor_id?: string;
-      fecha_inicio?: string;
-      fecha_fin?: string;
-    }) => {
-      const fIni = overrides?.fecha_inicio !== undefined ? overrides.fecha_inicio : fechaInicio;
-      const fFin = overrides?.fecha_fin !== undefined ? overrides.fecha_fin : fechaFin;
+    async (
+      targetPage: number,
+      targetPageSize: number,
+      overrides: Partial<HistoricalFilters> = {},
+      background = false,
+    ): Promise<void> => {
+      if (background && abortRef.current) {
+        pendingRefresh.current = true;
+        return;
+      }
+      const filters: HistoricalFilters = {
+        ubicacion_id: overrides.ubicacion_id ?? ubicacionId,
+        dispositivo_id: overrides.dispositivo_id ?? dispositivoId,
+        sensor_id: overrides.sensor_id ?? sensorId,
+        fecha_inicio: overrides.fecha_inicio ?? fechaInicio,
+        fecha_fin: overrides.fecha_fin ?? fechaFin,
+      };
+      const { fecha_inicio: fIni, fecha_fin: fFin } = filters;
       const rangeErr = validateHistoricalDateRange(fIni, fFin);
       if (rangeErr) {
         setError(rangeErr);
@@ -153,13 +166,14 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
       const controller = new AbortController();
       abortRef.current = controller;
 
-      setLoading(true);
+      lastQuery.current = { page: targetPage, size: targetPageSize, filters };
+      if (!background) setLoading(true);
       setError('');
       try {
         const filterPayload = {
-          ubicacion_id: (overrides?.ubicacion_id !== undefined ? overrides.ubicacion_id : ubicacionId) || undefined,
-          dispositivo_id: (overrides?.dispositivo_id !== undefined ? overrides.dispositivo_id : dispositivoId) || undefined,
-          sensor_id: (overrides?.sensor_id !== undefined ? overrides.sensor_id : sensorId) || undefined,
+          ubicacion_id: filters.ubicacion_id || undefined,
+          dispositivo_id: filters.dispositivo_id || undefined,
+          sensor_id: filters.sensor_id || undefined,
           fecha_inicio: fIni || undefined,
           fecha_fin: fFin || undefined,
         };
@@ -174,6 +188,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
           ),
           fetchHistoricalTrends(filterPayload, controller.signal),
         ]);
+        if (controller.signal.aborted) return;
         setResult(res);
         setTrendData(trends);
       } catch (err: any) {
@@ -181,7 +196,13 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
         setError(err?.message || 'Error al consultar el historial de mediciones.');
       } finally {
         if (abortRef.current === controller) {
+          abortRef.current = null;
           setLoading(false);
+          if (pendingRefresh.current) {
+            pendingRefresh.current = false;
+            const query = lastQuery.current;
+            if (query) void executeQuery(query.page, query.size, query.filters, true);
+          }
         }
       }
     },
@@ -191,93 +212,18 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
   useEffect(() => {
     executeQuery(1, pageSize);
     return () => {
+      pendingRefresh.current = false;
       if (abortRef.current) abortRef.current.abort();
     };
   }, []);
 
-  // Seguimiento en vivo opcional reutilizando SSE existente (sin consumidores MQTT duplicados)
+  const lastRevision = useRef(historyRevision);
   useEffect(() => {
-    if (!liveFollow || !ubicacionId || typeof EventSource === 'undefined') return;
-    let active = true;
-    const es = new EventSource(
-      `/api/mediciones/stream/temperatura?ubicacion_id=${encodeURIComponent(ubicacionId)}`,
-      { withCredentials: true }
-    );
-    const onLiveReading = (ev: MessageEvent) => {
-      if (!active) return;
-      try {
-        const snap = JSON.parse(ev.data) as LocationTemperatureSnapshotDTO & {
-          thresholds_updated?: boolean;
-          humedad_snapshot?: {
-            humedad_actual: number | null;
-            hum_min?: number | null;
-            hum_max?: number | null;
-            fecha_hora_utc: string | null;
-          } | null;
-        };
-        if (snap.thresholds_updated) {
-          setTrendData((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              limites: {
-                ...prev.limites,
-                temperatura: {
-                  ...prev.limites.temperatura,
-                  min: snap.temp_min ?? prev.limites.temperatura.min,
-                  max: snap.temp_max ?? prev.limites.temperatura.max,
-                },
-                humedad: {
-                  ...prev.limites.humedad,
-                  min: snap.humedad_snapshot?.hum_min ?? prev.limites.humedad.min,
-                  max: snap.humedad_snapshot?.hum_max ?? prev.limites.humedad.max,
-                },
-              },
-            };
-          });
-        }
-        if (!snap.fecha_hora_utc || snap.temperatura_actual === null) return;
-        setTrendData((prev) => {
-          if (!prev) return prev;
-          const exists = prev.series.some((p) => p.fecha_hora_utc === snap.fecha_hora_utc && p.sensor_id === snap.sensor_id);
-          if (exists) return prev;
-          const newPt = {
-            id_medicion: Date.now(),
-            sensor_id: snap.sensor_id,
-            sensor_identificador: snap.sensor_identificador,
-            sensor_modelo: snap.sensor_modelo,
-            dispositivo_id: snap.dispositivo_id || '',
-            ubicacion_id: snap.ubicacion_id,
-            temperatura: snap.temperatura_actual,
-            humedad: snap.humedad_snapshot?.humedad_actual ?? null,
-            es_fuera_de_umbral:
-              snap.estado_termico === 'FUERA DE RANGO' ? true : snap.estado_termico === 'NOMINAL' ? false : null,
-            estado_evaluacion: (snap.estado_termico === 'FUERA DE RANGO'
-              ? 'Fuera de umbral'
-              : snap.estado_termico === 'NOMINAL'
-                ? 'Conforme'
-                : 'No evaluable') as 'Conforme' | 'Fuera de umbral' | 'No evaluable',
-            score_anomalia_ia: null,
-            es_anomalia_ia: false,
-            fecha_hora_utc: snap.fecha_hora_utc!,
-          };
-          return {
-            ...prev,
-            series: [...prev.series, newPt],
-            total_original: prev.total_original + 1,
-            total_retornados: prev.total_retornados + 1,
-          };
-        });
-      } catch {
-        // Ignorar payload inválido
-      }
-    };
-    es.addEventListener('temperatura', onLiveReading as EventListener);
-    return () => {
-      active = false;
-      es.close();
-    };
-  }, [liveFollow, ubicacionId]);
+    if (lastRevision.current === historyRevision) return;
+    lastRevision.current = historyRevision;
+    const query = lastQuery.current;
+    if (liveFollow && query) void executeQuery(query.page, query.size, query.filters, true);
+  }, [historyRevision, liveFollow, executeQuery]);
 
   const handleConsultar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -540,7 +486,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
                   onChange={(e) => setLiveFollow(e.target.checked)}
                   className="accent-canopy"
                 />
-                <span>Seguimiento en vivo (SSE)</span>
+                <span>Actualizar historial automáticamente</span>
               </label>
             )}
             <label htmlFor="rf10-psize">Filas por página:</label>
@@ -591,7 +537,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
                 onClick={() => setReportFormat('pdf')}
                 className={`px-3 py-1.5 rounded-[6px] font-medium transition-all inline-flex items-center gap-1.5 ${
                   reportFormat === 'pdf'
-                    ? 'bg-canopy text-pure-white shadow-sm'
+                    ? 'bg-canopy text-console-on-solid shadow-sm'
                     : 'text-slate hover:text-bark'
                 }`}
               >
@@ -603,7 +549,7 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
                 onClick={() => setReportFormat('excel')}
                 className={`px-3 py-1.5 rounded-[6px] font-medium transition-all inline-flex items-center gap-1.5 ${
                   reportFormat === 'excel'
-                    ? 'bg-canopy text-pure-white shadow-sm'
+                    ? 'bg-canopy text-console-on-solid shadow-sm'
                     : 'text-slate hover:text-bark'
                 }`}
               >
@@ -661,13 +607,13 @@ export const HistoricalAnalytics: React.FC<HistoricalAnalyticsProps> = React.mem
               reportStatus === 'error'
                 ? 'bg-[#15803d]/10 border border-[#15803d]/30 text-[#15803d]'
                 : reportStatus === 'success'
-                ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
-                : 'bg-sky-50 border border-sky-200 text-sky-800'
+                ? 'bg-emerald-50 border border-emerald-200 text-console-accent'
+                : 'bg-sky-50 border border-sky-200 text-console-info'
             }`}
           >
             {reportStatus === 'error' && <AlertCircle className="w-4 h-4 shrink-0" />}
-            {reportStatus === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />}
-            {(reportLoading || csvLoading) && <Loader2 className="w-4 h-4 shrink-0 animate-spin text-sky-600" />}
+            {reportStatus === 'success' && <CheckCircle2 className="w-4 h-4 shrink-0 text-console-accent" />}
+            {(reportLoading || csvLoading) && <Loader2 className="w-4 h-4 shrink-0 animate-spin text-console-info" />}
             <span>{reportMessage}</span>
           </div>
         )}

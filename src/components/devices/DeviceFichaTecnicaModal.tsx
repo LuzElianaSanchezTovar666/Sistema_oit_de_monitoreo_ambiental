@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSiteDataVersion } from '../../services/siteData';
 import {
   FileText,
   X,
@@ -80,14 +81,16 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
   const [mntError, setMntError] = useState('');
 
   const isAdminOrTecnico = currentUserRole === 'admin' || currentUserRole === 'tecnico';
+  const revision = useSiteDataVersion('dispositivos', 'ubicaciones', 'sensores', 'mantenimientos');
 
-  const loadData = async () => {
+  const loadData = async (initializeForm = true) => {
     if (!deviceId) return;
-    setLoading(true);
+    if (initializeForm) setLoading(true);
     setError('');
     try {
       const data = await fetchDeviceFichaTecnica(deviceId);
       setFicha(data);
+      if (!initializeForm) return;
       setEditNombre(data.dispositivo.nombre);
       setEditFirmware(data.dispositivo.firmware_version);
       setEditIp(data.dispositivo.ip_address || '');
@@ -99,7 +102,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
     } catch (err: any) {
       setError(err?.message || 'Error al cargar la ficha técnica del dispositivo.');
     } finally {
-      setLoading(false);
+      if (initializeForm) setLoading(false);
     }
   };
 
@@ -108,6 +111,12 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
       void loadData();
     }
   }, [isOpen, deviceId]);
+
+  useEffect(() => {
+    if (isOpen && ficha?.dispositivo.id_dispositivo === deviceId) {
+      void loadData(!showEditTechnical && !showAddMaintenance);
+    }
+  }, [revision]);
 
   if (!isOpen) return null;
 
@@ -263,7 +272,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
               {/* RN-22: Aviso de Perfil */}
               <div>
                 {isAdminOrTecnico ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/10 text-console-accent border border-emerald-500/20">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     RN-22: Modo Técnico Autorizado
                   </span>
@@ -371,7 +380,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                     <div className="p-4 rounded-[18px] bg-obsidian-shell border border-graphite-fill space-y-3">
                       <div className="flex items-center justify-between">
                         <h3 className="text-xs font-semibold text-slate-text uppercase tracking-wider flex items-center gap-2">
-                          <Server className="w-4 h-4 text-emerald-400" />
+                          <Server className="w-4 h-4 text-console-accent" />
                           Parámetros Técnicos de Hardware
                         </h3>
                         {isAdminOrTecnico && !showEditTechnical && (
@@ -387,11 +396,11 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                       <div className="space-y-2 text-xs">
                         <div className="flex justify-between py-1 border-b border-graphite-fill/40">
                           <span className="text-slate-text">Dirección MAC</span>
-                          <span className="font-mono text-emerald-400 font-semibold">{dev.mac_address}</span>
+                          <span className="font-mono text-console-accent font-semibold">{dev.mac_address}</span>
                         </div>
                         <div className="flex justify-between py-1 border-b border-graphite-fill/40">
                           <span className="text-slate-text">Dirección IP (Última conocida)</span>
-                          <span className={`font-mono ${dev.ip_address ? 'text-sky-300' : 'text-slate-text italic'}`}>
+                          <span className={`font-mono ${dev.ip_address ? 'text-console-info' : 'text-slate-text italic'}`}>
                             {dev.ip_address || 'No registrado'}
                           </span>
                         </div>
@@ -528,7 +537,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                   {/* Estado de Conectividad en Tiempo Real (RF-15 y RF-19) */}
                   <div className="p-4 rounded-[18px] bg-obsidian-shell border border-graphite-fill space-y-3">
                     <h3 className="text-xs font-semibold text-slate-text uppercase tracking-wider flex items-center gap-2">
-                      <Radio className="w-4 h-4 text-sky-400" />
+                      <Radio className="w-4 h-4 text-console-info" />
                       Estado de Conectividad y Telemetría en Tiempo Real (RF-15 y RF-19)
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -602,14 +611,14 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
 
                       <div>
                         <span className="text-slate-text block mb-1">Tópico de Telemetría (Publicación de mediciones)</span>
-                        <div className="p-2.5 rounded-lg bg-graphite-fill/30 font-mono text-emerald-400 select-all">
+                        <div className="p-2.5 rounded-lg bg-graphite-fill/30 font-mono text-console-accent select-all">
                           {ficha.mqtt.topic_telemetria}
                         </div>
                       </div>
 
                       <div>
                         <span className="text-slate-text block mb-1">Tópico de Heartbeat / Ping (Monitoreo de vida)</span>
-                        <div className="p-2.5 rounded-lg bg-graphite-fill/30 font-mono text-sky-400 select-all">
+                        <div className="p-2.5 rounded-lg bg-graphite-fill/30 font-mono text-console-info select-all">
                           {ficha.mqtt.topic_heartbeat}
                         </div>
                       </div>
@@ -625,7 +634,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                           <span className="text-slate-text block mb-1">Disponibilidad del Broker</span>
                           <span
                             className={`font-semibold inline-flex items-center gap-1.5 ${
-                              ficha.mqtt.broker_disponible ? 'text-emerald-400' : 'text-signal-yellow'
+                              ficha.mqtt.broker_disponible ? 'text-console-accent' : 'text-signal-yellow'
                             }`}
                           >
                             {ficha.mqtt.broker_disponible ? (
@@ -646,11 +655,11 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                   </div>
 
                   {/* Advertencia de Seguridad Criptográfica */}
-                  <div className="p-3.5 rounded-[16px] bg-sky-500/10 border border-sky-500/30 text-sky-200 text-xs flex items-start gap-3">
-                    <ShieldCheck className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                  <div className="p-3.5 rounded-[16px] bg-sky-500/10 border border-sky-500/30 text-console-info text-xs flex items-start gap-3">
+                    <ShieldCheck className="w-4 h-4 text-console-info shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium text-sky-100">Protección Criptográfica de Credenciales (RN-02 y RN-22)</p>
-                      <p className="text-[11px] text-sky-300/80 mt-0.5">
+                      <p className="font-medium text-console-info">Protección Criptográfica de Credenciales (RN-02 y RN-22)</p>
+                      <p className="text-[11px] text-console-info mt-0.5">
                         Por motivos de seguridad, las contraseñas planas y hashes criptográficos de autenticación MQTT
                         no se exponen en esta vista técnica ni pueden ser extraídos desde la API.
                       </p>
@@ -962,7 +971,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                                 <span
                                   className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                                     m.resultado === 'EXITOSO'
-                                      ? 'bg-emerald-500/10 text-emerald-400'
+                                      ? 'bg-emerald-500/10 text-console-accent'
                                       : 'bg-signal-yellow/10 text-signal-yellow'
                                   }`}
                                 >

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSiteDataVersion } from '../../services/siteData';
 import {
   MapPin,
   Plus,
@@ -35,6 +36,8 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
   onLocationsChanged,
 }) => {
   const isAdmin = currentUserRole === 'admin';
+  const catalogRevision = useSiteDataVersion('ubicaciones', 'dispositivos');
+  const catalogRequest = useRef(0);
 
   const [items, setItems] = useState<UbicacionDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,8 +62,11 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
     Array<{ id_dispositivo: string; codigo: string; nombre: string; mac_address: string; tipo: string; estado: string }>
   >([]);
   const [loadingDevices, setLoadingDevices] = useState(false);
+  const devicesLocationId = devicesModalUbi?.ubicacion_id;
+  const devicesLocation = items.find((location) => location.ubicacion_id === devicesLocationId) ?? devicesModalUbi;
 
   const loadCatalog = useCallback(async () => {
+    const request = ++catalogRequest.current;
     setLoading(true);
     setError('');
     try {
@@ -68,17 +74,18 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
         estado: estadoFilter,
         search: debouncedSearch,
       });
-      setItems(res.items);
+      if (request === catalogRequest.current) setItems(res.items);
     } catch (err: any) {
-      setError(err?.message || 'Error al cargar el catálogo de ubicaciones.');
+      if (request === catalogRequest.current) setError(err?.message || 'Error al cargar el catálogo de ubicaciones.');
     } finally {
-      setLoading(false);
+      if (request === catalogRequest.current) setLoading(false);
     }
   }, [estadoFilter, debouncedSearch]);
 
   useEffect(() => {
-    loadCatalog();
-  }, [loadCatalog]);
+    void loadCatalog();
+    return () => { catalogRequest.current += 1; };
+  }, [loadCatalog, catalogRevision]);
 
   const openCreate = () => {
     setEditing(null);
@@ -158,18 +165,22 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
     }
   };
 
-  const openDevicesForLocation = async (u: UbicacionDTO) => {
-    setDevicesModalUbi(u);
+  useEffect(() => {
+    if (!devicesLocationId) return;
+    let active = true;
     setLoadingDevices(true);
-    try {
-      const res = await fetchDispositivosByUbicacion(u.ubicacion_id);
-      setUbiDevices(res.items);
-    } catch (err: any) {
-      onNotify?.(err?.message || 'Error al consultar dispositivos.', 'alert');
-    } finally {
-      setLoadingDevices(false);
-    }
-  };
+    void fetchDispositivosByUbicacion(devicesLocationId).then((res) => {
+      if (active) setUbiDevices(res.items);
+    }).catch((err: Error) => {
+      if (active) {
+        setUbiDevices([]);
+        onNotify?.(err.message || 'Error al consultar dispositivos.', 'alert');
+      }
+    }).finally(() => {
+      if (active) setLoadingDevices(false);
+    });
+    return () => { active = false; };
+  }, [devicesLocationId, catalogRevision, onNotify]);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -273,7 +284,7 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
                 </div>
 
                 <div className="text-xs text-slate-text">
-                  <span className="text-pure-white/80 font-medium">Tipo:</span> {u.tipo}
+                  <span className="text-pure-white font-medium">Tipo:</span> {u.tipo}
                 </div>
                 {u.descripcion && (
                   <p className="text-xs text-slate-text leading-relaxed">{u.descripcion}</p>
@@ -282,7 +293,10 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
 
               <div className="pt-3 border-t border-graphite-fill/40 flex flex-wrap items-center justify-between gap-2">
                 <button
-                  onClick={() => openDevicesForLocation(u)}
+                  onClick={() => {
+                    setUbiDevices([]);
+                    setDevicesModalUbi(u);
+                  }}
                   className="text-xs text-neon-pulse hover:underline inline-flex items-center gap-1.5 cursor-pointer"
                 >
                   <Cpu className="w-3.5 h-3.5" />
@@ -408,13 +422,13 @@ export const LocationCatalogView: React.FC<LocationCatalogViewProps> = ({
       )}
 
       {/* Modal Dispositivos por Ubicación */}
-      {devicesModalUbi && (
+      {devicesLocation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-charcoal/80 backdrop-blur-sm">
           <div className="bg-deep-abyss border border-graphite-fill rounded-[20px] w-full max-w-lg p-6 space-y-4 text-pure-white">
             <div className="flex items-center justify-between">
               <div>
-                <p className="sauce-eyebrow text-neon-pulse">{devicesModalUbi.codigo_area}</p>
-                <h3 className="text-lg font-medium">Dispositivos en {devicesModalUbi.nombre}</h3>
+                <p className="sauce-eyebrow text-neon-pulse">{devicesLocation.codigo_area}</p>
+                <h3 className="text-lg font-medium">Dispositivos en {devicesLocation.nombre}</h3>
               </div>
               <button
                 onClick={() => setDevicesModalUbi(null)}

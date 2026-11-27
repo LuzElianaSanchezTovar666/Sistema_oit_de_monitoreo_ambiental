@@ -113,7 +113,8 @@ def get_current_user(
         )
         user = cursor.fetchone()
 
-    if user is None:
+    # El identificador podría pertenecer a otra cuenta después de una renumeración.
+    if user is None or payload.get("correo") != user["correo"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no encontrado.",

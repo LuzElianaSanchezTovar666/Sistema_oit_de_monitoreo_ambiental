@@ -1,6 +1,5 @@
 """
-Prueba de inicio de sesión para los 4 roles demo de SIMOA:
-- Administrador: admin@simoa.org
+Prueba de inicio de sesión para los 3 roles demo de SIMOA:
 - Técnico: tecnico@simoa.org
 - Operador: operador@simoa.org
 - Supervisor: supervisor@simoa.org
@@ -22,7 +21,8 @@ def setup_roles():
     seed_demo_users()
 
 
-def test_login_all_four_demo_roles():
+def test_login_demo_roles():
+    assert {user["rol"] for user in DEMO_USERS} == {"Técnico", "Operador", "Supervisor"}
     with TestClient(app) as client:
         for u in DEMO_USERS:
             res = client.post(

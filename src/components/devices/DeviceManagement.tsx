@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSiteDataVersion } from '../../services/siteData';
 import {
   Plus,
   Cpu,
@@ -64,6 +65,8 @@ interface DeviceManagementProps {
 export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
   ({ locations, currentUserRole = 'cliente', onNotify, connectivity }) => {
     const isAdmin = currentUserRole === 'admin';
+    const inventoryRevision = useSiteDataVersion('ubicaciones', 'dispositivos', 'sensores');
+    const inventoryRequest = useRef(0);
 
     const [items, setItems] = useState<DispositivoDTO[]>([]);
     const [loading, setLoading] = useState(true);
@@ -125,6 +128,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
     };
 
     const loadInventory = useCallback(async () => {
+      const request = ++inventoryRequest.current;
       setLoading(true);
       setLoadError('');
       try {
@@ -135,23 +139,24 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
           }),
           fetchUbicaciones({ estado: 'ACTIVA' }),
         ]);
+        if (request !== inventoryRequest.current) return;
         setItems(res.items);
         setBrokerDisponible(res.mqtt_broker_disponible);
         setBrokerMensaje(res.mqtt_broker_mensaje);
         setActiveUbicaciones(ubiRes.items);
-        if (ubiRes.items.length > 0 && !ubiRes.items.some((u) => u.ubicacion_id === newUbicacion)) {
-          setNewUbicacion(ubiRes.items[0].ubicacion_id);
-        }
+        setNewUbicacion((selected) => ubiRes.items.some((u) => u.ubicacion_id === selected)
+          ? selected : (ubiRes.items[0]?.ubicacion_id ?? ''));
       } catch (err: any) {
-        setLoadError(err?.message || 'No se pudo cargar el inventario desde MySQL.');
+        if (request === inventoryRequest.current) setLoadError(err?.message || 'No se pudo cargar el inventario desde MySQL.');
       } finally {
-        setLoading(false);
+        if (request === inventoryRequest.current) setLoading(false);
       }
-    }, [debouncedSearch, tipoFilter, newUbicacion]);
+    }, [debouncedSearch, tipoFilter]);
 
     useEffect(() => {
-      loadInventory();
-    }, [loadInventory]);
+      void loadInventory();
+      return () => { inventoryRequest.current += 1; };
+    }, [loadInventory, inventoryRevision]);
 
     const statusById = useMemo(
       () => new Map(connectivity?.map((device) => [device.id_dispositivo, device])),
@@ -589,7 +594,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                             <button
                               onClick={() => handleOpenFicha(dev.id_dispositivo)}
                               title="Ver ficha técnica detallada e historial por dispositivo (RF-20)"
-                              className="px-3 py-1.5 rounded-[56px] bg-obsidian-shell border border-emerald-500/30 text-emerald-400 hover:border-emerald-400 hover:bg-emerald-500/10 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                              className="px-3 py-1.5 rounded-[56px] bg-obsidian-shell border border-emerald-500/30 text-console-accent hover:border-emerald-400 hover:bg-emerald-500/10 text-xs inline-flex items-center gap-1.5 cursor-pointer"
                             >
                               <FileText className="w-3.5 h-3.5" />
                               <span>Ficha técnica</span>
@@ -822,7 +827,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                       handleOpenFicha(id);
                     }}
                     title="Abrir Ficha Técnica Detallada (RF-20)"
-                    className="px-3 py-1.5 rounded-[56px] bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/25 text-xs inline-flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1.5 rounded-[56px] bg-emerald-500/15 border border-emerald-500/40 text-console-accent hover:bg-emerald-500/25 text-xs inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <FileText className="w-3.5 h-3.5" />
                     <span>Ficha Técnica</span>
@@ -850,7 +855,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                       <p className="mt-1 text-slate-text font-mono">
                         Último contacto: {formatRelativeTime(detailStatus?.ultimo_ping ?? detailDevice.ultimo_ping)}
                       </p>
-                      <p className="text-[10px] text-slate-text/80 font-mono">
+                      <p className="text-[10px] text-slate-text font-mono">
                         {formatLastContact(detailStatus?.ultimo_ping ?? detailDevice.ultimo_ping)}
                       </p>
                     </div>
@@ -1023,7 +1028,7 @@ export const DeviceManagement: React.FC<DeviceManagementProps> = React.memo(
                           <button
                             type="button"
                             onClick={() => setConfirmReassignOpen(true)}
-                            className="px-4 py-1.5 rounded-[56px] bg-neon-pulse text-obsidian-shell font-medium cursor-pointer"
+                            className="px-4 py-1.5 rounded-[56px] bg-neon-pulse text-console-on-solid font-medium cursor-pointer"
                           >
                             Cambiar ubicación
                           </button>

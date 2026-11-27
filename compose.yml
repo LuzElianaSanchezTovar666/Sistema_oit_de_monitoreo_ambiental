@@ -19,5 +19,59 @@ services:
       retries: 12
       start_period: 30s
 
+  backend:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    env_file: ${SIMOA_DOCKER_ENV_FILE:-.env}
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      MQTT_BROKER_HOST: ${SIMOA_DOCKER_MQTT_HOST:-host.docker.internal}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${SIMOA_API_PORT:-8000}:8000"
+    volumes:
+      - ./backend/app:/workspace/backend/app
+      - ./backend/migrations:/workspace/backend/migrations
+      - backend-data:/workspace/backend/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/api/health', timeout=3).close()"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  frontend:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    environment:
+      SIMOA_API_PROXY_TARGET: http://backend:8000
+      SIMOA_WATCH_POLLING: "true"
+      VITE_ENABLE_FIELD_SIMULATOR: ${VITE_ENABLE_FIELD_SIMULATOR:-false}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${SIMOA_WEB_PORT:-3000}:3000"
+    volumes:
+      - ./src:/workspace/src
+      - ./public:/workspace/public
+      - ./index.html:/workspace/index.html
+      - ./vite.config.ts:/workspace/vite.config.ts
+      - ./tsconfig.json:/workspace/tsconfig.json
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
 volumes:
   mysql-data:
+  backend-data:

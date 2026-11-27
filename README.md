@@ -25,6 +25,25 @@ Plataforma web de monitoreo ambiental para recintos críticos (laboratorios, bio
 
 ## Instalación y ejecución
 
+### Arranque integrado con Docker
+
+Desde la raíz del proyecto, ejecuta en CMD:
+
+```cmd
+if not exist .env copy .env.example .env
+docker compose --profile app up -d --build --wait
+```
+
+Abre la interfaz en [localhost:3000](http://localhost:3000) y la documentación de FastAPI en [localhost:8000/docs](http://localhost:8000/docs). El frontend usa la API de Python a través del proxy de Vite. FastAPI aplica las migraciones y se conecta al mismo volumen MySQL que usa el arranque de solo base de datos.
+
+Docker Compose guarda los registros de MySQL en el volumen `mysql-data`. Para usar un archivo de entorno de otra instalación local, indica su ruta con `docker compose --env-file` y configura `SIMOA_DOCKER_ENV_FILE` con esa misma ruta para el backend.
+
+La primera vez, si aún no existe el administrador configurado en `.env`, créalo con `docker compose exec backend python -m app.seed_admin`. Usa `SIMOA_WEB_PORT` o `SIMOA_API_PORT` en `.env` si los puertos 3000 u 8000 están ocupados. En Docker Desktop el backend puede conectarse a un broker MQTT en el equipo anfitrión usando `SIMOA_DOCKER_MQTT_HOST=host.docker.internal`.
+
+Los cambios guardados en ubicaciones, dispositivos, sensores, umbrales, mantenimientos y alertas se reflejan en las pantallas que consumen esos datos. La interfaz consulta `GET /api/cambios` cada 3,5 segundos mientras la pestaña está visible. MySQL publica los cambios de los catálogos al confirmar cada transacción, incluso si la modificación se hizo por SQL. El historial sigue los registros nuevos de MySQL con **Actualizar historial automáticamente**.
+
+En desarrollo, Vite recarga los cambios de React y Uvicorn recarga los cambios de Python y de las migraciones. Si cambias las dependencias de Python o JavaScript, vuelve a ejecutar el arranque con `--build`. Para servir una compilación en el mismo origen que la API, ejecuta `npm run build` antes de iniciar FastAPI.
+
 ### 1. Backend (FastAPI + MySQL)
 
 Desde la raíz del proyecto, ejecuta en CMD:
@@ -59,6 +78,7 @@ En Swagger, ejecuta `POST /api/auth/login` con tu correo y contraseña. Copia el
 | Método | Ruta | Rol o acceso | Acción |
 | --- | --- | --- | --- |
 | GET | `/api/health` | Público | Comprueba que la API responde. |
+| GET | `/api/cambios` | Autenticado | Consulta las versiones de los datos visibles para el rol de la sesión. |
 | POST | `/api/auth/login` | Público | Valida correo y contraseña, emite un JWT e inicia la sesión. |
 | GET | `/api/auth/me` | Autenticado | Consulta el perfil de la sesión. |
 | POST | `/api/auth/logout` | Autenticado | Revoca el JWT y cierra la sesión. |
@@ -74,7 +94,7 @@ En Swagger, ejecuta `POST /api/auth/login` con tu correo y contraseña. Copia el
 | Dispositivos | `POST /api/dispositivos` | `GET /api/dispositivos`, `GET /api/dispositivos/{id_dispositivo}` | `PUT /api/dispositivos/{id_dispositivo}` | `PATCH /api/dispositivos/{id_dispositivo}/desactivar`. `DELETE /api/dispositivos/{id_dispositivo}` aplica la regla RN-03. |
 | Sensores | `POST /api/sensores` | `GET /api/sensores`, `GET /api/sensores/{id_sensor}` | `PUT /api/sensores/{id_sensor}` | `PATCH /api/sensores/{id_sensor}/estado` con estado `INACTIVO` |
 
-Los cuatro roles pueden consultar el inventario. Las altas, actualizaciones y bajas de la tabla requieren el rol **Administrador**. El Administrador y el Técnico también pueden modificar los campos técnicos admitidos por `PATCH /api/dispositivos/{id_dispositivo}`. La baja cambia el estado y conserva el historial. El `DELETE` de dispositivos devuelve `409` si hay mediciones asociadas. Registra los recursos en el orden ubicación, dispositivo y sensor.
+Los cuatro roles pueden consultar el inventario. Las altas, actualizaciones y bajas de la tabla requieren el rol **Administrador**. El Administrador y el Técnico también pueden modificar los campos técnicos admitidos por `PATCH /api/dispositivos/{id_dispositivo}`. La baja cambia el estado y conserva el historial. `DELETE /api/dispositivos/{id_dispositivo}` aplica una baja lógica si el dispositivo carece de mediciones asociadas y devuelve `409` cuando hay historial de mediciones. Registra los recursos en el orden ubicación, dispositivo y sensor.
 
 ### Telemetría, alertas y reportes
 

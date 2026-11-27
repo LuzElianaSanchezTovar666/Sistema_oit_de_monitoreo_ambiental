@@ -440,6 +440,12 @@
   --color-console-sidebar-muted: #e5e5e5;
   --color-console-sidebar-status: #bce6c8;
   --color-console-session: #efe3bb;
+  --color-console-on-solid: #ffffff;
+  --color-console-danger: var(--color-crimson-danger);
+  --color-console-info: #145a78;
+  --color-console-muted: var(--color-slate);
+  --color-console-accent: var(--color-canopy);
+  --color-console-warning: var(--color-signal-yellow);
   --color-deep-abyss: var(--color-sheet-white);
   --color-cream-paper: #cfdcd3;
   --color-sheet-white: #f5f8f3;

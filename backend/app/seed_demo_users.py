@@ -1,10 +1,4 @@
-"""
-Script para registrar/actualizar los usuarios demo de los 4 roles de SIMOA:
-1. Administrador: admin@simoa.org / AdminPassword123!
-2. Técnico: tecnico@simoa.org / TecnicoPassword123!
-3. Operador: operador@simoa.org / OperadorPassword123!
-4. Supervisor: supervisor@simoa.org / SupervisorPassword123!
-"""
+"""Registra las cuentas de demostración de Técnico, Operador y Supervisor."""
 
 from pathlib import Path
 import sys
@@ -17,12 +11,6 @@ from app.database import db_cursor, run_migrations
 from app.security import hash_password
 
 DEMO_USERS = [
-    {
-        "nombre": "Administrador SIMOA",
-        "correo": "admin@simoa.org",
-        "password": "AdminPassword123!",
-        "rol": "Administrador",
-    },
     {
         "nombre": "Técnico de Mantenimiento",
         "correo": "tecnico@simoa.org",
@@ -41,28 +29,12 @@ DEMO_USERS = [
         "password": "SupervisorPassword123!",
         "rol": "Supervisor",
     },
-    # 3 Administradores adicionales
-    {"nombre": "Administrador Zona Norte", "correo": "admin2@simoa.org", "password": "Admin2Pass123!", "rol": "Administrador"},
-    {"nombre": "Administrador Zona Sur", "correo": "admin3@simoa.org", "password": "Admin3Pass123!", "rol": "Administrador"},
-    {"nombre": "Administrador de Seguridad", "correo": "admin4@simoa.org", "password": "Admin4Pass123!", "rol": "Administrador"},
-    # 3 Técnicos adicionales
-    {"nombre": "Técnico de Sensores", "correo": "tecnico2@simoa.org", "password": "Tecnico2Pass123!", "rol": "Técnico"},
-    {"nombre": "Técnico de Climatización", "correo": "tecnico3@simoa.org", "password": "Tecnico3Pass123!", "rol": "Técnico"},
-    {"nombre": "Técnico de Fertirriego", "correo": "tecnico4@simoa.org", "password": "Tecnico4Pass123!", "rol": "Técnico"},
-    # 3 Operadores adicionales
-    {"nombre": "Operador Turno Mañana", "correo": "operador2@simoa.org", "password": "Operador2Pass123!", "rol": "Operador"},
-    {"nombre": "Operador Turno Tarde", "correo": "operador3@simoa.org", "password": "Operador3Pass123!", "rol": "Operador"},
-    {"nombre": "Operador Turno Noche", "correo": "operador4@simoa.org", "password": "Operador4Pass123!", "rol": "Operador"},
-    # 3 Supervisores adicionales
-    {"nombre": "Supervisor de Calidad", "correo": "supervisor2@simoa.org", "password": "Supervisor2Pass123!", "rol": "Supervisor"},
-    {"nombre": "Supervisor de Cultivos", "correo": "supervisor3@simoa.org", "password": "Supervisor3Pass123!", "rol": "Supervisor"},
-    {"nombre": "Supervisor de Turno", "correo": "supervisor4@simoa.org", "password": "Supervisor4Pass123!", "rol": "Supervisor"},
 ]
 
 
 def seed_demo_users() -> None:
     run_migrations()
-    print("[SEED] Sembrando usuarios demo para cada rol en SIMOA...")
+    print("[SEED] Sembrando usuarios demo de Técnico, Operador y Supervisor...")
 
     with db_cursor() as cursor:
         for u in DEMO_USERS:

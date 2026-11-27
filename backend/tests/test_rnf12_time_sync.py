@@ -21,6 +21,7 @@ os.environ.setdefault("JWT_SECRET_KEY", "rnf12-pytest-secret-key-hs256-32bytes")
 
 from app.database import db_cursor, run_migrations
 from app.main import app
+from app.seed_demo_users import DEMO_USERS
 from app.services.time_sync import (
     BOGOTA_TIMEZONE,
     format_bogota_display,
@@ -101,7 +102,8 @@ def test_rnf12_api_mediciones_returns_explicit_utc():
     """RNF-12: Endpoints de consulta deben entregar el campo fecha_hora_utc con formato ISO-8601 UTC."""
     with TestClient(app) as client:
         # Iniciar sesión como operador para consultar mediciones
-        login_res = client.post("/api/auth/login", json={"correo": "admin@simoa.org", "password": "AdminPassword123!"})
+        operator = next(user for user in DEMO_USERS if user["rol"] == "Operador")
+        login_res = client.post("/api/auth/login", json={"correo": operator["correo"], "password": operator["password"]})
         if login_res.status_code == 200:
             token = login_res.json()["access_token"]
             res = client.get("/api/mediciones?limit=5", headers={"Authorization": f"Bearer {token}"})

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useSiteDataVersion } from '../../services/siteData';
 import {
   Thermometer,
   Plus,
@@ -129,7 +130,10 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
   const [humEnabled, setHumEnabled] = useState(true);
   const [presEnabled, setPresEnabled] = useState(false);
 
+  const catalogRevision = useSiteDataVersion('ubicaciones', 'dispositivos', 'sensores', 'umbrales');
+  const catalogRequest = useRef(0);
   const loadData = useCallback(async () => {
+    const request = ++catalogRequest.current;
     setLoading(true);
     setError('');
     try {
@@ -141,22 +145,23 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
         }),
         fetchDispositivos(),
       ]);
+      if (request !== catalogRequest.current) return;
       setItems(senRes.items);
       const activeDevs = devRes.items.filter((d) => d.estado !== 'INACTIVO');
       setDevices(activeDevs);
-      if (activeDevs.length > 0 && !dispositivoId) {
-        setDispositivoId(activeDevs[0].id_dispositivo);
-      }
+      setDispositivoId((selected) => activeDevs.some((d) => d.id_dispositivo === selected)
+        ? selected : (activeDevs[0]?.id_dispositivo ?? ''));
     } catch (err: any) {
-      setError(err?.message || 'Error al cargar sensores desde MySQL.');
+      if (request === catalogRequest.current) setError(err?.message || 'Error al cargar sensores desde MySQL.');
     } finally {
-      setLoading(false);
+      if (request === catalogRequest.current) setLoading(false);
     }
-  }, [modeloFilter, estadoFilter, debouncedSearch, dispositivoId]);
+  }, [modeloFilter, estadoFilter, debouncedSearch]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    void loadData();
+    return () => { catalogRequest.current += 1; };
+  }, [loadData, catalogRevision]);
 
   const handleModeloChange = (nextModelo: SensorModelo) => {
     setModelo(nextModelo);
@@ -999,7 +1004,7 @@ export const SensorManagementView: React.FC<SensorManagementViewProps> = ({
                 )}
 
                 {cfgSuccess && (
-                  <div className="p-3 rounded-[10px] bg-emerald-ok/15 border border-emerald-ok/40 text-xs text-emerald-ok">
+                  <div className="p-3 rounded-[10px] bg-console-accent/15 border border-console-accent/40 text-xs text-console-accent">
                     {cfgSuccess}
                   </div>
                 )}
