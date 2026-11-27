@@ -406,7 +406,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     Monitoreo ambiental inteligente.
                   </h1>
 
-                  <p className="apple-body text-[#3B694C] max-w-xl">
+                  <p className="text-[17px] leading-relaxed text-[#1e293b] max-w-xl font-medium">
                     Plataforma integral de supervisión ambiental para invernaderos, laboratorios, cámaras de conservación y espacios críticos. Controla temperatura y humedad en vivo con alertas preventivas e Inteligencia Artificial.
                   </p>
 
@@ -421,7 +421,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     </button>
                     <a
                       href="#funcionalidades"
-                      className="apple-white-outline-pill py-3.5 px-6 text-[14px] font-semibold leading-[18px]"
+                      className="py-3.5 px-6 text-[14px] font-bold text-[#0d1310] bg-[#FFFFFF] border-2 border-[#0d1310]/20 hover:border-[#0d1310] hover:bg-[#f0fdf4] rounded-full transition-all shadow-xs"
                     >
                       Conocer Soluciones
                     </a>
@@ -510,76 +510,80 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
           {/* 4. UPGRADE COMPARISON MODULE */}
           <section id="acerca" className="px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto bg-[#FFFFFF]/90 backdrop-blur-sm border border-[#C8E6C9]/80 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
+            <div className="max-w-7xl mx-auto bg-[#FFFFFF] border border-[#0d1310]/15 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-4">
-                <span className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#3B694C] block">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
                   Misión y alcance del sistema
                 </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
+                <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
                   Precisión clínica en cada lectura ambiental.
                 </h2>
-                <p className="apple-body text-[#3B694C]">
+                <p className="text-[16px] text-[#1e293b] leading-relaxed">
                   Diseñado para aulas, laboratorios farmacéuticos, bodegas e invernaderos donde la estabilidad higrotérmica es crítica. SIMOA unifica sensores electrónicos, transmisión MQTT segura y detección de anomalías por IA.
                 </p>
               </ScrollReveal>
 
-              {/* Featured Two-Column AVIF/WebP Hardware Showcase Cards (Lazy Loaded) */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-[16px]">
-                <div className="bg-[#F2F8F4] rounded-[28px] overflow-hidden flex flex-col justify-between">
+              {/* Featured Two-Column AVIF/WebP Hardware Showcase Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-[20px]">
+                <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-xs rounded-[28px] overflow-hidden flex flex-col justify-between">
                   <div className="relative h-60 w-full overflow-hidden">
                     <OptimizedImage
                       baseName="module-lab-bioterium"
                       alt="Monitoreo de laboratorios y bioterios con sensores de precisión en formato AVIF/WebP"
                       priority={false}
-                      className="w-full h-full object-cover opacity-85"
+                      className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#F2F8F4] via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 apple-badge-orange">CADENA DE FRÍO · 24/7</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/70 via-transparent to-transparent" />
+                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-[#0d1310] text-[#86efac] border border-[#166534] text-[12px] font-semibold tracking-wide shadow-sm">
+                      CADENA DE FRÍO · 24/7
+                    </span>
                   </div>
-                  <div className="p-6 space-y-2">
+                  <div className="p-6 space-y-3 bg-[#FFFFFF]">
                     <div className="flex items-baseline justify-between">
-                      <h3 className="apple-card-heading text-[#0D3B1E]">
+                      <h3 className="text-[20px] font-bold text-[#0d1310]">
                         Laboratorios, Invernaderos y Cámaras Frías
                       </h3>
-                      <span className="text-[28px] font-semibold text-[#15803D] font-display tabular-nums">
+                      <span className="text-[28px] font-bold text-[#15803D] font-display tabular-nums">
                         4.2°C
                       </span>
                     </div>
-                    <p className="text-[14px] text-[#3B694C]">
+                    <p className="text-[14px] text-[#1e293b] leading-relaxed">
                       Supervisión ininterrumpida 24/7 con trazabilidad histórica completa y respuesta inmediata para proteger cultivos e insumos sensibles.
                     </p>
                   </div>
                 </div>
 
-                <div className="bg-[#F2F8F4] rounded-[28px] overflow-hidden flex flex-col justify-between">
+                <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-xs rounded-[28px] overflow-hidden flex flex-col justify-between">
                   <div className="relative h-60 w-full overflow-hidden">
                     <OptimizedImage
                       baseName="module-climate-chamber"
                       alt="Control ambiental en tiempo real con alertas automáticas"
                       priority={false}
-                      className="w-full h-full object-cover opacity-85"
+                      className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#F2F8F4] via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 apple-badge-orange">ALERTAS AUTOMÁTICAS</span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/70 via-transparent to-transparent" />
+                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-[#0d1310] text-[#f87171] border border-[#991b1b] text-[12px] font-semibold tracking-wide shadow-sm">
+                      ALERTAS AUTOMÁTICAS
+                    </span>
                   </div>
-                  <div className="p-6 space-y-2">
+                  <div className="p-6 space-y-3 bg-[#FFFFFF]">
                     <div className="flex items-baseline justify-between">
-                      <h3 className="apple-card-heading text-[#0D3B1E]">
+                      <h3 className="text-[20px] font-bold text-[#0d1310]">
                         Detección Temprana de Excursiones
                       </h3>
-                      <span className="text-[28px] font-semibold text-[#DC2626] font-display tabular-nums">
+                      <span className="text-[28px] font-bold text-[#DC2626] font-display tabular-nums">
                         +3.1σ
                       </span>
                     </div>
-                    <p className="text-[14px] text-[#3B694C]">
+                    <p className="text-[14px] text-[#1e293b] leading-relaxed">
                       Cuando una variable supera los rangos establecidos, el motor dispara alertas con debouncing y diagnóstico IA transmitido token a token.
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Three-column Feature Metric Tiles (#F2F8F4, 28px radius, 16px padding, no shadow) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[16px]">
+              {/* Three-column Feature Metric Tiles */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
                 {aboutCapabilities.map((item, idx) => (
                   <ScrollReveal
                     key={idx}
@@ -588,26 +592,28 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#F2F8F4] rounded-[28px] p-[16px] h-full flex flex-col justify-between space-y-4">
-                      <div className="space-y-2">
+                    <div className="bg-[#FFFFFF] border border-[#0d1310]/14 shadow-xs hover:border-[#15803D]/50 hover:shadow-md rounded-[28px] p-6 h-full flex flex-col justify-between space-y-4 transition-all">
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-[12px] text-[#3B694C] font-semibold uppercase tracking-[-0.12px]">
+                          <span className="text-[12px] text-[#0d1310] font-bold uppercase tracking-wider bg-[#f0fdf4] border border-[#86efac]/80 px-2.5 py-1 rounded-full">
                             Telemetría SIMOA
                           </span>
-                          {item.icon}
+                          <div className="w-9 h-9 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shadow-xs">
+                            {item.icon}
+                          </div>
                         </div>
-                        <div className={`apple-metric-display ${item.metricColor} py-1 tabular-nums`}>
+                        <div className={`text-[32px] font-bold ${item.metricColor} py-1 tabular-nums font-display`}>
                           {item.metric}
                         </div>
-                        <h3 className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#0D3B1E]">
+                        <h3 className="text-[18px] font-bold leading-snug text-[#0d1310]">
                           {item.title}
                         </h3>
-                        <p className="text-[14px] leading-[1.29] tracking-[-0.224px] text-[#3B694C]">
+                        <p className="text-[14px] leading-relaxed text-[#1e293b]">
                           {item.desc}
                         </p>
                       </div>
-                      <div className="pt-2 flex items-center gap-1.5 text-[12px] text-[#3B694C]">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" />
+                      <div className="pt-3 border-t border-[#0d1310]/10 flex items-center gap-2 text-[12px] font-semibold text-[#0d1310]">
+                        <CheckCircle2 className="w-4 h-4 text-[#15803D]" />
                         <span>Módulo activo en tiempo real</span>
                       </div>
                     </div>
@@ -621,13 +627,13 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           <section id="funcionalidades" className="py-12 px-4 sm:px-6 bg-transparent">
             <div className="max-w-7xl mx-auto space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#15803D] block">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
                   Soluciones de Monitoreo Integral
                 </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
+                <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
                   Seis módulos. Un ecosistema continuo.
                 </h2>
-                <p className="apple-body text-[#3B694C]">
+                <p className="text-[16px] text-[#1e293b] leading-relaxed">
                   Arquitectura completa para supervisar cada punto de tu operación ambiental desde la captura en campo hasta el análisis predictivo.
                 </p>
               </ScrollReveal>
@@ -641,56 +647,67 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-80" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#FFFFFF] border border-[#C8E6C9]/80 shadow-xs rounded-[28px] overflow-hidden flex flex-col justify-between h-full">
+                    <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-[0_8px_30px_rgba(13,19,16,0.06)] hover:shadow-[0_16px_40px_rgba(13,19,16,0.12)] hover:border-[#15803D]/50 rounded-[28px] overflow-hidden flex flex-col justify-between h-full transition-all">
                       {/* Media Header */}
-                      <div className="relative h-44 w-full bg-[#F2F8F4] overflow-hidden">
+                      <div className="relative h-44 w-full bg-[#0d1310] overflow-hidden">
                         <OptimizedImage
                           baseName={mod.imageBase}
                           alt={mod.imageAlt}
                           priority={false}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover opacity-90"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#FFFFFF] via-transparent to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/70 via-transparent to-transparent" />
                         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                          <span className="text-[12px] font-semibold px-3 py-1 rounded-[980px] bg-[#FFFFFF]/95 text-[#0D3B1E] shadow-xs">
+                          <span className="text-[12px] font-bold px-3 py-1 rounded-full bg-[#0d1310] text-[#86efac] border border-[#166534] shadow-xs">
                             {mod.tag}
                           </span>
-                          <span className="apple-badge-orange">{mod.highlight}</span>
+                          <span className="text-[12px] font-bold px-3 py-1 rounded-full bg-[#15803D] text-white shadow-xs">
+                            {mod.highlight}
+                          </span>
                         </div>
                       </div>
 
-                      <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
+                      <div className="p-6 space-y-4 flex-1 flex flex-col justify-between bg-[#FFFFFF]">
                         <div className="space-y-3">
-                          <div className="bg-[#F2F8F4] rounded-[28px] p-[16px] flex items-center justify-between">
+                          {/* Cápsula de Indicador de Alto Contraste Negro */}
+                          <div className="bg-[#0d1310] text-white rounded-[22px] p-4 border border-[#1f2922] shadow-sm flex items-center justify-between">
                             <div className="space-y-0.5">
-                              <span className="text-[12px] text-[#3B694C] block">Indicador Operativo</span>
-                              <span className={`apple-metric-display ${mod.metricTone} tabular-nums`}>
+                              <span className="text-[11px] font-bold text-[#86efac] block uppercase tracking-wider">
+                                Indicador Operativo
+                              </span>
+                              <span
+                                className={`text-[28px] font-bold ${
+                                  mod.metricTone === 'text-[#DC2626]' ? 'text-[#f87171]' : 'text-[#4ade80]'
+                                } tabular-nums font-display`}
+                              >
                                 {mod.metricValue}
                               </span>
                             </div>
-                            <div className="w-11 h-11 rounded-full bg-[#FFFFFF] flex items-center justify-center">
+                            <div className="w-11 h-11 rounded-full bg-[#16221a] border border-[#223528] flex items-center justify-center text-[#4ade80] shadow-xs">
                               {mod.icon}
                             </div>
                           </div>
 
-                          <h3 className="apple-card-heading text-[#0D3B1E] pt-1">
+                          <h3 className="text-[20px] font-bold text-[#0d1310] pt-1">
                             {mod.title}
                           </h3>
 
-                          <p className="text-[14px] leading-[1.4] tracking-[-0.224px] text-[#3B694C]">
+                          <p className="text-[14px] leading-relaxed text-[#1e293b]">
                             {mod.desc}
                           </p>
                         </div>
 
-                        <div className="pt-3 border-t border-[#C8E6C9]/60 flex items-center justify-between">
+                        <div className="pt-3 border-t border-[#0d1310]/12 flex items-center justify-between">
                           <button
                             onClick={() => onEnterSystem()}
-                            className="apple-inline-link text-[14px] font-semibold flex items-center gap-1 cursor-pointer"
+                            className="text-[14px] font-bold text-[#0d1310] hover:text-[#15803D] flex items-center gap-1.5 cursor-pointer transition-colors"
                           >
                             <span>Explorar solución</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
+                            <ChevronRight className="w-4 h-4 text-[#15803D]" />
                           </button>
-                          <span className="text-[11px] font-semibold text-[#15803D]">● En tiempo real</span>
+                          <span className="text-[12px] font-bold text-[#15803D] bg-[#e8f5e9] border border-[#86efac]/70 px-2.5 py-0.5 rounded-full">
+                            ● En tiempo real
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -700,22 +717,23 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             </div>
           </section>
 
-          {/* 6. SECCIÓN DE TECNOLOGÍAS */}
+          {/* 6. SECCIÓN DE TECNOLOGÍAS - ALTO CONTRASTE NEGRO INDUSTRIAL */}
           <section id="tecnologias" className="px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto bg-[#FFFFFF]/90 backdrop-blur-sm border border-[#C8E6C9]/80 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
-              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#3B694C] block">
+            <div className="max-w-7xl mx-auto bg-[#0d1310] text-white border border-[#1f2922] shadow-[0_16px_50px_rgba(13,19,16,0.35)] rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
+              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-4">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-[#4ade80] bg-[#16291e] border border-[#22c55e]/40 px-3.5 py-1 rounded-full inline-flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
                   Stack & Protocolos
                 </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
+                <h2 className="text-[30px] sm:text-[38px] font-bold text-white tracking-tight leading-tight">
                   Ingeniería abierta de grado industrial.
                 </h2>
-                <p className="apple-body text-[#3B694C]">
+                <p className="text-[16px] text-[#cbd5e1] leading-relaxed max-w-3xl">
                   Estándares abiertos de baja latencia con compresión Brotli/Gzip, caché Redis, pool de conexiones co-localizado y trazabilidad OpenTelemetry.
                 </p>
               </ScrollReveal>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[16px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
                 {techStack.map((tech, idx) => (
                   <ScrollReveal
                     key={idx}
@@ -724,20 +742,20 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-56" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#F2F8F4] rounded-[28px] p-[16px] flex flex-col justify-between h-full space-y-4">
+                    <div className="bg-[#141d18] border border-[#1e2e25] rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 hover:border-[#22c55e]/50 hover:shadow-[0_8px_24px_rgba(34,197,94,0.12)] transition-all">
                       <div className="space-y-2">
-                        <span className="text-[12px] font-semibold text-[#3B694C] uppercase tracking-[-0.12px]">
+                        <span className="text-[12px] font-bold text-[#4ade80] uppercase tracking-wider">
                           {tech.category}
                         </span>
-                        <h3 className="apple-card-heading text-[#0D3B1E]">
+                        <h3 className="text-[20px] font-bold text-white">
                           {tech.name}
                         </h3>
-                        <p className="text-[14px] leading-[1.35] tracking-[-0.224px] text-[#3B694C]">
+                        <p className="text-[14px] leading-relaxed text-[#94a3b8]">
                           {tech.desc}
                         </p>
                       </div>
-                      <div className="pt-3 border-t border-[#C8E6C9]/60">
-                        <span className="text-[12px] font-mono text-[#15803D] font-semibold">
+                      <div className="pt-3 border-t border-[#1e2e25]">
+                        <span className="text-[12px] font-mono font-semibold text-[#86efac] bg-[#0d1310] border border-[#166534] px-3 py-1 rounded-full inline-block">
                           {tech.badge}
                         </span>
                       </div>
@@ -752,13 +770,13 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           <section id="funcionamiento" className="py-12 px-4 sm:px-6 bg-transparent">
             <div className="max-w-7xl mx-auto space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#3B694C] block">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
                   Flujo de información secuencial
                 </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
+                <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
                   Del sensor al dashboard en milisegundos.
                 </h2>
-                <p className="apple-body text-[#3B694C]">
+                <p className="text-[16px] text-[#1e293b] leading-relaxed">
                   Trazabilidad completa desde la captura física en el nodo ESP32 hasta la evaluación por Inteligencia Artificial y la alerta en pantalla.
                 </p>
               </ScrollReveal>
@@ -772,25 +790,26 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#FFFFFF] p-[16px] rounded-[28px] space-y-3 h-full flex flex-col justify-between">
+                    <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-xs hover:border-[#15803D]/50 hover:shadow-md rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[12px] font-mono font-semibold text-[#3B694C]">
+                          <span className="text-[11px] font-mono font-bold text-[#86efac] bg-[#0d1310] border border-[#166534] px-2.5 py-0.5 rounded-full">
                             PASO {step.step}
                           </span>
-                          <div className="w-8 h-8 rounded-full bg-[#F2F8F4] flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shadow-xs">
                             {step.icon}
                           </div>
                         </div>
-                        <h4 className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#0D3B1E]">
+                        <h4 className="text-[16px] font-bold text-[#0d1310]">
                           {step.title}
                         </h4>
-                        <p className="text-[12px] leading-[1.4] tracking-[-0.12px] text-[#3B694C]">
+                        <p className="text-[13px] leading-relaxed text-[#1e293b]">
                           {step.desc}
                         </p>
                       </div>
-                      <div className="text-[12px] text-[#1B5E20] font-semibold pt-1">
-                        Etapa verificada →
+                      <div className="text-[12px] text-[#0d1310] font-bold pt-1 flex items-center gap-1">
+                        <span>Etapa verificada</span>
+                        <span className="text-[#15803D]">→</span>
                       </div>
                     </div>
                   </ScrollReveal>
@@ -800,67 +819,81 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </section>
 
           {/* 8. SECCIÓN DE CONTACTO Y DESPLIEGUE COMERCIAL */}
-          <section id="contacto" className="bg-[#E7F3EB]/80 backdrop-blur-[2px] border-t border-[#C8E6C9] text-[#0D3B1E] py-20 px-4 sm:px-6">
+          <section id="contacto" className="bg-[#E7F3EB]/80 backdrop-blur-[2px] border-t border-[#0d1310]/15 text-[#0D3B1E] py-20 px-4 sm:px-6">
             <div className="max-w-7xl mx-auto space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[12px] font-semibold uppercase tracking-wider text-[#1B5E20]">
+                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
                   Atención y Despliegue Empresarial
                 </span>
-                <h2 className="apple-section-heading text-[#0D3B1E]">
+                <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
                   Implementa SIMOA en tu operación.
                 </h2>
-                <p className="apple-body text-[#3B694C]">
+                <p className="text-[16px] text-[#1e293b] leading-relaxed">
                   Configura tu red de sensores ambientales para invernaderos, laboratorios, cámaras de frío o bodegas. Nuestro equipo especialista te asesora en la instalación y calibración.
                 </p>
               </ScrollReveal>
 
               <ScrollReveal animation="slide-up" delay={100}>
-                <div className="bg-[#FFFFFF] border border-[#C8E6C9] shadow-sm text-[#0D3B1E] rounded-[28px] p-6 sm:p-12 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-sm text-[#0D3B1E] rounded-[28px] p-6 sm:p-12 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                   {/* Columna de Información Comercial */}
                   <div className="lg:col-span-5 space-y-6">
                     <div className="space-y-3">
-                      <div className="inline-block px-3 py-1.5 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9]">
+                      <div className="inline-block px-3 py-1.5 rounded-xl bg-[#0d1310] border border-[#1f2922]">
                         <img
                           src="/assets/images/simoa-logo.webp"
                           alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
                           className="h-10 w-auto object-contain"
                         />
                       </div>
-                      <span className="apple-badge-orange block w-fit">SOLUCIONES A MEDIDA</span>
-                      <h3 className="apple-card-heading text-[#0D3B1E] pt-1">
+                      <span className="px-3 py-1 rounded-full bg-[#0d1310] text-[#86efac] border border-[#166534] text-[12px] font-semibold tracking-wide shadow-xs block w-fit">
+                        SOLUCIONES A MEDIDA
+                      </span>
+                      <h3 className="text-[22px] font-bold text-[#0d1310] pt-1">
                         Ecosistema de Monitoreo Ambiental
                       </h3>
-                      <p className="text-[14px] leading-[1.45] tracking-[-0.224px] text-[#3B694C]">
+                      <p className="text-[14px] leading-relaxed text-[#1e293b]">
                         Integramos nodos inalámbricos de alta precisión con transmisión segura en tiempo real, paneles analíticos y alertas predictivas.
                       </p>
                     </div>
 
                     <div className="space-y-3">
-                      <div className="p-[16px] rounded-[20px] bg-[#F2F8F4] border border-[#C8E6C9]/60 flex items-start gap-3">
-                        <ShieldCheck className="w-5 h-5 text-[#15803D] shrink-0 mt-0.5" />
+                      <div className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[#0d1310]/14 shadow-xs flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                          <ShieldCheck className="w-5 h-5" />
+                        </div>
                         <div>
-                          <span className="text-[12px] text-[#3B694C] block">Variables Supervisadas</span>
-                          <span className="text-[14px] font-semibold text-[#0D3B1E] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#15803D] block">
+                            Variables Supervisadas
+                          </span>
+                          <span className="text-[14px] font-bold text-[#0d1310] block">
                             Temperatura (°C), Humedad Relativa (%RH) y Punto de Rocío
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-[16px] rounded-[20px] bg-[#F2F8F4] border border-[#C8E6C9]/60 flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-[#15803D] shrink-0 mt-0.5" />
+                      <div className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[#0d1310]/14 shadow-xs flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                          <MapPin className="w-5 h-5" />
+                        </div>
                         <div>
-                          <span className="text-[12px] text-[#3B694C] block">Sectores de Aplicación</span>
-                          <span className="text-[14px] font-semibold text-[#0D3B1E] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#15803D] block">
+                            Sectores de Aplicación
+                          </span>
+                          <span className="text-[14px] font-bold text-[#0d1310] block">
                             Agroindustria, Invernaderos, Laboratorios y Cadena de Frío
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-[16px] rounded-[20px] bg-[#F2F8F4] border border-[#C8E6C9]/60 flex items-start gap-3">
-                        <Clock className="w-5 h-5 text-[#15803D] shrink-0 mt-0.5" />
+                      <div className="p-4 rounded-[20px] bg-[#FFFFFF] border border-[#0d1310]/14 shadow-xs flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-[#0d1310] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                          <Clock className="w-5 h-5" />
+                        </div>
                         <div>
-                          <span className="text-[12px] text-[#3B694C] block">Disponibilidad y Soporte</span>
-                          <span className="text-[14px] font-semibold text-[#15803D] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#15803D] block">
+                            Disponibilidad y Soporte
+                          </span>
+                          <span className="text-[14px] font-bold text-[#15803D] block">
                             Monitoreo continuo 24/7 con alertas instantáneas
                           </span>
                         </div>
@@ -869,29 +902,29 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                   </div>
 
                   {/* Columna de Formulario Comercial */}
-                  <div className="lg:col-span-7 bg-[#F2F8F4] border border-[#C8E6C9]/70 rounded-[28px] p-6 sm:p-8 space-y-5">
+                  <div className="lg:col-span-7 bg-[#FFFFFF] border border-[#0d1310]/15 shadow-xs rounded-[28px] p-6 sm:p-8 space-y-5">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-[17px] font-semibold leading-[1.24] tracking-[-0.374px] text-[#0D3B1E] flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-[#15803D]" />
+                      <h4 className="text-[18px] font-bold text-[#0d1310] flex items-center gap-2">
+                        <Mail className="w-5 h-5 text-[#15803D]" />
                         <span>Solicitar Asesoría o Cotización</span>
                       </h4>
                     </div>
 
                     {contactSent ? (
-                      <div className="p-5 rounded-[28px] bg-[#FFFFFF] border border-[#A5D6A7] text-[#15803D] text-[14px] font-semibold flex items-center gap-2.5">
+                      <div className="p-5 rounded-[24px] bg-[#f0fdf4] border border-[#86efac] text-[#15803D] text-[14px] font-bold flex items-center gap-2.5">
                         <CheckCircle2 className="w-5 h-5 text-[#15803D] shrink-0" />
                         <span>¡Solicitud enviada con éxito! Nuestro equipo se pondrá en contacto contigo pronto.</span>
                       </div>
                     ) : (
                       <form onSubmit={handleContactSubmit} className="space-y-4 text-[14px]">
                         <div>
-                          <label className="block text-[12px] font-semibold text-[#265336] mb-1.5">
+                          <label className="block text-[12px] font-bold text-[#0d1310] mb-1.5 uppercase tracking-wide">
                             Tipo de Solución o Espacio a Monitorear
                           </label>
                           <select
                             value={contactHardwareModel}
                             onChange={(e) => setContactHardwareModel(e.target.value)}
-                            className="apple-pill-select w-full py-2.5 text-[14px]"
+                            className="w-full py-3 px-4 rounded-xl bg-[#f8faf9] border border-[#0d1310]/20 text-[#0d1310] font-medium text-[14px] focus:outline-none focus:border-[#15803D] focus:bg-white transition-all"
                           >
                             <option value="ESP32-WROOM + Sensor DHT22">Invernadero / Cultivo Protegido (Temperatura y Humedad)</option>
                             <option value="ESP32-WROOM + Bosch BME280">Laboratorio Clínico o Farmacéutico (Alta Precisión)</option>
@@ -902,7 +935,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className="block text-[12px] font-semibold text-[#265336] mb-1.5">
+                            <label className="block text-[12px] font-bold text-[#0d1310] mb-1.5 uppercase tracking-wide">
                               Nombre Completo o Empresa
                             </label>
                             <input
@@ -911,12 +944,12 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                               placeholder="Tu nombre o empresa"
                               value={contactName}
                               onChange={(e) => setContactName(e.target.value)}
-                              className="apple-pill-input w-full py-2.5 text-[14px] placeholder-[#4A7C59]/70"
+                              className="w-full py-3 px-4 rounded-xl bg-[#f8faf9] border border-[#0d1310]/20 text-[#0d1310] font-medium text-[14px] focus:outline-none focus:border-[#15803D] focus:bg-white placeholder-[#94a3b8] transition-all"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-[12px] font-semibold text-[#265336] mb-1.5">
+                            <label className="block text-[12px] font-bold text-[#0d1310] mb-1.5 uppercase tracking-wide">
                               Correo Electrónico
                             </label>
                             <input
@@ -925,13 +958,13 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                               placeholder="contacto@empresa.com"
                               value={contactEmail}
                               onChange={(e) => setContactEmail(e.target.value)}
-                              className="apple-pill-input w-full py-2.5 text-[14px] placeholder-[#4A7C59]/70"
+                              className="w-full py-3 px-4 rounded-xl bg-[#f8faf9] border border-[#0d1310]/20 text-[#0d1310] font-medium text-[14px] focus:outline-none focus:border-[#15803D] focus:bg-white placeholder-[#94a3b8] transition-all"
                             />
                           </div>
                         </div>
 
                         <div>
-                          <label className="block text-[12px] font-semibold text-[#265336] mb-1.5">
+                          <label className="block text-[12px] font-bold text-[#0d1310] mb-1.5 uppercase tracking-wide">
                             Detalles del Proyecto
                           </label>
                           <input
@@ -940,23 +973,23 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                             placeholder="Cuéntanos cuántos puntos de medición necesitas o las condiciones de tu espacio..."
                             value={contactMessage}
                             onChange={(e) => setContactMessage(e.target.value)}
-                            className="apple-pill-input w-full py-2.5 text-[14px] placeholder-[#4A7C59]/70"
+                            className="w-full py-3 px-4 rounded-xl bg-[#f8faf9] border border-[#0d1310]/20 text-[#0d1310] font-medium text-[14px] focus:outline-none focus:border-[#15803D] focus:bg-white placeholder-[#94a3b8] transition-all"
                           />
                         </div>
 
                         <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
                           <button
                             type="submit"
-                            className="apple-blue-pill px-6 py-2.5 text-[14px] font-semibold flex items-center gap-2 cursor-pointer"
+                            className="px-8 py-3.5 text-[14px] font-bold leading-tight flex items-center gap-2.5 cursor-pointer rounded-full bg-[#0d1310] text-white hover:bg-[#1a231d] shadow-[0_4px_16px_rgba(13,19,16,0.3)] border border-[#1f2922] transition-all"
                           >
-                            <Send className="w-3.5 h-3.5" />
                             <span>Enviar Solicitud</span>
+                            <Send className="w-4 h-4 text-[#4ade80]" />
                           </button>
 
                           <button
                             type="button"
                             onClick={() => onEnterSystem('dashboard')}
-                            className="apple-white-outline-pill py-2.5 text-[12px] font-semibold cursor-pointer"
+                            className="px-6 py-3 rounded-full text-[13px] font-bold text-[#0d1310] bg-[#FFFFFF] border-2 border-[#0d1310]/20 hover:border-[#0d1310] hover:bg-[#f0fdf4] transition-all cursor-pointer shadow-xs"
                           >
                             Acceder al Dashboard →
                           </button>
@@ -971,41 +1004,41 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </main>
       )}
 
-      {/* 9. FOOTER COMERCIAL */}
-      <footer className="relative z-10 py-12 bg-[#FFFFFF]/95 backdrop-blur-sm border-t border-[#C8E6C9]/80 text-[12px] text-[#3B694C]">
+      {/* 9. FOOTER COMERCIAL DE ALTO CONTRASTE */}
+      <footer className="relative z-10 py-12 bg-[#FFFFFF] border-t border-[#0d1310]/15 text-[12px] text-[#1e293b]">
         <div className="max-w-7xl mx-auto px-6 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-3">
-              <div className="inline-block px-3 py-1.5 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9]">
+              <div className="inline-block px-3 py-1.5 rounded-xl bg-[#0d1310] border border-[#1f2922]">
                 <img
                   src="/assets/images/simoa-logo.webp"
                   alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
                   className="h-9 w-auto object-contain"
                 />
               </div>
-              <p className="text-[12px] text-[#3B694C] leading-relaxed">
+              <p className="text-[12px] text-[#1e293b] leading-relaxed">
                 Sistema Inteligente de Monitoreo Ambiental con telemetría IoT en tiempo real, trazabilidad histórica y detección temprana de anomalías con Inteligencia Artificial.
               </p>
             </div>
 
             <div className="space-y-2">
-              <span className="font-semibold text-[#0D3B1E] text-[13px] block">
+              <span className="font-bold text-[#0d1310] text-[13px] block uppercase tracking-wider">
                 Navegación
               </span>
-              <ul className="space-y-1.5">
-                <li><a href="#inicio" className="hover:text-[#1B5E20] transition-colors">Inicio</a></li>
-                <li><a href="#acerca" className="hover:text-[#1B5E20] transition-colors">Nosotros</a></li>
-                <li><a href="#funcionalidades" className="hover:text-[#1B5E20] transition-colors">Soluciones</a></li>
-                <li><a href="#tecnologias" className="hover:text-[#1B5E20] transition-colors">Tecnología</a></li>
-                <li><a href="#funcionamiento" className="hover:text-[#1B5E20] transition-colors">Cómo Funciona</a></li>
+              <ul className="space-y-1.5 font-medium text-[#1e293b]">
+                <li><a href="#inicio" className="hover:text-[#15803D] transition-colors">Inicio</a></li>
+                <li><a href="#acerca" className="hover:text-[#15803D] transition-colors">Nosotros</a></li>
+                <li><a href="#funcionalidades" className="hover:text-[#15803D] transition-colors">Soluciones</a></li>
+                <li><a href="#tecnologias" className="hover:text-[#15803D] transition-colors">Tecnología</a></li>
+                <li><a href="#funcionamiento" className="hover:text-[#15803D] transition-colors">Cómo Funciona</a></li>
               </ul>
             </div>
 
             <div className="space-y-2">
-              <span className="font-semibold text-[#0D3B1E] text-[13px] block">
+              <span className="font-bold text-[#0d1310] text-[13px] block uppercase tracking-wider">
                 Soluciones Ambientales
               </span>
-              <ul className="space-y-1.5 text-[#3B694C]">
+              <ul className="space-y-1.5 text-[#1e293b] font-medium">
                 <li>Monitoreo de Invernaderos</li>
                 <li>Control de Cadena de Frío</li>
                 <li>Supervisión de Laboratorios</li>
@@ -1015,30 +1048,30 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             </div>
 
             <div className="space-y-3">
-              <span className="font-semibold text-[#0D3B1E] text-[13px] block">
+              <span className="font-bold text-[#0d1310] text-[13px] block uppercase tracking-wider">
                 Plataforma en Línea
               </span>
-              <p className="text-[12px] text-[#3B694C]">
+              <p className="text-[12px] text-[#1e293b]">
                 Accede en tiempo real al panel de control de tus sensores, alertas y reportes.
               </p>
               <button
                 onClick={() => onEnterSystem('dashboard')}
-                className="apple-blue-pill px-5 py-2.5 text-[12px] font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-5 py-2.5 rounded-full text-[12px] font-bold bg-[#0d1310] text-white hover:bg-[#1a231d] border border-[#1f2922] shadow-sm inline-flex items-center gap-2 cursor-pointer transition-all"
               >
                 <span>Ingresar al Sistema</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#4ade80]" />
               </button>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-[#C8E6C9]/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-[#4A7C59]">
+          <div className="pt-6 border-t border-[#0d1310]/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-[#1e293b] font-medium">
             <div>
               © 2026 SIMOA · Sistema Inteligente de Monitoreo Ambiental. Todos los derechos reservados.
             </div>
             <div className="flex items-center gap-4">
-              <a href="#contacto" className="hover:text-[#1B5E20] transition-colors">Soporte Técnico</a>
+              <a href="#contacto" className="hover:text-[#15803D] transition-colors">Soporte Técnico</a>
               <span>·</span>
-              <a href="#inicio" className="hover:text-[#1B5E20] transition-colors">Privacidad y Seguridad</a>
+              <a href="#inicio" className="hover:text-[#15803D] transition-colors">Privacidad y Seguridad</a>
             </div>
           </div>
         </div>
