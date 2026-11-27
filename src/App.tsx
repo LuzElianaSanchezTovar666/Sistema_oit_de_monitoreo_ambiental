@@ -627,9 +627,9 @@ export default function App() {
             onOpenPerformanceMonitor={() => setShowPerformanceModal(true)}
           />
         ) : authChecking ? (
-          <div className="min-h-screen bg-obsidian-shell text-pure-white flex flex-col items-center justify-center gap-4">
-            <Loader2 className="w-8 h-8 animate-spin text-neon-pulse" />
-            <p className="text-sm text-slate-text">Verificando sesión segura...</p>
+          <div className="min-h-screen bg-[#F2F8F4] text-[#0D3B1E] flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-[#1B5E20]" />
+            <p className="text-sm text-[#3B694C] font-medium">Verificando sesión segura...</p>
           </div>
         ) : !currentUser ? (
           <LoginModal
