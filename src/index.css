@@ -2,7 +2,22 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-slate-text: #E2E8F0;
+  --color-pure-white: #FFFFFF;
+  --color-obsidian-shell: #0D1310;
+  --color-graphite-fill: #1F2922;
+  --color-neon-pulse: #4ADE80;
+}
+
 :root {
+  /* High contrast dark modal text and background colors */
+  --color-slate-text: #E2E8F0;
+  --color-pure-white: #FFFFFF;
+  --color-obsidian-shell: #0D1310;
+  --color-graphite-fill: #1F2922;
+  --color-neon-pulse: #4ADE80;
+
   /* SIMOA Environmental Palette */
   --color-gallery-black: #F2F8F4;
   --color-charcoal-stage: #FFFFFF;
@@ -407,3 +422,53 @@
   font-size: 11px;
   font-weight: 600;
 }
+
+/* ==========================================================================
+   Dark Modals, Sheets & Technical Panels High-Contrast Text Rules
+   ========================================================================== */
+.text-slate-text {
+  color: #E2E8F0 !important;
+}
+
+.text-pure-white {
+  color: #FFFFFF !important;
+}
+
+.bg-obsidian-shell {
+  background-color: #0D1310 !important;
+}
+
+.border-graphite-fill {
+  border-color: #1F2922 !important;
+}
+
+.bg-graphite-fill {
+  background-color: #1F2922 !important;
+}
+
+.text-neon-pulse {
+  color: #4ADE80 !important;
+}
+
+/* Fallback estricto para diálogos y modales oscuros */
+[role="dialog"] {
+  color: #FFFFFF;
+}
+
+[role="dialog"] .text-slate-text,
+[role="dialog"] span.text-slate-text,
+[role="dialog"] p.text-slate-text,
+[role="dialog"] label.text-slate-text,
+[role="dialog"] h3.text-slate-text,
+[role="dialog"] div.text-slate-text {
+  color: #E2E8F0 !important;
+}
+
+[role="dialog"] .text-pure-white,
+[role="dialog"] span.text-pure-white,
+[role="dialog"] p.text-pure-white,
+[role="dialog"] h2.text-pure-white,
+[role="dialog"] h3.text-pure-white {
+  color: #FFFFFF !important;
+}
+

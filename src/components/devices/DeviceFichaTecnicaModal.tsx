@@ -182,7 +182,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
       aria-labelledby="ficha-tecnica-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
     >
-      <div className="bg-[#12161A] border border-graphite-fill rounded-[28px] w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-[#12161A] text-white border border-graphite-fill rounded-[28px] w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header Modal */}
         <div className="px-6 py-4 border-b border-graphite-fill flex items-center justify-between bg-obsidian-shell shrink-0">
           <div className="flex items-center gap-3">
@@ -191,16 +191,16 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 id="ficha-tecnica-title" className="text-lg font-semibold text-pure-white">
+                <h2 id="ficha-tecnica-title" className="text-lg font-semibold text-white">
                   Ficha Técnica e Historial por Dispositivo (RF-20)
                 </h2>
                 {dev && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-graphite-fill/60 text-slate-text border border-graphite-fill">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-graphite-fill/60 text-emerald-300 border border-graphite-fill">
                     {dev.codigo || dev.id_dispositivo}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-text mt-0.5">
+              <p className="text-xs text-white/90 mt-0.5">
                 Consolidación de hardware, configuración MQTT, conectividad en tiempo real y bitácora técnica
               </p>
             </div>
@@ -210,14 +210,14 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
               onClick={() => void loadData()}
               title="Actualizar datos"
               disabled={loading}
-              className="p-2 rounded-full hover:bg-graphite-fill/40 text-slate-text hover:text-pure-white transition-colors"
+              className="p-2 rounded-full hover:bg-graphite-fill/40 text-white/80 hover:text-white transition-colors cursor-pointer"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={onClose}
               title="Cerrar ficha técnica"
-              className="p-2 rounded-full hover:bg-graphite-fill/40 text-slate-text hover:text-pure-white transition-colors"
+              className="p-2 rounded-full hover:bg-graphite-fill/40 text-white/80 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
