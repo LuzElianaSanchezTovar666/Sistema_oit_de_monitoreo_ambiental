@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 /**
- * Fondo interactivo 3D con Three.js para la Landing Page de SIMOA:
- * - Figuras geométricas ecológicas dispersas (icosaedros, octaedros, anillos y nodos IoT)
- * - Campo de partículas ambientales flotantes (moléculas de aire / señales)
- * - Líneas de conexión sutiles entre nodos cercanos
- * - Interacción fluida con el cursor (parallax 3D, atracción de partículas y rotación reactiva)
+ * Modelado interactivo 3D con Three.js para la Landing Page de SIMOA:
+ * - Posicionado exclusivamente en los LATERALES (flancos izquierdo y derecho)
+ * - Zona central 100% despejada para garantizar lectura nítida del contenido
+ * - Figuras geométricas ecológicas (icosaedros, octaedros, anillos y tetraedros)
+ * - Flujo de partículas y rotación reactiva al cursor
  */
 export const EnvironmentalThreeBackground: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -43,23 +43,32 @@ export const EnvironmentalThreeBackground: React.FC = () => {
       container.appendChild(renderer.domElement);
 
       // Iluminación ambiental suave
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
       scene.add(ambientLight);
 
-      const dirLight = new THREE.DirectionalLight(0x66bb6a, 1.1);
-      dirLight.position.set(10, 15, 12);
-      scene.add(dirLight);
+      const dirLightLeft = new THREE.DirectionalLight(0x66bb6a, 1.2);
+      dirLightLeft.position.set(-15, 12, 10);
+      scene.add(dirLightLeft);
 
-      const tealLight = new THREE.PointLight(0x0284c7, 0.8, 40);
-      tealLight.position.set(-12, -8, 10);
-      scene.add(tealLight);
+      const dirLightRight = new THREE.DirectionalLight(0x43a047, 1.2);
+      dirLightRight.position.set(15, 12, 10);
+      scene.add(dirLightRight);
 
       // Paleta ambiental SIMOA
       const ecoColors = [0x1b5e20, 0x2e7d32, 0x43a047, 0x66bb6a, 0x0284c7];
 
-      // 1. Figuras geométricas 3D dispersas (nodos, moléculas y anillos de sensores)
+      // Geometrías base
+      const geometries: THREE.BufferGeometry[] = [
+        new THREE.IcosahedronGeometry(1.25, 0),
+        new THREE.TorusGeometry(1.3, 0.22, 12, 32),
+        new THREE.OctahedronGeometry(1.1, 0),
+        new THREE.DodecahedronGeometry(1.0, 0),
+        new THREE.TetrahedronGeometry(1.15, 0),
+      ];
+
+      // Figuras 3D distribuidas estrictamente en los LATERALES (Izquierda y Derecha)
       const shapes: Array<{
-        mesh: THREE.Mesh | THREE.LineSegments;
+        mesh: THREE.Mesh;
         baseX: number;
         baseY: number;
         baseZ: number;
@@ -68,29 +77,29 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         rotSpeedZ: number;
         floatSpeed: number;
         floatOffset: number;
+        isLeft: boolean;
       }> = [];
 
-      const geometries: THREE.BufferGeometry[] = [
-        new THREE.IcosahedronGeometry(1.2, 0),
-        new THREE.OctahedronGeometry(1.0, 0),
-        new THREE.TetrahedronGeometry(1.1, 0),
-        new THREE.TorusGeometry(1.3, 0.22, 12, 32),
-        new THREE.DodecahedronGeometry(0.95, 0),
+      // Coordenadas laterales: |x| >= 17 para no interferir con el centro
+      const lateralPositions = [
+        // Columna Izquierda (Left Flank)
+        { x: -18.5, y: 11, z: -2, isLeft: true },
+        { x: -21.0, y: 6, z: -4, isLeft: true },
+        { x: -17.5, y: 1, z: -1, isLeft: true },
+        { x: -20.5, y: -4, z: -3, isLeft: true },
+        { x: -17.0, y: -9, z: -5, isLeft: true },
+        { x: -21.5, y: -14, z: -2, isLeft: true },
+
+        // Columna Derecha (Right Flank)
+        { x: 18.5, y: 11, z: -2, isLeft: false },
+        { x: 21.0, y: 6, z: -4, isLeft: false },
+        { x: 17.5, y: 1, z: -1, isLeft: false },
+        { x: 20.5, y: -4, z: -3, isLeft: false },
+        { x: 17.0, y: -9, z: -5, isLeft: false },
+        { x: 21.5, y: -14, z: -2, isLeft: false },
       ];
 
-      // Ubicaciones armoniosas distribuidas para rodear el contenido sin obstaculizar lectura
-      const positions = [
-        { x: -14, y: 7, z: -4 },
-        { x: -16, y: -4, z: -2 },
-        { x: -8, y: -9, z: -6 },
-        { x: 14, y: 8, z: -3 },
-        { x: 17, y: -3, z: -5 },
-        { x: 10, y: -8, z: -2 },
-        { x: -5, y: 10, z: -7 },
-        { x: 6, y: 11, z: -8 },
-      ];
-
-      positions.forEach((pos, idx) => {
+      lateralPositions.forEach((pos, idx) => {
         const geom = geometries[idx % geometries.length];
         const isWireframe = idx % 2 === 0;
 
@@ -100,15 +109,15 @@ export const EnvironmentalThreeBackground: React.FC = () => {
             color: ecoColors[idx % ecoColors.length],
             wireframe: true,
             transparent: true,
-            opacity: 0.32,
+            opacity: 0.45,
           });
         } else {
           mat = new THREE.MeshStandardMaterial({
             color: ecoColors[idx % ecoColors.length],
-            roughness: 0.35,
-            metalness: 0.2,
+            roughness: 0.3,
+            metalness: 0.25,
             transparent: true,
-            opacity: 0.42,
+            opacity: 0.55,
           });
         }
 
@@ -121,25 +130,30 @@ export const EnvironmentalThreeBackground: React.FC = () => {
           baseX: pos.x,
           baseY: pos.y,
           baseZ: pos.z,
-          rotSpeedX: (Math.random() - 0.5) * 0.008,
-          rotSpeedY: (Math.random() - 0.5) * 0.012,
-          rotSpeedZ: (Math.random() - 0.5) * 0.006,
+          rotSpeedX: (Math.random() - 0.5) * 0.009,
+          rotSpeedY: (Math.random() - 0.5) * 0.013,
+          rotSpeedZ: (Math.random() - 0.5) * 0.007,
           floatSpeed: 0.001 + Math.random() * 0.0012,
           floatOffset: Math.random() * Math.PI * 2,
+          isLeft: pos.isLeft,
         });
       });
 
-      // 2. Campo de partículas ambientales (flujo de telemetría y moléculas de aire)
-      const particleCount = 75;
+      // 2. Partículas ambientales colocadas únicamente en las bandas laterales
+      const particleCount = 80;
       const particleGeometry = new THREE.BufferGeometry();
       const positionsArray = new Float32Array(particleCount * 3);
       const basePositions = new Float32Array(particleCount * 3);
 
       for (let i = 0; i < particleCount; i++) {
         const i3 = i * 3;
-        const x = (Math.random() - 0.5) * 44;
-        const y = (Math.random() - 0.5) * 28;
-        const z = (Math.random() - 0.5) * 16 - 2;
+        const isLeft = i % 2 === 0;
+        // x estrictamente <= -16.5 o >= 16.5
+        const x = isLeft
+          ? -16.5 - Math.random() * 9
+          : 16.5 + Math.random() * 9;
+        const y = (Math.random() - 0.5) * 32;
+        const z = (Math.random() - 0.5) * 12 - 2;
 
         positionsArray[i3] = x;
         positionsArray[i3 + 1] = y;
@@ -157,47 +171,22 @@ export const EnvironmentalThreeBackground: React.FC = () => {
 
       const particleMaterial = new THREE.PointsMaterial({
         color: 0x2e7d32,
-        size: 0.22,
+        size: 0.25,
         transparent: true,
-        opacity: 0.55,
+        opacity: 0.6,
       });
 
       const particles = new THREE.Points(particleGeometry, particleMaterial);
       scene.add(particles);
 
-      // Anillo de luz en cursor
-      const cursorRingGeom = new THREE.RingGeometry(0.7, 0.85, 32);
-      const cursorRingMat = new THREE.MeshBasicMaterial({
-        color: 0x43a047,
-        transparent: true,
-        opacity: 0.28,
-        side: THREE.DoubleSide,
-      });
-      const cursorRing = new THREE.Mesh(cursorRingGeom, cursorRingMat);
-      cursorRing.position.set(0, 0, 5);
-      scene.add(cursorRing);
-
-      // Núcleo central del cursor
-      const cursorCoreGeom = new THREE.CircleGeometry(0.18, 16);
-      const cursorCoreMat = new THREE.MeshBasicMaterial({
-        color: 0x1b5e20,
-        transparent: true,
-        opacity: 0.45,
-      });
-      const cursorCore = new THREE.Mesh(cursorCoreGeom, cursorCoreMat);
-      cursorCore.position.set(0, 0, 5.01);
-      scene.add(cursorCore);
-
-      // Estado de cursor y mouse interactivo
+      // Estado del mouse / cursor interactivo
       const mouse = { x: 0, y: 0, targetX: 0, targetY: 0 };
       const worldMouse = new THREE.Vector3(0, 0, 0);
 
       const handleMouseMove = (e: MouseEvent) => {
         mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
         mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
-
-        // Proyectar coordenadas del cursor al plano 3D (z=0)
-        worldMouse.set(mouse.targetX * 16, mouse.targetY * 10, 0);
+        worldMouse.set(mouse.targetX * 20, mouse.targetY * 12, 0);
       };
 
       const handleTouchMove = (e: TouchEvent) => {
@@ -205,7 +194,7 @@ export const EnvironmentalThreeBackground: React.FC = () => {
           const t = e.touches[0];
           mouse.targetX = (t.clientX / window.innerWidth) * 2 - 1;
           mouse.targetY = -(t.clientY / window.innerHeight) * 2 + 1;
-          worldMouse.set(mouse.targetX * 16, mouse.targetY * 10, 0);
+          worldMouse.set(mouse.targetX * 20, mouse.targetY * 12, 0);
         }
       };
 
@@ -237,41 +226,41 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         mouse.x += (mouse.targetX - mouse.x) * 0.06;
         mouse.y += (mouse.targetY - mouse.y) * 0.06;
 
-        // Efecto Parallax en la cámara
-        camera.position.x = mouse.x * 2.2;
-        camera.position.y = mouse.y * 1.5 - scrollOffset * 0.4;
+        // Efecto Parallax en la cámara (suave)
+        camera.position.x = mouse.x * 1.5;
+        camera.position.y = mouse.y * 1.2 - scrollOffset * 0.4;
         camera.lookAt(0, -scrollOffset * 0.3, 0);
 
-        // Actualizar posición del halo de cursor
-        cursorRing.position.x += (worldMouse.x - cursorRing.position.x) * 0.12;
-        cursorRing.position.y += (worldMouse.y - cursorRing.position.y) * 0.12;
-        cursorRing.rotation.z += 0.02;
-
-        cursorCore.position.x = cursorRing.position.x;
-        cursorCore.position.y = cursorRing.position.y;
-
-        // Animación de figuras geométricas
+        // Animación de figuras geométricas laterales
         shapes.forEach((s) => {
           s.mesh.rotation.x += s.rotSpeedX;
           s.mesh.rotation.y += s.rotSpeedY;
           s.mesh.rotation.z += s.rotSpeedZ;
 
-          const floatY = Math.sin(clock * 1.2 + s.floatOffset) * 0.55;
-          s.mesh.position.y = s.baseY + floatY - scrollOffset * 0.8;
+          const floatY = Math.sin(clock * 1.1 + s.floatOffset) * 0.55;
+          s.mesh.position.y = s.baseY + floatY - scrollOffset * 0.75;
 
-          // Reacción al cursor (pequeña repulsión si está cerca)
+          // Reacción de repulsión si el cursor se aproxima al lateral
           const dx = s.mesh.position.x - worldMouse.x;
           const dy = s.mesh.position.y - worldMouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 6.5) {
-            const force = (6.5 - dist) / 6.5;
-            s.mesh.position.x = s.baseX + (dx / dist) * force * 1.2;
+          if (dist < 6.0) {
+            const force = (6.0 - dist) / 6.0;
+            const pushDir = s.isLeft ? -1 : 1;
+            s.mesh.position.x = s.baseX + pushDir * force * 1.5;
           } else {
             s.mesh.position.x += (s.baseX - s.mesh.position.x) * 0.04;
           }
+
+          // Garantizar que NUNCA entren al corredor central (|x| >= 16.0)
+          if (s.isLeft) {
+            s.mesh.position.x = Math.min(-16.0, s.mesh.position.x);
+          } else {
+            s.mesh.position.x = Math.max(16.0, s.mesh.position.x);
+          }
         });
 
-        // Animación y reactividad de partículas
+        // Animación de partículas laterales
         const posAttr = particleGeometry.getAttribute('position') as THREE.BufferAttribute;
         const arr = posAttr.array as Float32Array;
 
@@ -280,21 +269,27 @@ export const EnvironmentalThreeBackground: React.FC = () => {
           const bx = basePositions[ix];
           const by = basePositions[ix + 1];
 
-          // Flotación natural
-          arr[ix + 1] = by + Math.sin(clock * 0.8 + i) * 0.35 - scrollOffset * 0.5;
+          arr[ix + 1] = by + Math.sin(clock * 0.75 + i) * 0.35 - scrollOffset * 0.5;
 
-          // Atracción sutil al cursor
+          // Suave reacción si el cursor está cerca del lateral
           const dx = worldMouse.x - arr[ix];
           const dy = worldMouse.y - arr[ix + 1];
           const dist = Math.sqrt(dx * dx + dy * dy);
 
-          if (dist < 5.5) {
-            const pull = (5.5 - dist) / 5.5;
-            arr[ix] += (bx + dx * 0.35 * pull - arr[ix]) * 0.08;
-            arr[ix + 1] += (by + dy * 0.35 * pull - arr[ix + 1]) * 0.08;
+          if (dist < 5.0) {
+            const pull = (5.0 - dist) / 5.0;
+            arr[ix] += (bx + dx * 0.3 * pull - arr[ix]) * 0.08;
+            arr[ix + 1] += (by + dy * 0.3 * pull - arr[ix + 1]) * 0.08;
           } else {
             arr[ix] += (bx - arr[ix]) * 0.05;
             arr[ix + 1] += (by - arr[ix + 1]) * 0.05;
+          }
+
+          // Mantener partículas estrictamente en los márgenes
+          if (bx < 0) {
+            arr[ix] = Math.min(-15.5, arr[ix]);
+          } else {
+            arr[ix] = Math.max(15.5, arr[ix]);
           }
         }
         posAttr.needsUpdate = true;
@@ -315,10 +310,6 @@ export const EnvironmentalThreeBackground: React.FC = () => {
         shapes.forEach((s) => (s.mesh.material as THREE.Material).dispose());
         particleGeometry.dispose();
         particleMaterial.dispose();
-        cursorRingGeom.dispose();
-        cursorRingMat.dispose();
-        cursorCoreGeom.dispose();
-        cursorCoreMat.dispose();
 
         if (renderer) {
           renderer.dispose();
