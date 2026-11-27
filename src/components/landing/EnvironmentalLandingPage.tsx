@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Activity,
   Cpu,
@@ -9,8 +9,6 @@ import {
   Server,
   Layers,
   ArrowRight,
-  CheckCircle2,
-  Mail,
   Send,
   LineChart,
   ArrowUp,
@@ -21,6 +19,8 @@ import {
 import { ScrollReveal } from '../../hooks/useScrollAnimation';
 import { HeroSkeleton, CardGridSkeleton, FlowSequenceSkeleton, SkeletonBox } from '../common/SkeletonLoader';
 import { OptimizedImage } from '../common/OptimizedImage';
+
+const contactFieldClass = 'w-full min-w-0 rounded-xl border border-garden-edge bg-garden-paper px-3 py-2.5 text-sm font-normal text-garden-deep focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-forest';
 
 interface EnvironmentalLandingPageProps {
   onEnterSystem: (initialTab?: string) => void;
@@ -45,23 +45,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
     return () => window.removeEventListener('scroll', updateBackToTop);
   }, []);
 
-  // Contact form state
-  const [contactName, setContactName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [contactHardwareModel, setContactHardwareModel] = useState('ESP32-WROOM + Sensor DHT22');
-  const [contactMessage, setContactMessage] = useState('');
-  const [contactSent, setContactSent] = useState(false);
-
-  const handleContactSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    setContactSent(true);
-    setTimeout(() => {
-      setContactName('');
-      setContactEmail('');
-      setContactMessage('');
-      setContactSent(false);
-    }, 4000);
-  }, []);
+  const [contactSubmitted, setContactSubmitted] = useState(false);
+  const handleContactSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setContactSubmitted(true);
+  };
 
   // Tarjetas de telemetría de la sección Acerca del Sistema
   const aboutCapabilities = [
@@ -603,180 +591,102 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             </div>
           </section>
 
-          {/* 8. SECCIÓN DE CONTACTO Y DESPLIEGUE COMERCIAL */}
-          <section id="contacto" className="scroll-mt-24 bg-garden-mint backdrop-blur-[2px] border-t border-garden-border text-[#0D3B1E] py-20 px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto space-y-10">
-              <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
-                  Atención y Despliegue Empresarial
-                </span>
-                <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
-                  Implementa SIMOA en tu operación.
-                </h2>
-                <p className="text-[16px] text-[#1e293b] leading-relaxed">
-                  Configura tu red de sensores ambientales para invernaderos, laboratorios, cámaras de frío o bodegas. Nuestro equipo especialista te asesora en la instalación y calibración.
+          <section id="contacto" aria-labelledby="simoa-contact-title" className="scroll-mt-24 px-4 pb-12 sm:px-6 sm:pb-16">
+            <div className="mx-auto grid max-w-7xl overflow-hidden rounded-[28px] border border-garden-border bg-white shadow-sm md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+              <div className="bg-brand-forest px-6 py-8 text-garden-paper sm:px-10 sm:py-10">
+                <h2 id="simoa-contact-title" className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Contacto</h2>
+                <p className="mt-3 max-w-sm text-base leading-relaxed text-garden-mint">
+                  Cuéntanos qué espacio quieres monitorear y qué necesitas medir.
                 </p>
-              </ScrollReveal>
 
-              <ScrollReveal animation="slide-up" delay={100}>
-                <div className="bg-[#FFFFFF] border border-[#0d1310]/15 shadow-sm text-[#0D3B1E] rounded-[28px] p-6 sm:p-12 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-                  {/* Columna de Información Comercial */}
-                  <div className="lg:col-span-5 space-y-6">
-                    <div className="space-y-3">
-                      <div className="inline-block px-3 py-1.5 rounded-xl bg-[#e4f0e7] border border-[#a9c4b2]">
-                        <img
-                          src="/assets/images/simoa-logo.webp"
-                          alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
-                          className="h-10 w-auto object-contain"
-                        />
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-garden-mint text-brand-forest border border-garden-border text-[12px] font-semibold tracking-wide shadow-xs block w-fit">
-                        SOLUCIONES A MEDIDA
-                      </span>
-                      <h3 className="text-[22px] font-bold text-brand-forest pt-1">
-                        Ecosistema de Monitoreo Ambiental
-                      </h3>
-                      <p className="text-[14px] leading-relaxed text-[#1e293b]">
-                        Integramos nodos inalámbricos de alta precisión con transmisión segura en tiempo real, paneles analíticos y alertas predictivas.
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="p-4 rounded-[20px] bg-brand-forest text-white border border-brand-forest flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/25 flex items-center justify-center text-[#d6ecdd] shrink-0">
-                          <ShieldCheck className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#d6ecdd] block">
-                            Variables Supervisadas
-                          </span>
-                          <span className="text-[14px] font-semibold text-white block">
-                            Temperatura (°C), Humedad Relativa (%RH) y Punto de Rocío
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="p-4 rounded-[20px] bg-garden-mint text-brand-forest border border-garden-border flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-white/70 border border-garden-border flex items-center justify-center text-brand-forest shrink-0">
-                          <MapPin className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-forest block">
-                            Sectores de Aplicación
-                          </span>
-                          <span className="text-[14px] font-semibold text-bark block">
-                            Agroindustria, Invernaderos, Laboratorios y Cadena de Frío
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="p-4 rounded-[20px] bg-garden-sage text-garden-deep border border-garden-border flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-white/60 border border-garden-border flex items-center justify-center text-garden-deep shrink-0">
-                          <Clock className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-garden-deep block">
-                            Disponibilidad y Soporte
-                          </span>
-                          <span className="text-[14px] font-semibold text-bark block">
-                            Monitoreo continuo 24/7 con alertas instantáneas
-                          </span>
-                        </div>
-                      </div>
+                <dl className="mt-7 divide-y divide-garden-leaf/25 border-y border-garden-leaf/25">
+                  <div className="flex items-start gap-3 py-4">
+                    <ShieldCheck className="mt-0.5 size-5 shrink-0 text-garden-leaf" aria-hidden="true" />
+                    <div>
+                      <dt className="font-semibold">Qué puedes medir</dt>
+                      <dd className="mt-1 text-sm text-garden-mint">Temperatura, humedad y punto de rocío.</dd>
                     </div>
                   </div>
-
-                  {/* Columna de Formulario Comercial */}
-                  <div className="lg:col-span-7 bg-[#FFFFFF] border border-[#0d1310]/15 shadow-xs rounded-[28px] p-6 sm:p-8 space-y-5">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-[18px] font-bold text-[#0d1310] flex items-center gap-2">
-                        <Mail className="w-5 h-5 text-[#15803D]" />
-                        <span>Solicitar Asesoría o Cotización</span>
-                      </h4>
+                  <div className="flex items-start gap-3 py-4">
+                    <MapPin className="mt-0.5 size-5 shrink-0 text-garden-leaf" aria-hidden="true" />
+                    <div>
+                      <dt className="font-semibold">Dónde se puede usar</dt>
+                      <dd className="mt-1 text-sm text-garden-mint">Invernaderos, laboratorios, cámaras de frío y bodegas.</dd>
                     </div>
-
-                    {contactSent ? (
-                      <div className="p-5 rounded-[24px] bg-[#f0fdf4] border border-[#86efac] text-[#15803D] text-[14px] font-bold flex items-center gap-2.5">
-                        <CheckCircle2 className="w-5 h-5 text-[#15803D] shrink-0" />
-                        <span>¡Solicitud enviada con éxito! Nuestro equipo se pondrá en contacto contigo pronto.</span>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleContactSubmit} className="space-y-4 text-[14px]">
-                        <div>
-                          <label className="block text-[12px] font-bold text-[#0d1310] mb-1.5 uppercase tracking-wide">
-                            Tipo de Solución o Espacio a Monitorear
-                          </label>
-                          <select
-                            value={contactHardwareModel}
-                            onChange={(e) => setContactHardwareModel(e.target.value)}
-                            className="w-full py-3 px-4 rounded-xl bg-[#f8faf9] border border-[#0d1310]/20 text-[#0d1310] font-medium text-[14px] focus:outline-none focus:border-[#15803D] focus:bg-white transition-all"
-                          >
-                            <option value="ESP32-WROOM + Sensor DHT22">Invernadero / Cultivo Protegido (Temperatura y Humedad)</option>
-                            <option value="ESP32-WROOM + Bosch BME280">Laboratorio Clínico o Farmacéutico (Alta Precisión)</option>
-                            <option value="Gateway MQTTS + Sensirion SHT31">Cámara de Conservación / Cadena de Frío</option>
-                            <option value="ESP8266 NodeMCU + DHT11">Bodega de Almacenamiento o Recinto Interior</option>
-                          </select>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[12px] font-bold text-[#0d1310] mb-1.5 uppercase tracking-wide">
-                              Nombre Completo o Empresa
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              placeholder="Tu nombre o empresa"
-                              value={contactName}
-                              onChange={(e) => setContactName(e.target.value)}
-                              className="w-full py-3 px-4 rounded-xl bg-[#f8faf9] border border-[#0d1310]/20 text-[#0d1310] font-medium text-[14px] focus:outline-none focus:border-[#15803D] focus:bg-white placeholder-[#94a3b8] transition-all"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[12px] font-bold text-[#0d1310] mb-1.5 uppercase tracking-wide">
-                              Correo Electrónico
-                            </label>
-                            <input
-                              type="email"
-                              required
-                              placeholder="contacto@empresa.com"
-                              value={contactEmail}
-                              onChange={(e) => setContactEmail(e.target.value)}
-                              className="w-full py-3 px-4 rounded-xl bg-[#f8faf9] border border-[#0d1310]/20 text-[#0d1310] font-medium text-[14px] focus:outline-none focus:border-[#15803D] focus:bg-white placeholder-[#94a3b8] transition-all"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[12px] font-bold text-[#0d1310] mb-1.5 uppercase tracking-wide">
-                            Detalles del Proyecto
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            placeholder="Cuéntanos cuántos puntos de medición necesitas o las condiciones de tu espacio..."
-                            value={contactMessage}
-                            onChange={(e) => setContactMessage(e.target.value)}
-                            className="w-full py-3 px-4 rounded-xl bg-[#f8faf9] border border-[#0d1310]/20 text-[#0d1310] font-medium text-[14px] focus:outline-none focus:border-[#15803D] focus:bg-white placeholder-[#94a3b8] transition-all"
-                          />
-                        </div>
-
-                        <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
-                          <button
-                            type="submit"
-                            className="px-8 py-3.5 text-[14px] font-bold leading-tight flex items-center gap-2.5 cursor-pointer rounded-full bg-brand-forest text-white hover:bg-canopy shadow-[0_4px_16px_rgba(13,19,16,0.3)] border border-[#1f2922] transition-all"
-                          >
-                            <span>Enviar Solicitud</span>
-                            <Send className="w-4 h-4 text-[#4ade80]" />
-                          </button>
-
-                        </div>
-                      </form>
-                    )}
                   </div>
-                </div>
-              </ScrollReveal>
+                  <div className="flex items-start gap-3 py-4">
+                    <Clock className="mt-0.5 size-5 shrink-0 text-garden-leaf" aria-hidden="true" />
+                    <div>
+                      <dt className="font-semibold">Monitoreo continuo</dt>
+                      <dd className="mt-1 text-sm text-garden-mint">Lecturas 24/7 y alertas cuando cambian las condiciones.</dd>
+                    </div>
+                  </div>
+                </dl>
+              </div>
+
+              <div className="min-w-0 px-6 py-8 sm:px-10 sm:py-10">
+                <h3 id="simoa-contact-form-title" className="text-2xl font-bold tracking-tight text-garden-deep">Asesoría o cotización</h3>
+                <p id="simoa-contact-preview" className="mt-2 text-sm leading-relaxed text-slate">
+                  Este formulario es de demostración. Los datos se quedan en esta página.
+                </p>
+
+                <form
+                  aria-labelledby="simoa-contact-form-title"
+                  aria-describedby="simoa-contact-preview"
+                  onSubmit={handleContactSubmit}
+                  onChange={() => setContactSubmitted(false)}
+                  className="mt-6 grid gap-4 text-sm"
+                >
+                  <label className="grid gap-1.5 font-semibold">
+                    Tipo de espacio
+                    <select name="space" defaultValue="" required className={contactFieldClass}>
+                      <option value="" disabled>Selecciona una opción</option>
+                      <option value="greenhouse">Invernadero o cultivo</option>
+                      <option value="laboratory">Laboratorio</option>
+                      <option value="cold-storage">Cámara de frío</option>
+                      <option value="warehouse">Bodega u otro espacio interior</option>
+                    </select>
+                  </label>
+
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <label className="grid min-w-0 gap-1.5 font-semibold">
+                      Nombre o empresa
+                      <input name="name" type="text" autoComplete="section-contact name" required className={contactFieldClass} />
+                    </label>
+                    <label className="grid min-w-0 gap-1.5 font-semibold">
+                      Correo electrónico
+                      <input name="email" type="email" autoComplete="section-contact email" required className={contactFieldClass} />
+                    </label>
+                  </div>
+
+                  <label className="grid gap-1.5 font-semibold">
+                    Detalles del proyecto
+                    <textarea
+                      name="details"
+                      rows={4}
+                      required
+                      aria-describedby="simoa-contact-details-hint"
+                      className={contactFieldClass + ' resize-y'}
+                    />
+                    <span id="simoa-contact-details-hint" className="font-normal text-slate">
+                      Describe el espacio y qué quieres medir.
+                    </span>
+                  </label>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="submit"
+                      className="inline-flex cursor-pointer items-center gap-2 rounded-xl bg-brand-forest px-5 py-3 font-bold text-white transition-colors hover:bg-canopy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest"
+                    >
+                      Probar envío
+                      <Send className="size-4 text-garden-leaf" aria-hidden="true" />
+                    </button>
+                    <div role="status" className="text-sm font-semibold text-brand-forest">
+                      {contactSubmitted && 'Prueba completada. No se enviaron datos.'}
+                    </div>
+                  </div>
+                </form>
+              </div>
             </div>
           </section>
         </main>
