@@ -315,7 +315,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       ) : (
         <main className="relative z-10 space-y-8 sm:space-y-14">
           <section aria-labelledby="simoa-hero-title">
-            <div className="relative flex min-h-[560px] flex-col justify-end overflow-hidden bg-garden-deep text-white sm:min-h-[630px] lg:min-h-[650px]">
+            <div className="relative flex min-h-[560px] flex-col overflow-hidden bg-garden-deep text-white sm:min-h-[630px] lg:min-h-[650px]">
               <img
                 src="/assets/images/simoa-greenhouse.webp"
                 alt="Sensor ambiental entre las plantas de un invernadero"
@@ -326,9 +326,9 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               />
               <div className="simoa-garden-hero-shade absolute inset-0" aria-hidden="true" />
 
-              <div className="relative flex w-full flex-col px-5 pt-16 sm:px-10 lg:px-[6vw]">
-                <div className="max-w-[52rem] pb-12 sm:pb-16 lg:pb-20">
-                  <h1 id="simoa-hero-title" className="text-[clamp(2.65rem,6.1vw,5.2rem)] font-bold leading-[1.02] tracking-[-0.045em] text-white">
+              <div className="relative flex w-full flex-1 flex-col justify-between gap-10 px-5 pt-9 sm:px-10 sm:pt-12 lg:px-[6vw] lg:pt-14">
+                <div className="max-w-[57rem]">
+                  <h1 id="simoa-hero-title" className="text-[clamp(3rem,8vw,7.5rem)] font-bold leading-[0.98] tracking-[-0.045em] text-white">
                     Monitoreo ambiental inteligente.
                   </h1>
                   <p className="mt-6 max-w-lg text-base leading-relaxed text-garden-mint sm:text-lg">
