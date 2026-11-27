@@ -78,7 +78,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <img
             src="/assets/images/simoa-greenhouse.webp"
             alt=""
-            className="size-full scale-105 object-cover object-center blur-lg"
+            className="size-full scale-105 object-cover object-center blur-[4px]"
           />
           <div className="absolute inset-0 bg-garden-deep/50" />
         </div>
