@@ -644,7 +644,7 @@ export default function App() {
             }}
           />
         ) : (
-          <div className="min-h-screen bg-white text-[#17191c] flex flex-col font-sans transition-colors">
+          <div className="min-h-screen bg-cream-paper text-[#17191c] flex flex-col font-sans transition-colors">
             {/* Top Navigation Bar con sesión real y cierre de sesión */}
             <Navbar
               currentUser={currentUser}
@@ -673,7 +673,7 @@ export default function App() {
               />
 
               {/* Content Viewport */}
-              <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+              <main className="console-content flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
                 {skeletonMode ? (
                   <div className="space-y-6">
                     <div className="flex justify-between items-center pb-2">

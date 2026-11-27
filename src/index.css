@@ -340,9 +340,9 @@
 
 /* Eco Leaf Badge */
 .apple-badge-orange {
-  background-color: #E8F5E9;
-  border: 1px solid #A5D6A7;
-  color: #1B5E20;
+  background-color: var(--color-brand-yellow);
+  border: 1px solid var(--color-brand-yellow-border);
+  color: var(--color-brand-gold);
   border-radius: 6px;
   padding: 4px 8px;
   font-family: var(--font-sf-pro-text);
@@ -423,52 +423,134 @@
   font-weight: 600;
 }
 
-/* ==========================================================================
-   Dark Modals, Sheets & Technical Panels High-Contrast Text Rules
-   ========================================================================== */
-.text-slate-text {
-  color: #E2E8F0 !important;
+/* Alias usados por la consola y por los componentes de telemetría. */
+@theme static {
+  /* Verde para acciones, morado para navegación y amarillo para avisos. */
+  --color-brand-forest: #194c34;
+  --color-brand-plum: #573b82;
+  --color-brand-lavender: #f1ebf8;
+  --color-brand-lavender-border: #d6c8e5;
+  --color-brand-yellow: #fff3c9;
+  --color-brand-yellow-border: #d3b76b;
+  --color-brand-gold: #634606;
+  --color-console-sidebar: #171717;
+  --color-console-sidebar-panel: #262626;
+  --color-console-sidebar-active: #4d4d4d;
+  --color-console-sidebar-border: #656565;
+  --color-console-sidebar-muted: #e5e5e5;
+  --color-console-sidebar-status: #bce6c8;
+  --color-console-session: #efe3bb;
+  --color-deep-abyss: var(--color-sheet-white);
+  --color-cream-paper: #cfdcd3;
+  --color-sheet-white: #f5f8f3;
+  --color-bark: #172c21;
+  --color-slate: #405b4b;
+  --color-sage-mist: #738779;
+  --color-stone-border: #84988a;
+  --color-canopy: #246044;
+  --color-signal-yellow: #784500;
+  --color-charcoal: #162e23;
+  --color-crimson-danger: #a51e2c;
+  --color-emerald-ok: #246044;
 }
 
-.text-pure-white {
-  color: #FFFFFF !important;
+.console-content {
+  --color-pure-white: #172c21;
+  --color-slate-text: #405b4b;
+  --color-neon-pulse: #246044;
+  --color-obsidian-shell: #e2eee5;
+  --color-graphite-fill: #738779;
+  --console-green: #246044;
+  --console-amber: #784500;
+  --console-red: #a51e2c;
+  --console-blue: #145a78;
+  --console-muted: #405b4b;
+  --console-table-heading: var(--color-brand-lavender);
+  background-color: var(--color-cream-paper);
+  color: var(--color-pure-white);
+  color-scheme: light;
 }
 
-.bg-obsidian-shell {
-  background-color: #0D1310 !important;
+.console-content thead {
+  background-color: var(--console-table-heading);
 }
 
-.border-graphite-fill {
-  border-color: #1F2922 !important;
+.console-content :is(.text-slate-300, .text-slate-400, .text-slate-500, .text-\[\#777b86\], .text-\[\#a3a6af\]) {
+  color: var(--console-muted);
 }
 
-.bg-graphite-fill {
-  background-color: #1F2922 !important;
+.console-content :is(.text-emerald-200, .text-emerald-300, .text-emerald-300\/80, .text-emerald-400, .text-emerald-600, .text-green-300, .text-green-400, .text-green-600, .text-\[\#bbf7d0\], .text-\[\#15803d\]) {
+  color: var(--console-green);
 }
 
-.text-neon-pulse {
-  color: #4ADE80 !important;
+.console-content :is(.text-sky-100, .text-sky-200, .text-sky-300, .text-sky-300\/80, .text-sky-400, .text-sky-600, .text-\[\#53d5f4\]) {
+  color: var(--console-blue);
 }
 
-/* Fallback estricto para diálogos y modales oscuros */
-[role="dialog"] {
-  color: #FFFFFF;
+.console-content .text-\[\#D97706\] {
+  color: var(--console-amber);
 }
 
-[role="dialog"] .text-slate-text,
-[role="dialog"] span.text-slate-text,
-[role="dialog"] p.text-slate-text,
-[role="dialog"] label.text-slate-text,
-[role="dialog"] h3.text-slate-text,
-[role="dialog"] div.text-slate-text {
-  color: #E2E8F0 !important;
+.console-content :is(.text-rose-200, .text-\[\#DC2626\]) {
+  color: var(--console-red);
 }
 
-[role="dialog"] .text-pure-white,
-[role="dialog"] span.text-pure-white,
-[role="dialog"] p.text-pure-white,
-[role="dialog"] h2.text-pure-white,
-[role="dialog"] h3.text-pure-white {
-  color: #FFFFFF !important;
+.console-content .sauce-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.console-content .sauce-btn-primary {
+  display: inline-flex;
+  background-color: var(--color-canopy);
+  color: #ffffff;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.console-content .sauce-btn-primary:hover:enabled {
+  background-color: #194c34;
+}
+
+.console-content :is(.bg-\[\#15803d\].text-pure-white, .bg-signal-yellow.text-bark) {
+  color: #ffffff;
+}
+
+.console-content :is(.bg-emerald-600.text-sheet-white, .bg-\[\#15803d\].text-sheet-white) {
+  background-color: var(--color-canopy);
+}
+
+.console-content .bg-\[\#D97706\].text-sheet-white {
+  background-color: var(--color-signal-yellow);
+}
+
+.console-content .fixed.bg-deep-abyss\/65 {
+  background-color: rgb(22 46 35 / 70%);
+}
+
+.console-content :is(.apple-pill-input, .apple-pill-select) {
+  border-color: #647b6d;
+}
+
+.console-content :is(input, textarea)::placeholder {
+  color: var(--console-muted);
+  opacity: 1;
+}
+
+.console-content :is(.apple-pill-input, .apple-pill-select)::placeholder {
+  color: #405b4b;
+}
+
+.console-content :is(button, input, select, textarea):disabled {
+  opacity: 1;
+  background: var(--color-obsidian-shell);
+  color: var(--console-muted);
+  cursor: not-allowed;
+}
+
+.console-content :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-brand-plum);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #ffffff;
 }
 

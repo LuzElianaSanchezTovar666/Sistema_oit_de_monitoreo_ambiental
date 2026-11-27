@@ -285,7 +285,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                     {c.point.es_anomalia_ia && (
                       <polygon
                         points={`${c.x},${c.y - 6} ${c.x + 5},${c.y} ${c.x},${c.y + 6} ${c.x - 5},${c.y}`}
-                        fill="#7C3AED"
+                        fill="var(--color-brand-plum)"
                         stroke="#FFFFFF"
                         strokeWidth="1.2"
                       />
@@ -370,7 +370,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
                   </div>
                 </div>
                 {activeCoord.point.score_anomalia_ia !== null && activeCoord.point.score_anomalia_ia !== undefined && (
-                  <span className="px-2 py-0.5 rounded-[5px] bg-[#7C3AED]/15 text-[#7C3AED] font-semibold">
+                  <span className="px-2 py-0.5 rounded-[5px] bg-brand-lavender text-brand-plum font-semibold">
                     IA Score: {activeCoord.point.score_anomalia_ia.toFixed(3)}
                     {activeCoord.point.es_anomalia_ia ? ' (Anomalía)' : ''}
                   </span>
@@ -392,7 +392,7 @@ const SingleSeriesSvgChart: React.FC<SingleSeriesSvgChartProps> = React.memo(
               Fuera de umbral
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rotate-45 bg-[#7C3AED]" />
+              <span className="w-2.5 h-2.5 rotate-45 bg-brand-plum" />
               {anomaliasDisponibles ? 'Anomalía IA (RF-18)' : 'Anomalía IA (RF-18 pendiente)'}
             </span>
           </div>

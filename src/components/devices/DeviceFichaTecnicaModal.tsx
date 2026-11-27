@@ -182,11 +182,11 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
       aria-labelledby="ficha-tecnica-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
     >
-      <div className="bg-[#12161A] text-white border border-graphite-fill rounded-[28px] w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <div className="bg-white text-bark border border-graphite-fill rounded-[28px] w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Header Modal */}
-        <div className="px-6 py-4 border-b border-graphite-fill flex items-center justify-between bg-obsidian-shell shrink-0">
+        <div className="px-6 py-4 border-b border-graphite-fill flex items-center justify-between bg-brand-forest shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/30 flex items-center justify-center text-[#d9eee1]">
               <FileText className="w-5 h-5" />
             </div>
             <div>
@@ -195,12 +195,12 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                   Ficha Técnica e Historial por Dispositivo (RF-20)
                 </h2>
                 {dev && (
-                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-graphite-fill/60 text-emerald-300 border border-graphite-fill">
+                  <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-brand-yellow text-brand-gold border border-brand-yellow-border">
                     {dev.codigo || dev.id_dispositivo}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-white/90 mt-0.5">
+              <p className="text-xs text-[#d9eee1] mt-0.5">
                 Consolidación de hardware, configuración MQTT, conectividad en tiempo real y bitácora técnica
               </p>
             </div>
@@ -210,14 +210,14 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
               onClick={() => void loadData()}
               title="Actualizar datos"
               disabled={loading}
-              className="p-2 rounded-full hover:bg-graphite-fill/40 text-white/80 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full text-white hover:bg-white/15 transition-colors cursor-pointer"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={onClose}
               title="Cerrar ficha técnica"
-              className="p-2 rounded-full hover:bg-graphite-fill/40 text-white/80 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full text-white hover:bg-white/15 transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -277,12 +277,12 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
             </div>
 
             {/* Navigation Tabs */}
-            <div className="px-6 pt-3 border-b border-graphite-fill flex items-center gap-2 bg-[#12161A]">
+            <div className="px-6 pt-3 border-b border-graphite-fill flex items-center gap-2 bg-sheet-white">
               <button
                 onClick={() => setActiveTab('general')}
                 className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'general'
-                    ? 'border-neon-pulse text-pure-white bg-graphite-fill/20'
+                    ? 'border-brand-plum bg-brand-plum text-white'
                     : 'border-transparent text-slate-text hover:text-pure-white'
                 }`}
               >
@@ -293,7 +293,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                 onClick={() => setActiveTab('mqtt')}
                 className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'mqtt'
-                    ? 'border-neon-pulse text-pure-white bg-graphite-fill/20'
+                    ? 'border-brand-plum bg-brand-plum text-white'
                     : 'border-transparent text-slate-text hover:text-pure-white'
                 }`}
               >
@@ -304,7 +304,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                 onClick={() => setActiveTab('sensores')}
                 className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'sensores'
-                    ? 'border-neon-pulse text-pure-white bg-graphite-fill/20'
+                    ? 'border-brand-plum bg-brand-plum text-white'
                     : 'border-transparent text-slate-text hover:text-pure-white'
                 }`}
               >
@@ -315,7 +315,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                 onClick={() => setActiveTab('mantenimientos')}
                 className={`px-4 py-2 text-xs font-medium rounded-t-lg transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'mantenimientos'
-                    ? 'border-neon-pulse text-pure-white bg-graphite-fill/20'
+                    ? 'border-brand-plum bg-brand-plum text-white'
                     : 'border-transparent text-slate-text hover:text-pure-white'
                 }`}
               >
@@ -352,7 +352,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                         </div>
                         <div className="flex justify-between py-1 border-b border-graphite-fill/40">
                           <span className="text-slate-text">Tipo de Nodo</span>
-                          <span className="px-2 py-0.5 rounded bg-graphite-fill/60 text-pure-white font-medium">
+                          <span className="px-2 py-0.5 rounded bg-sheet-white text-pure-white font-medium">
                             {dev.tipo}
                           </span>
                         </div>
@@ -377,7 +377,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                         {isAdminOrTecnico && !showEditTechnical && (
                           <button
                             onClick={() => setShowEditTechnical(true)}
-                            className="px-2.5 py-1 rounded-[56px] bg-graphite-fill/60 hover:bg-graphite-fill text-xs text-pure-white inline-flex items-center gap-1.5 transition-colors"
+                            className="px-2.5 py-1 rounded-[56px] bg-sheet-white border border-graphite-fill hover:bg-cream-paper text-xs text-pure-white inline-flex items-center gap-1.5 transition-colors"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                             Editar
@@ -417,7 +417,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
 
                   {/* Formulario de Edición Técnica Inline (RN-22) */}
                   {showEditTechnical && isAdminOrTecnico && (
-                    <div className="p-5 rounded-[20px] bg-[#161B22] border border-neon-pulse/40 space-y-4 animate-in fade-in duration-200">
+                    <div className="p-5 rounded-[20px] bg-sheet-white border border-neon-pulse/40 space-y-4 animate-in fade-in duration-200">
                       <div className="flex items-center justify-between border-b border-graphite-fill/60 pb-3">
                         <div className="flex items-center gap-2 text-pure-white font-medium text-sm">
                           <Edit3 className="w-4 h-4 text-neon-pulse" />
@@ -691,20 +691,25 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                                 {s.identificador}
                               </td>
                               <td className="py-2.5 px-3">
-                                <span className="px-2 py-0.5 rounded bg-graphite-fill/60 text-pure-white font-mono">
+                                <span className="px-2 py-0.5 rounded bg-sheet-white text-pure-white font-mono">
                                   {s.modelo}
                                 </span>
                               </td>
                               <td className="py-2.5 px-3">
                                 <div className="flex flex-wrap gap-1">
-                                  {s.variables_medidas.map((v) => (
-                                    <span
-                                      key={v}
-                                      className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
-                                    >
-                                      {v}
-                                    </span>
-                                  ))}
+                                  {s.variables_medidas.map((value) => {
+                                    const label = typeof value === 'string'
+                                      ? value
+                                      : `${value.variable} (${value.unidad})`;
+                                    return (
+                                      <span
+                                        key={label}
+                                        className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                      >
+                                        {label}
+                                      </span>
+                                    );
+                                  })}
                                 </div>
                               </td>
                               <td className="py-2.5 px-3">
@@ -759,7 +764,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
 
                   {/* Formulario para Registrar Intervención Técnica (RN-22) */}
                   {showAddMaintenance && isAdminOrTecnico && (
-                    <div className="p-5 rounded-[20px] bg-[#161B22] border border-signal-yellow/40 space-y-4 animate-in fade-in duration-200">
+                    <div className="p-5 rounded-[20px] bg-sheet-white border border-signal-yellow/40 space-y-4 animate-in fade-in duration-200">
                       <div className="flex items-center justify-between border-b border-graphite-fill/60 pb-3">
                         <div className="flex items-center gap-2 text-pure-white font-medium text-sm">
                           <Wrench className="w-4 h-4 text-signal-yellow" />
@@ -943,7 +948,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
                                 {formatLastContact(m.fecha_intervencion || m.fecha_realizacion)}
                               </td>
                               <td className="py-2.5 px-3">
-                                <span className="px-2 py-0.5 rounded bg-graphite-fill/60 text-pure-white font-medium">
+                                <span className="px-2 py-0.5 rounded bg-sheet-white text-pure-white font-medium">
                                   {m.tipo_mantenimiento}
                                 </span>
                               </td>
@@ -984,7 +989,7 @@ export const DeviceFichaTecnicaModal: React.FC<DeviceFichaTecnicaModalProps> = (
               </span>
               <button
                 onClick={onClose}
-                className="px-4 py-1.5 rounded-[56px] bg-graphite-fill/60 hover:bg-graphite-fill text-pure-white font-medium transition-colors"
+                className="px-4 py-1.5 rounded-[56px] bg-canopy hover:bg-brand-forest text-white font-medium transition-colors"
               >
                 Cerrar
               </button>

@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   Mail,
   Send,
-  ChevronRight,
   LineChart,
   Radio,
   Menu,
@@ -60,47 +59,47 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
     }, 4000);
   }, []);
 
-  // 6 Feature Metric Tiles (Acerca del Sistema — 16px padding, #F2F8F4 fill, 28px radius)
+  // Tarjetas de telemetría de la sección Acerca del Sistema
   const aboutCapabilities = [
     {
-      icon: <Thermometer className="w-5 h-5 text-[#15803D]" />,
+      icon: <Thermometer className="w-5 h-5" />,
       metric: '±0.2 °C',
-      metricColor: 'text-[#15803D]',
+      metricColor: 'text-brand-forest', surface: 'bg-cream-paper border-sage-mist/55',
       title: 'Registro de Temperatura y Humedad',
       desc: 'Captura periódica y continua de variables higrotérmicas en recintos críticos con sondas calibradas.',
     },
     {
-      icon: <Cpu className="w-5 h-5 text-[#0D3B1E]" />,
+      icon: <Cpu className="w-5 h-5" />,
       metric: 'ESP32',
-      metricColor: 'text-[#0D3B1E]',
+      metricColor: 'text-brand-plum', surface: 'bg-brand-lavender border-brand-lavender-border',
       title: 'Supervisión de Dispositivos IoT',
       desc: 'Seguimiento en tiempo real de nodos microcontroladores con control de estado y telemetría.',
     },
     {
-      icon: <LineChart className="w-5 h-5 text-[#15803D]" />,
+      icon: <LineChart className="w-5 h-5" />,
       metric: '100%',
-      metricColor: 'text-[#15803D]',
+      metricColor: 'text-brand-forest', surface: 'bg-cream-paper border-sage-mist/55',
       title: 'Consultas e Historiales en Vivo',
       desc: 'Base de datos temporal TimescaleDB con trazabilidad integral de millones de puntos telemétricos.',
     },
     {
-      icon: <Activity className="w-5 h-5 text-[#0D3B1E]" />,
+      icon: <Activity className="w-5 h-5" />,
       metric: '1 Hz',
-      metricColor: 'text-[#0D3B1E]',
+      metricColor: 'text-brand-plum', surface: 'bg-brand-lavender border-brand-lavender-border',
       title: 'Gráficas Ambientales Dinámicas',
       desc: 'Series de tiempo interactivas en SVG con bandas de tolerancia, líneas de umbral y zoom temporal.',
     },
     {
-      icon: <AlertTriangle className="w-5 h-5 text-[#DC2626]" />,
+      icon: <AlertTriangle className="w-5 h-5" />,
       metric: '5 min',
-      metricColor: 'text-[#DC2626]',
-      title: 'Alertas Preventivas con Debouncing',
+      metricColor: 'text-brand-gold', surface: 'bg-brand-yellow/70 border-brand-yellow-border',
+      title: 'Alertas sin avisos repetidos',
       desc: 'Disparo inmediato ante superación de límites, consolidando eventos críticos sin saturación.',
     },
     {
-      icon: <BrainCircuit className="w-5 h-5 text-[#15803D]" />,
+      icon: <BrainCircuit className="w-5 h-5" />,
       metric: '<200 ms',
-      metricColor: 'text-[#15803D]',
+      metricColor: 'text-brand-forest', surface: 'bg-cream-paper border-sage-mist/55',
       title: 'Detección Inteligente con IA',
       desc: 'Algoritmos Isolation Forest y Z-Score dinámico que discriminan picos de anomalías reales.',
     },
@@ -155,8 +154,8 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       tag: 'Seguridad Operativa',
       icon: <AlertTriangle className="w-5 h-5 text-[#DC2626]" />,
       title: 'Gestor de Alertas',
-      desc: 'Seguimiento de condiciones fuera de parámetro con debouncing de 5 minutos. Catálogo normalizado de causas, alarma sonora en cabina y registro de operadores.',
-      highlight: 'Debouncing 5 min & Beeper',
+      desc: 'Recibe avisos cuando una lectura sale del rango y consulta quién atendió cada alerta. El sistema evita repetir el mismo aviso en un periodo de cinco minutos.',
+      highlight: 'Aviso sonoro y control de repetición',
       metricValue: '3.0σ',
       metricTone: 'text-[#DC2626]',
       imageBase: 'module-climate-chamber',
@@ -220,42 +219,42 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       step: '01',
       title: 'Sensores Ambientales',
       desc: 'Sondas DHT22/BME280 miden temperatura y humedad relativa en el espacio físico.',
-      icon: <Thermometer className="w-4 h-4 text-[#15803D]" />,
+      icon: <Thermometer className="w-4 h-4" />,
     },
     {
       step: '02',
       title: 'Nodo ESP32',
       desc: 'El microcontrolador digitaliza señales y empaqueta la telemetría en JSON ligero.',
-      icon: <Cpu className="w-4 h-4 text-[#0D3B1E]" />,
+      icon: <Cpu className="w-4 h-4" />,
     },
     {
       step: '03',
       title: 'Broker Mosquitto',
       desc: 'Transmisión cifrada MQTTS TLS 1.3 sobre puerto 8883 con garantía QoS 1.',
-      icon: <Server className="w-4 h-4 text-[#0D3B1E]" />,
+      icon: <Server className="w-4 h-4" />,
     },
     {
       step: '04',
       title: 'Node-RED Engine',
       desc: 'Valida la integridad del paquete JSON; si está corrupto lo aísla en la cola DLQ.',
-      icon: <Layers className="w-4 h-4 text-[#0D3B1E]" />,
+      icon: <Layers className="w-4 h-4" />,
     },
     {
       step: '05',
       title: 'Motor Python e IA',
       desc: 'FastAPI almacena en TimescaleDB y ejecuta Isolation Forest en <200ms.',
-      icon: <BrainCircuit className="w-4 h-4 text-[#15803D]" />,
+      icon: <BrainCircuit className="w-4 h-4" />,
     },
     {
       step: '06',
       title: 'Dashboard en Vivo',
       desc: 'La interfaz actualiza gráficas, indicadores y alertas críticas al instante.',
-      icon: <Activity className="w-4 h-4 text-[#DC2626]" />,
+      icon: <Activity className="w-4 h-4" />,
     },
   ];
 
   return (
-    <div className="relative min-h-screen bg-[#F2F8F4] text-[#0D3B1E] selection:bg-[#1B5E20] selection:text-[#ffffff] overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#F2F8F4] text-[#0D3B1E] selection:bg-brand-plum selection:text-[#ffffff] overflow-x-hidden">
       {/* Fondo 3D Interactivo con Three.js (figuras dispersas, partículas y seguimiento de cursor) */}
       <EnvironmentalThreeBackground />
 
@@ -275,7 +274,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </a>
 
           {/* Enlaces de Navegación Centrales */}
-          <nav className="hidden lg:flex items-center gap-1 bg-[#F2F8F4] p-1.5 rounded-full border border-[#C8E6C9]/80">
+          <nav className="hidden lg:flex items-center gap-1 bg-brand-lavender p-1.5 rounded-full border border-brand-lavender-border">
             {[
               { href: '#inicio', label: 'Inicio' },
               { href: '#acerca', label: 'Nosotros' },
@@ -294,41 +293,24 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             ))}
           </nav>
 
-          {/* Acciones Comerciales Derecha */}
-          <div className="hidden sm:flex items-center gap-3 shrink-0">
+          {/* Acceso y navegación adaptable */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <div className="hidden xl:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E8F5E9] border border-[#A5D6A7] text-[12px] font-semibold text-[#1B5E20]">
               <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
               <span>Red IoT Activa</span>
             </div>
 
-            <a
-              href="#contacto"
-              className="px-4 py-2 rounded-full text-[13px] font-semibold text-[#1B5E20] hover:bg-[#E8F5E9] transition-colors"
-            >
-              Solicitar Demo
-            </a>
-
             <button
               onClick={() => onEnterSystem('dashboard')}
-              className="px-5 py-2.5 text-[13px] font-semibold flex items-center gap-2 cursor-pointer rounded-full bg-[#0d1310] text-white hover:bg-[#1a231d] border border-[#1f2922] shadow-sm transition-all"
+              className="px-3.5 py-2 sm:px-5 sm:py-2.5 whitespace-nowrap text-[13px] font-semibold flex items-center gap-2 cursor-pointer rounded-full bg-brand-forest text-white hover:bg-canopy border border-[#1f2922] shadow-sm transition-all"
             >
               <span>Ingresar al Sistema</span>
-              <ArrowRight className="w-4 h-4 text-[#4ade80]" />
-            </button>
-          </div>
-
-          {/* Botón Menú Móvil */}
-          <div className="flex sm:hidden items-center gap-2">
-            <button
-              onClick={() => onEnterSystem('dashboard')}
-              className="apple-blue-pill px-3.5 py-2 text-[12px] font-semibold"
-            >
-              Ingresar
+              <ArrowRight className="hidden sm:block w-4 h-4 text-[#4ade80]" aria-hidden="true" />
             </button>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Abrir menú de navegación"
-              className="p-2 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9] text-[#0D3B1E]"
+              className="lg:hidden p-2 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9] text-[#0D3B1E]"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -393,11 +375,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 {/* Left Column: Monumental Launch Statement */}
                 <ScrollReveal animation="slide-up" className="lg:col-span-7 space-y-6">
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="px-3.5 py-1.5 rounded-full bg-[#0d1310] text-[#86efac] border border-[#166534] text-[12px] font-semibold tracking-wide shadow-xs inline-flex items-center gap-2">
+                    <span className="px-3.5 py-1.5 rounded-full bg-brand-yellow text-brand-gold border border-brand-yellow-border text-[12px] font-semibold tracking-wide shadow-xs inline-flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
                       TELEMETRÍA AMBIENTAL EN TIEMPO REAL
                     </span>
-                    <span className="apple-nav-text text-[#0d1310] uppercase tracking-wider font-bold">
+                    <span className="apple-nav-text text-brand-plum uppercase tracking-wider font-bold">
                       PRECISIÓN INDUSTRIAL · IA PREDICTIVA
                     </span>
                   </div>
@@ -407,21 +389,14 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                   </h1>
 
                   <p className="text-[17px] leading-relaxed text-[#1e293b] max-w-xl font-medium">
-                    Plataforma integral de supervisión ambiental para invernaderos, laboratorios, cámaras de conservación y espacios críticos. Controla temperatura y humedad en vivo con alertas preventivas e Inteligencia Artificial.
+                    Consulta en tiempo real la temperatura y la humedad de invernaderos, laboratorios y cámaras de frío. SIMOA te avisa cuando detecta una lectura fuera de lo esperado.
                   </p>
 
-                  {/* Primary & Secondary Commercial CTAs */}
+                  {/* Enlace a las soluciones */}
                   <div className="flex flex-wrap items-center gap-3.5 pt-2">
-                    <button
-                      onClick={() => onEnterSystem('dashboard')}
-                      className="px-7 py-3.5 text-[14px] font-semibold leading-[18px] flex items-center gap-2 cursor-pointer rounded-full bg-[#0d1310] text-white hover:bg-[#1a231d] shadow-[0_4px_16px_rgba(13,19,16,0.3)] border border-[#1f2922] transition-all"
-                    >
-                      <span>Acceder al Panel en Vivo</span>
-                      <ArrowRight className="w-4 h-4 text-[#4ade80]" />
-                    </button>
                     <a
                       href="#funcionalidades"
-                      className="py-3.5 px-6 text-[14px] font-bold text-[#0d1310] bg-[#FFFFFF] border-2 border-[#0d1310]/20 hover:border-[#0d1310] hover:bg-[#f0fdf4] rounded-full transition-all shadow-xs"
+                      className="py-3.5 px-6 text-[14px] font-bold text-brand-plum bg-brand-lavender border-2 border-brand-lavender-border hover:border-brand-plum hover:bg-white rounded-full transition-all shadow-xs"
                     >
                       Conocer Soluciones
                     </a>
@@ -482,27 +457,21 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
               {/* Floating High-Contrast Dark Utility Capsule */}
               <ScrollReveal animation="fade-in" delay={180}>
-                <div className="p-3 pl-6 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto rounded-[36px] bg-[#0d1310] text-white border border-[#1f2922] shadow-[0_8px_30px_rgba(13,19,16,0.25)]">
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-8 text-[14px] font-medium leading-[18px] tracking-[-0.224px] text-white">
+                <div className="px-6 py-4 flex justify-center max-w-4xl mx-auto rounded-[36px] bg-[#0d1310] text-white border border-[#1f2922] shadow-[0_8px_30px_rgba(13,19,16,0.25)]">
+                  <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-[14px] font-medium leading-[18px] tracking-[-0.224px] text-white">
                     <span className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
-                      Ingesta 100% sin pérdida
+                      Lecturas de sensores en tiempo real
                     </span>
                     <span className="text-[#3b493f] hidden sm:inline">|</span>
                     <span>
-                      Inferencia IA <span className="text-[#4ade80] font-semibold">&lt; 200 ms</span>
+                      Detección de anomalías con IA
                     </span>
                     <span className="text-[#3b493f] hidden sm:inline">|</span>
                     <span>
-                      Debouncing de alertas <span className="text-[#f87171] font-semibold">5 min</span>
+                      Control de alertas repetidas
                     </span>
                   </div>
-                  <button
-                    onClick={() => onEnterSystem()}
-                    className="apple-blue-pill px-5 py-2.5 text-[12px] font-semibold leading-[16px] tracking-[-0.12px] shrink-0 w-full sm:w-auto text-center cursor-pointer"
-                  >
-                    Ingresar al Dashboard
-                  </button>
                 </div>
               </ScrollReveal>
             </div>
@@ -534,7 +503,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/70 via-transparent to-transparent" />
-                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-[#0d1310] text-[#86efac] border border-[#166534] text-[12px] font-semibold tracking-wide shadow-sm">
+                    <span className="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-brand-yellow text-brand-gold border border-brand-yellow-border text-[12px] font-semibold tracking-wide shadow-sm">
                       CADENA DE FRÍO · 24/7
                     </span>
                   </div>
@@ -576,7 +545,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       </span>
                     </div>
                     <p className="text-[14px] text-[#1e293b] leading-relaxed">
-                      Cuando una variable supera los rangos establecidos, el motor dispara alertas con debouncing y diagnóstico IA transmitido token a token.
+                      Cuando una lectura sale del rango configurado, SIMOA envía una alerta y usa IA para ayudar a explicar lo ocurrido.
                     </p>
                   </div>
                 </div>
@@ -592,32 +561,32 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#0d1310] text-white border border-[#1f2922] shadow-md hover:border-[#22c55e]/50 hover:shadow-xl rounded-[28px] p-6 h-full flex flex-col justify-between space-y-4 transition-all">
+                    <div className={`rounded-[28px] p-6 h-full flex flex-col justify-between space-y-4 border shadow-sm ${item.surface}`}>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] text-[#86efac] font-bold uppercase tracking-wider bg-[#14231a] border border-[#166534] px-2.5 py-1 rounded-full">
+                          <span className={`text-[11px] font-bold uppercase tracking-wider bg-white/75 border border-current/25 px-2.5 py-1 rounded-full ${item.metricColor}`}>
                             Telemetría SIMOA
                           </span>
-                          <div className="w-9 h-9 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shadow-xs">
+                          <div className={`w-9 h-9 rounded-xl bg-white/75 border border-current/25 flex items-center justify-center shrink-0 ${item.metricColor}`}>
                             {item.icon}
                           </div>
                         </div>
                         <div
                           className={`text-[32px] font-bold ${
-                            item.metricColor === 'text-[#DC2626]' ? 'text-[#f87171]' : 'text-[#4ade80]'
+                            item.metricColor
                           } py-1 tabular-nums font-display`}
                         >
                           {item.metric}
                         </div>
-                        <h3 className="text-[18px] font-bold leading-snug text-white">
+                        <h3 className="text-[18px] font-bold leading-snug text-bark">
                           {item.title}
                         </h3>
-                        <p className="text-[14px] leading-relaxed text-[#cbd5e1]">
+                        <p className="text-[14px] leading-relaxed text-slate">
                           {item.desc}
                         </p>
                       </div>
-                      <div className="pt-3 border-t border-[#1e2e25] flex items-center gap-2 text-[12px] font-semibold text-[#86efac]">
-                        <CheckCircle2 className="w-4 h-4 text-[#4ade80]" />
+                      <div className="pt-3 border-t border-sage-mist/35 flex items-center gap-2 text-[12px] font-semibold text-brand-forest">
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
                         <span>Módulo activo en tiempo real</span>
                       </div>
                     </div>
@@ -702,13 +671,6 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                         </div>
 
                         <div className="pt-3 border-t border-[#0d1310]/12 flex items-center justify-between">
-                          <button
-                            onClick={() => onEnterSystem()}
-                            className="text-[14px] font-bold text-[#0d1310] hover:text-[#15803D] flex items-center gap-1.5 cursor-pointer transition-colors"
-                          >
-                            <span>Explorar solución</span>
-                            <ChevronRight className="w-4 h-4 text-[#15803D]" />
-                          </button>
                           <span className="text-[12px] font-bold text-[#15803D] bg-[#e8f5e9] border border-[#86efac]/70 px-2.5 py-0.5 rounded-full">
                             ● En tiempo real
                           </span>
@@ -721,18 +683,18 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             </div>
           </section>
 
-          {/* 6. SECCIÓN DE TECNOLOGÍAS - CONTENEDOR LIMPIO CON TARJETAS OSCURAS DE ALTO CONTRASTE */}
+          {/* 6. SECCIÓN DE TECNOLOGÍAS */}
           <section id="tecnologias" className="px-4 sm:px-6">
             <div className="max-w-7xl mx-auto bg-[#FFFFFF] border border-[#0d1310]/15 shadow-sm rounded-[28px] p-6 sm:p-12 lg:p-16 space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-4">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
-                  Stack & Protocolos
+                <span className="text-[13px] font-bold uppercase tracking-wider text-brand-forest bg-cream-paper border border-sage-mist/45 px-3.5 py-1 rounded-full inline-block">
+                  Tecnologías y comunicación
                 </span>
                 <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
                   Ingeniería abierta de grado industrial.
                 </h2>
                 <p className="text-[16px] text-[#1e293b] leading-relaxed max-w-3xl">
-                  Estándares abiertos de baja latencia con compresión Brotli/Gzip, caché Redis, pool de conexiones co-localizado y trazabilidad OpenTelemetry.
+                  Estas tecnologías permiten recibir, procesar y guardar las lecturas de los sensores antes de mostrarlas en el panel.
                 </p>
               </ScrollReveal>
 
@@ -745,20 +707,20 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-56" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#0d1310] text-white border border-[#1f2922] shadow-md hover:border-[#22c55e]/50 hover:shadow-xl rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 transition-all">
+                    <div className="bg-brand-lavender text-bark border border-brand-lavender-border shadow-sm rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 transition-all">
                       <div className="space-y-2">
-                        <span className="text-[12px] font-bold text-[#4ade80] uppercase tracking-wider">
+                        <span className="text-[12px] font-bold text-brand-plum uppercase tracking-wider">
                           {tech.category}
                         </span>
-                        <h3 className="text-[20px] font-bold text-white">
+                        <h3 className="text-[20px] font-bold text-bark">
                           {tech.name}
                         </h3>
-                        <p className="text-[14px] leading-relaxed text-[#cbd5e1]">
+                        <p className="text-[14px] leading-relaxed text-slate">
                           {tech.desc}
                         </p>
                       </div>
-                      <div className="pt-3 border-t border-[#1e2e25]">
-                        <span className="text-[12px] font-mono font-semibold text-[#86efac] bg-[#14231a] border border-[#166534] px-3 py-1 rounded-full inline-block">
+                      <div className="pt-3 border-t border-brand-lavender-border">
+                        <span className="text-[12px] font-mono font-semibold text-brand-gold bg-brand-yellow border border-brand-yellow-border px-3 py-1 rounded-full inline-block">
                           {tech.badge}
                         </span>
                       </div>
@@ -773,18 +735,18 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           <section id="funcionamiento" className="py-12 px-4 sm:px-6 bg-transparent">
             <div className="max-w-7xl mx-auto space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
-                <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
-                  Flujo de información secuencial
+                <span className="text-[13px] font-bold uppercase tracking-wider text-brand-plum bg-brand-lavender border border-brand-lavender-border px-3.5 py-1 rounded-full inline-block">
+                  Cómo viajan los datos
                 </span>
                 <h2 className="text-[28px] sm:text-[36px] font-bold text-[#0d1310] tracking-tight leading-tight">
-                  Del sensor al dashboard en milisegundos.
+                  Del sensor al panel de monitoreo.
                 </h2>
                 <p className="text-[16px] text-[#1e293b] leading-relaxed">
-                  Trazabilidad completa desde la captura física en el nodo ESP32 hasta la evaluación por Inteligencia Artificial y la alerta en pantalla.
+                  Sigue el recorrido de una lectura desde el sensor hasta el panel y mira en qué momento se genera una alerta.
                 </p>
               </ScrollReveal>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-[16px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 min-[1200px]:grid-cols-6 gap-[16px]">
                 {pipelineSteps.map((step, idx) => (
                   <ScrollReveal
                     key={idx}
@@ -793,24 +755,24 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-[#0d1310] text-white border border-[#1f2922] shadow-sm hover:border-[#22c55e]/50 hover:shadow-md rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
+                    <div className="bg-cream-paper text-bark border border-sage-mist/55 shadow-sm rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono font-bold text-[#86efac] bg-[#14231a] border border-[#166534] px-2.5 py-0.5 rounded-full">
+                          <span className="text-[11px] font-mono font-bold text-brand-gold bg-brand-yellow border border-brand-yellow-border px-2.5 py-0.5 rounded-full">
                             PASO {step.step}
                           </span>
-                          <div className="w-8 h-8 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shadow-xs">
+                          <div className="w-8 h-8 rounded-xl bg-brand-lavender border border-brand-lavender-border flex items-center justify-center text-brand-plum shrink-0">
                             {step.icon}
                           </div>
                         </div>
-                        <h4 className="text-[16px] font-bold text-white">
+                        <h4 className="text-[16px] font-bold text-bark">
                           {step.title}
                         </h4>
-                        <p className="text-[13px] leading-relaxed text-[#94a3b8]">
+                        <p className="text-[13px] leading-relaxed text-slate">
                           {step.desc}
                         </p>
                       </div>
-                      <div className="text-[12px] text-[#4ade80] font-bold pt-1 flex items-center gap-1">
+                      <div className="text-[12px] text-brand-forest font-bold pt-1 flex items-center gap-1">
                         <span>Etapa verificada</span>
                         <span>→</span>
                       </div>
@@ -822,7 +784,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
           </section>
 
           {/* 8. SECCIÓN DE CONTACTO Y DESPLIEGUE COMERCIAL */}
-          <section id="contacto" className="bg-[#E7F3EB]/80 backdrop-blur-[2px] border-t border-[#0d1310]/15 text-[#0D3B1E] py-20 px-4 sm:px-6">
+          <section id="contacto" className="bg-brand-lavender/90 backdrop-blur-[2px] border-t border-brand-lavender-border text-[#0D3B1E] py-20 px-4 sm:px-6">
             <div className="max-w-7xl mx-auto space-y-10">
               <ScrollReveal animation="slide-up" className="max-w-3xl space-y-3">
                 <span className="text-[13px] font-bold uppercase tracking-wider text-[#15803D] bg-[#e8f5e9] border border-[#86efac] px-3.5 py-1 rounded-full inline-block">
@@ -841,17 +803,17 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                   {/* Columna de Información Comercial */}
                   <div className="lg:col-span-5 space-y-6">
                     <div className="space-y-3">
-                      <div className="inline-block px-3 py-1.5 rounded-xl bg-[#0d1310] border border-[#1f2922]">
+                      <div className="inline-block px-3 py-1.5 rounded-xl bg-[#e4f0e7] border border-[#a9c4b2]">
                         <img
                           src="/assets/images/simoa-logo.webp"
                           alt="SIMOA - Sistema Inteligente de Monitoreo Ambiental"
                           className="h-10 w-auto object-contain"
                         />
                       </div>
-                      <span className="px-3 py-1 rounded-full bg-[#0d1310] text-[#86efac] border border-[#166534] text-[12px] font-semibold tracking-wide shadow-xs block w-fit">
+                      <span className="px-3 py-1 rounded-full bg-brand-lavender text-brand-plum border border-brand-lavender-border text-[12px] font-semibold tracking-wide shadow-xs block w-fit">
                         SOLUCIONES A MEDIDA
                       </span>
-                      <h3 className="text-[22px] font-bold text-[#0d1310] pt-1">
+                      <h3 className="text-[22px] font-bold text-brand-forest pt-1">
                         Ecosistema de Monitoreo Ambiental
                       </h3>
                       <p className="text-[14px] leading-relaxed text-[#1e293b]">
@@ -860,43 +822,43 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     </div>
 
                     <div className="space-y-3">
-                      <div className="p-4 rounded-[20px] bg-[#0d1310] text-white border border-[#1f2922] shadow-sm flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                      <div className="p-4 rounded-[20px] bg-brand-forest text-white border border-brand-forest flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/25 flex items-center justify-center text-[#d6ecdd] shrink-0">
                           <ShieldCheck className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#86efac] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#d6ecdd] block">
                             Variables Supervisadas
                           </span>
-                          <span className="text-[14px] font-bold text-white block">
+                          <span className="text-[14px] font-semibold text-white block">
                             Temperatura (°C), Humedad Relativa (%RH) y Punto de Rocío
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-[20px] bg-[#0d1310] text-white border border-[#1f2922] shadow-sm flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                      <div className="p-4 rounded-[20px] bg-brand-lavender text-brand-plum border border-brand-lavender-border flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-white/70 border border-brand-lavender-border flex items-center justify-center text-brand-plum shrink-0">
                           <MapPin className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#86efac] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-plum block">
                             Sectores de Aplicación
                           </span>
-                          <span className="text-[14px] font-bold text-white block">
+                          <span className="text-[14px] font-semibold text-bark block">
                             Agroindustria, Invernaderos, Laboratorios y Cadena de Frío
                           </span>
                         </div>
                       </div>
 
-                      <div className="p-4 rounded-[20px] bg-[#0d1310] text-white border border-[#1f2922] shadow-sm flex items-start gap-3.5">
-                        <div className="w-9 h-9 rounded-xl bg-[#141d18] border border-[#1e2e25] flex items-center justify-center text-[#4ade80] shrink-0 shadow-xs">
+                      <div className="p-4 rounded-[20px] bg-brand-yellow/70 text-brand-gold border border-brand-yellow-border flex items-start gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-white/60 border border-brand-yellow-border flex items-center justify-center text-brand-gold shrink-0">
                           <Clock className="w-5 h-5" />
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#86efac] block">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-brand-gold block">
                             Disponibilidad y Soporte
                           </span>
-                          <span className="text-[14px] font-bold text-[#4ade80] block">
+                          <span className="text-[14px] font-semibold text-bark block">
                             Monitoreo continuo 24/7 con alertas instantáneas
                           </span>
                         </div>
@@ -983,19 +945,12 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                         <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
                           <button
                             type="submit"
-                            className="px-8 py-3.5 text-[14px] font-bold leading-tight flex items-center gap-2.5 cursor-pointer rounded-full bg-[#0d1310] text-white hover:bg-[#1a231d] shadow-[0_4px_16px_rgba(13,19,16,0.3)] border border-[#1f2922] transition-all"
+                            className="px-8 py-3.5 text-[14px] font-bold leading-tight flex items-center gap-2.5 cursor-pointer rounded-full bg-brand-forest text-white hover:bg-canopy shadow-[0_4px_16px_rgba(13,19,16,0.3)] border border-[#1f2922] transition-all"
                           >
                             <span>Enviar Solicitud</span>
                             <Send className="w-4 h-4 text-[#4ade80]" />
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => onEnterSystem('dashboard')}
-                            className="px-6 py-3 rounded-full text-[13px] font-bold text-[#0d1310] bg-[#FFFFFF] border-2 border-[#0d1310]/20 hover:border-[#0d1310] hover:bg-[#f0fdf4] transition-all cursor-pointer shadow-xs"
-                          >
-                            Acceder al Dashboard →
-                          </button>
                         </div>
                       </form>
                     )}
@@ -1010,7 +965,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
       {/* 9. FOOTER COMERCIAL DE ALTO CONTRASTE */}
       <footer className="relative z-10 py-12 bg-[#FFFFFF] border-t border-[#0d1310]/15 text-[12px] text-[#1e293b]">
         <div className="max-w-7xl mx-auto px-6 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-3">
               <div className="inline-block px-3 py-1.5 rounded-xl bg-[#0d1310] border border-[#1f2922]">
                 <img
@@ -1020,7 +975,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 />
               </div>
               <p className="text-[12px] text-[#1e293b] leading-relaxed">
-                Sistema Inteligente de Monitoreo Ambiental con telemetría IoT en tiempo real, trazabilidad histórica y detección temprana de anomalías con Inteligencia Artificial.
+                SIMOA muestra las lecturas de tus sensores, guarda su historial y te avisa cuando detecta cambios fuera de lo esperado.
               </p>
             </div>
 
@@ -1050,21 +1005,6 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               </ul>
             </div>
 
-            <div className="space-y-3">
-              <span className="font-bold text-[#0d1310] text-[13px] block uppercase tracking-wider">
-                Plataforma en Línea
-              </span>
-              <p className="text-[12px] text-[#1e293b]">
-                Accede en tiempo real al panel de control de tus sensores, alertas y reportes.
-              </p>
-              <button
-                onClick={() => onEnterSystem('dashboard')}
-                className="px-5 py-2.5 rounded-full text-[12px] font-bold bg-[#0d1310] text-white hover:bg-[#1a231d] border border-[#1f2922] shadow-sm inline-flex items-center gap-2 cursor-pointer transition-all"
-              >
-                <span>Ingresar al Sistema</span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#4ade80]" />
-              </button>
-            </div>
           </div>
 
           <div className="pt-6 border-t border-[#0d1310]/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-[#1e293b] font-medium">

@@ -74,11 +74,11 @@ export const HumidityKpiCard: React.FC<HumidityKpiCardProps> = React.memo(
 
     return (
       <div
-        className="bg-white rounded-[28px] p-5 border border-[#C8E6C9] shadow-[0_4px_20px_rgba(13,59,30,0.06)] space-y-4 flex flex-col justify-between font-sans"
+        className="bg-sheet-white rounded-[28px] p-5 border border-[#C8E6C9] shadow-[0_4px_20px_rgba(13,59,30,0.06)] space-y-4 flex flex-col justify-between font-sans"
         aria-label={`Humedad relativa actual en ${locationName}`}
       >
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0 basis-full">
             <span className="text-[13px] font-semibold text-[#1B5E20] flex items-center gap-1.5">
               <Droplets className="w-4 h-4 text-[#1B5E20] shrink-0" />
               <span>Humedad Relativa</span>
