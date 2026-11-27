@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Activity,
   Cpu,
@@ -13,8 +13,7 @@ import {
   Mail,
   Send,
   LineChart,
-  Menu,
-  X,
+  ArrowUp,
   ShieldCheck,
   MapPin,
   Clock,
@@ -37,7 +36,14 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
   skeletonMode = false,
   onToggleSkeletonMode = () => {},
 }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const updateBackToTop = () => setShowBackToTop(window.scrollY >= 320);
+    updateBackToTop();
+    window.addEventListener('scroll', updateBackToTop, { passive: true });
+    return () => window.removeEventListener('scroll', updateBackToTop);
+  }, []);
 
   // Contact form state
   const [contactName, setContactName] = useState('');
@@ -246,7 +252,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
   ];
 
   return (
-    <div className="relative min-h-screen bg-garden-paper text-garden-deep selection:bg-garden-leaf selection:text-garden-deep overflow-x-hidden">
+    <div id="inicio" tabIndex={-1} className="relative min-h-screen bg-garden-paper text-garden-deep selection:bg-garden-leaf selection:text-garden-deep overflow-x-clip">
       {/* BARRA DE NAVEGACIÓN PRINCIPAL UNIFICADA Y PROFESIONAL */}
       <header className="sticky top-0 z-50 border-b border-garden-border bg-garden-paper/95 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[76px] flex items-center justify-between gap-3 sm:gap-6">
@@ -262,69 +268,23 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             />
           </a>
 
-          {/* Enlaces de Navegación Centrales */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {[
-              { href: '#inicio', label: 'Inicio' },
-              { href: '#acerca', label: 'Nosotros' },
-              { href: '#funcionalidades', label: 'Soluciones' },
-              { href: '#tecnologias', label: 'Tecnología' },
-              { href: '#funcionamiento', label: 'Cómo Funciona' },
-              { href: '#contacto', label: 'Contacto' },
-            ].map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-garden-deep transition-colors hover:bg-garden-mint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest"
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-
-          {/* Acceso y navegación adaptable */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <nav aria-label="Navegación principal" className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <a
+              href="#contacto"
+              className="rounded-xl border border-garden-edge bg-garden-leaf px-2.5 py-2 text-xs font-bold text-garden-deep transition-colors hover:bg-garden-mint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest sm:px-5 sm:py-2.5 sm:text-sm"
+            >
+              Contacto
+            </a>
             <button
+              type="button"
               onClick={() => onEnterSystem('dashboard')}
-              className="px-3.5 py-2 sm:px-5 sm:py-2.5 whitespace-nowrap text-[13px] font-semibold flex items-center gap-2 cursor-pointer rounded-xl bg-brand-forest text-white hover:bg-canopy border border-brand-forest transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest"
+              className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl border border-brand-forest bg-brand-forest px-2.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-canopy focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest sm:px-5 sm:py-2.5 sm:text-sm"
             >
-              <span>Ingresar al Sistema</span>
-              <ArrowRight className="hidden sm:block w-4 h-4 text-[#4ade80]" aria-hidden="true" />
+              Ingresar al Sistema
+              <ArrowRight className="hidden size-4 text-garden-leaf sm:block" aria-hidden="true" />
             </button>
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="simoa-mobile-navigation"
-              className="lg:hidden p-2 rounded-xl bg-[#F2F8F4] border border-[#C8E6C9] text-[#0D3B1E]"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+          </nav>
         </div>
-
-        {/* Menú Desplegable Móvil */}
-        {mobileMenuOpen && (
-          <div id="simoa-mobile-navigation" className="lg:hidden space-y-2 border-t border-garden-border bg-garden-paper px-6 py-4">
-            {[
-              { href: '#inicio', label: 'Inicio' },
-              { href: '#acerca', label: 'Nosotros' },
-              { href: '#funcionalidades', label: 'Soluciones' },
-              { href: '#tecnologias', label: 'Tecnología' },
-              { href: '#funcionamiento', label: 'Cómo Funciona' },
-              { href: '#contacto', label: 'Contacto' },
-            ].map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-2.5 rounded-xl text-[14px] font-semibold text-[#0D3B1E] hover:bg-[#F2F8F4] hover:text-[#1B5E20]"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-        )}
       </header>
 
       {/* SKELETON MODE PREVIEW */}
@@ -354,8 +314,8 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
         </div>
       ) : (
         <main className="relative z-10 space-y-8 sm:space-y-14">
-          <section id="inicio" className="scroll-mt-24 px-3 pt-4 sm:px-6">
-            <div className="relative mx-auto flex min-h-[560px] max-w-[1720px] flex-col justify-end overflow-hidden rounded-[28px] bg-garden-deep text-white sm:min-h-[630px] sm:rounded-[36px] lg:min-h-[650px]">
+          <section aria-labelledby="simoa-hero-title">
+            <div className="relative flex min-h-[560px] flex-col justify-end overflow-hidden bg-garden-deep text-white sm:min-h-[630px] lg:min-h-[650px]">
               <img
                 src="/assets/images/simoa-greenhouse.webp"
                 alt="Sensor ambiental entre las plantas de un invernadero"
@@ -366,21 +326,14 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               />
               <div className="simoa-garden-hero-shade absolute inset-0" aria-hidden="true" />
 
-              <div className="relative mx-auto flex w-full max-w-7xl flex-col px-6 pt-20 sm:px-12 lg:px-16">
-                <div className="max-w-2xl pb-12 sm:pb-16 lg:pb-20">
-                  <h1 className="text-balance text-[clamp(2.65rem,6.1vw,5.2rem)] font-bold leading-[1.02] tracking-[-0.045em] text-white">
+              <div className="relative flex w-full flex-col px-5 pt-16 sm:px-10 lg:px-[6vw]">
+                <div className="max-w-[52rem] pb-12 sm:pb-16 lg:pb-20">
+                  <h1 id="simoa-hero-title" className="text-[clamp(2.65rem,6.1vw,5.2rem)] font-bold leading-[1.02] tracking-[-0.045em] text-white">
                     Monitoreo ambiental inteligente.
                   </h1>
                   <p className="mt-6 max-w-lg text-base leading-relaxed text-garden-mint sm:text-lg">
                     Consulta la temperatura y la humedad desde un solo panel y recibe avisos cuando una lectura salga del rango esperado.
                   </p>
-                  <a
-                    href="#funcionalidades"
-                    className="mt-7 inline-flex items-center gap-2 rounded-xl bg-garden-leaf px-5 py-3 text-sm font-bold text-garden-deep transition-colors hover:bg-garden-mint focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                  >
-                    Conocer las soluciones
-                    <ArrowRight className="size-4" aria-hidden="true" />
-                  </a>
                 </div>
 
                 <ul className="grid gap-4 border-t border-white/35 py-6 text-sm font-semibold text-garden-mint sm:grid-cols-3 sm:gap-6 sm:py-8">
@@ -869,6 +822,17 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
             </div>
           </section>
         </main>
+      )}
+
+      {showBackToTop && (
+        <a
+          href="#inicio"
+          aria-label="Volver arriba"
+          title="Volver arriba"
+          className="fixed right-4 bottom-4 z-50 grid size-12 place-items-center rounded-full border border-brand-forest bg-garden-leaf text-garden-deep shadow-lg transition-colors hover:bg-garden-mint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-forest sm:right-6 sm:bottom-6"
+        >
+          <ArrowUp className="size-5" aria-hidden="true" />
+        </a>
       )}
 
       {/* 9. FOOTER COMERCIAL DE ALTO CONTRASTE */}
