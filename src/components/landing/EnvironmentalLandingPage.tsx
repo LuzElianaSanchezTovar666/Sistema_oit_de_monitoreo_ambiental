@@ -310,10 +310,10 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
             <button
               onClick={() => onEnterSystem('dashboard')}
-              className="apple-blue-pill px-5 py-2.5 text-[13px] font-semibold flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 text-[13px] font-semibold flex items-center gap-2 cursor-pointer rounded-full bg-[#0d1310] text-white hover:bg-[#1a231d] border border-[#1f2922] shadow-sm transition-all"
             >
               <span>Ingresar al Sistema</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 text-[#4ade80]" />
             </button>
           </div>
 
@@ -393,8 +393,11 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 {/* Left Column: Monumental Launch Statement */}
                 <ScrollReveal animation="slide-up" className="lg:col-span-7 space-y-6">
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <span className="apple-badge-orange">TELEMETRÍA AMBIENTAL EN TIEMPO REAL</span>
-                    <span className="apple-nav-text text-[#3B694C] uppercase tracking-wider font-semibold">
+                    <span className="px-3.5 py-1.5 rounded-full bg-[#0d1310] text-[#86efac] border border-[#166534] text-[12px] font-semibold tracking-wide shadow-xs inline-flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#22c55e] animate-pulse" />
+                      TELEMETRÍA AMBIENTAL EN TIEMPO REAL
+                    </span>
+                    <span className="apple-nav-text text-[#0d1310] uppercase tracking-wider font-bold">
                       PRECISIÓN INDUSTRIAL · IA PREDICTIVA
                     </span>
                   </div>
@@ -411,10 +414,10 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                   <div className="flex flex-wrap items-center gap-3.5 pt-2">
                     <button
                       onClick={() => onEnterSystem('dashboard')}
-                      className="apple-blue-pill px-7 py-3.5 text-[14px] font-semibold leading-[18px] flex items-center gap-2 cursor-pointer"
+                      className="px-7 py-3.5 text-[14px] font-semibold leading-[18px] flex items-center gap-2 cursor-pointer rounded-full bg-[#0d1310] text-white hover:bg-[#1a231d] shadow-[0_4px_16px_rgba(13,19,16,0.3)] border border-[#1f2922] transition-all"
                     >
                       <span>Acceder al Panel en Vivo</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowRight className="w-4 h-4 text-[#4ade80]" />
                     </button>
                     <a
                       href="#funcionalidades"
@@ -427,7 +430,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
 
                 {/* Right Column: Isolated Hardware Showcase on Gallery Black using AVIF/WebP <picture> */}
                 <ScrollReveal animation="slide-right" delay={120} className="lg:col-span-5">
-                  <div className="relative rounded-[28px] overflow-hidden bg-[#F2F8F4]">
+                  <div className="relative rounded-[28px] overflow-hidden bg-[#F2F8F4] border border-[#C8E6C9] shadow-md">
                     <OptimizedImage
                       baseName="hero-iot-stage"
                       alt="Hardware IoT ESP32 y sensores ambientales en formato AVIF/WebP con lecturas luminosas sobre fondo negro"
@@ -436,62 +439,67 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                       height={800}
                       className="w-full h-80 sm:h-96 lg:h-[440px] object-cover opacity-90"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#F2F8F4] via-transparent to-[#F2F8F4]/40" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0d1310]/60 via-transparent to-transparent" />
 
-                    {/* Health/Sensor Readout Overlay 1 — Vital Green & Pulse Red reserved for metrics */}
-                    <div className="absolute top-4 left-4 p-4 rounded-[28px] bg-[#FFFFFF]/90 backdrop-blur-md space-y-1">
-                      <div className="flex items-center gap-2 text-[12px] text-[#3B694C] tracking-[-0.12px]">
-                        <Radio className="w-3.5 h-3.5 text-[#15803D] animate-pulse" />
+                    {/* Health/Sensor Readout Overlay 1 — High Contrast Dark Carbon Header */}
+                    <div className="absolute top-4 left-4 p-4 rounded-[24px] bg-[#0d1310]/92 backdrop-blur-md border border-[#1f2922] shadow-md space-y-1 text-white">
+                      <div className="flex items-center gap-2 text-[12px] text-[#86efac] tracking-[-0.12px]">
+                        <Radio className="w-3.5 h-3.5 text-[#22c55e] animate-pulse" />
                         <span>NODO INVERNADERO A1 · DHT22</span>
                       </div>
                       <div className="flex items-baseline gap-4 pt-1">
                         <div>
-                          <span className="text-[28px] font-semibold tracking-[0.196px] text-[#15803D] font-display tabular-nums">
+                          <span className="text-[28px] font-semibold tracking-[0.196px] text-[#4ade80] font-display tabular-nums">
                             23.8°
                           </span>
-                          <span className="text-[12px] text-[#3B694C] ml-1">TEMP</span>
+                          <span className="text-[12px] text-[#86efac] ml-1">TEMP</span>
                         </div>
                         <div>
-                          <span className="text-[28px] font-semibold tracking-[0.196px] text-[#0D3B1E] font-display tabular-nums">
+                          <span className="text-[28px] font-semibold tracking-[0.196px] text-white font-display tabular-nums">
                             68.4%
                           </span>
-                          <span className="text-[12px] text-[#3B694C] ml-1">HUM</span>
+                          <span className="text-[12px] text-[#86efac] ml-1">HUM</span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Health/Sensor Readout Overlay 2 */}
-                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-[28px] bg-[#FFFFFF]/95 backdrop-blur-md flex items-center justify-between">
+                    {/* Health/Sensor Readout Overlay 2 — High Contrast Dark Carbon Anomaly Banner */}
+                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-[24px] bg-[#0d1310]/95 backdrop-blur-md border border-[#1f2922] shadow-lg flex items-center justify-between text-white">
                       <div>
-                        <div className="text-[12px] text-[#3B694C]">ANOMALÍA IA · ISOLATION FOREST</div>
-                        <div className="text-[14px] font-semibold text-[#0D3B1E] mt-0.5">
-                          Score <span className="text-[#15803D]">0.082 Nominal</span> · Umbral Crítico{' '}
-                          <span className="text-[#DC2626]">3.0σ</span>
+                        <div className="text-[12px] text-[#86efac]">ANOMALÍA IA · ISOLATION FOREST</div>
+                        <div className="text-[14px] font-semibold text-white mt-0.5">
+                          Score <span className="text-[#4ade80]">0.082 Nominal</span> · Umbral Crítico{' '}
+                          <span className="text-[#f87171]">3.0σ</span>
                         </div>
                       </div>
-                      <span className="apple-badge-orange">PROTECCIÓN ACTIVA</span>
+                      <span className="px-3 py-1 rounded-full bg-[#166534] text-[#86efac] text-[11px] font-semibold border border-[#22c55e]/40">
+                        PROTECCIÓN ACTIVA
+                      </span>
                     </div>
                   </div>
                 </ScrollReveal>
               </div>
 
-              {/* Floating Dark Utility Capsule (#C8E6C9, 36px radius, 14px/600 copy + trailing Apple Blue 980px pill) */}
+              {/* Floating High-Contrast Dark Utility Capsule */}
               <ScrollReveal animation="fade-in" delay={180}>
-                <div className="apple-utility-capsule p-3 pl-6 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto">
-                  <div className="flex flex-wrap items-center gap-4 sm:gap-8 text-[14px] font-semibold leading-[18px] tracking-[-0.224px] text-[#0D3B1E]">
-                    <span>Ingesta 100% sin pérdida</span>
-                    <span className="text-[#3B694C] hidden sm:inline">|</span>
-                    <span>
-                      Inferencia IA <span className="text-[#15803D]">&lt; 200 ms</span>
+                <div className="p-3 pl-6 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-4xl mx-auto rounded-[36px] bg-[#0d1310] text-white border border-[#1f2922] shadow-[0_8px_30px_rgba(13,19,16,0.25)]">
+                  <div className="flex flex-wrap items-center gap-4 sm:gap-8 text-[14px] font-medium leading-[18px] tracking-[-0.224px] text-white">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
+                      Ingesta 100% sin pérdida
                     </span>
-                    <span className="text-[#3B694C] hidden sm:inline">|</span>
+                    <span className="text-[#3b493f] hidden sm:inline">|</span>
                     <span>
-                      Debouncing de alertas <span className="text-[#DC2626]">5 min</span>
+                      Inferencia IA <span className="text-[#4ade80] font-semibold">&lt; 200 ms</span>
+                    </span>
+                    <span className="text-[#3b493f] hidden sm:inline">|</span>
+                    <span>
+                      Debouncing de alertas <span className="text-[#f87171] font-semibold">5 min</span>
                     </span>
                   </div>
                   <button
                     onClick={() => onEnterSystem()}
-                    className="apple-blue-pill px-5 py-2.5 text-[12px] font-normal leading-[16px] tracking-[-0.12px] shrink-0 w-full sm:w-auto text-center"
+                    className="apple-blue-pill px-5 py-2.5 text-[12px] font-semibold leading-[16px] tracking-[-0.12px] shrink-0 w-full sm:w-auto text-center cursor-pointer"
                   >
                     Ingresar al Dashboard
                   </button>
