@@ -62,42 +62,36 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
     {
       icon: <Thermometer className="w-5 h-5" />,
       metric: '±0.2 °C',
-      metricColor: 'text-brand-forest', surface: 'bg-garden-sage border-garden-border',
       title: 'Registro de Temperatura y Humedad',
       desc: 'Captura periódica y continua de variables higrotérmicas en recintos críticos con sondas calibradas.',
     },
     {
       icon: <Cpu className="w-5 h-5" />,
       metric: 'ESP32',
-      metricColor: 'text-brand-forest', surface: 'bg-garden-mint border-garden-border',
       title: 'Supervisión de Dispositivos IoT',
       desc: 'Seguimiento en tiempo real de nodos microcontroladores con control de estado y telemetría.',
     },
     {
       icon: <LineChart className="w-5 h-5" />,
       metric: '100%',
-      metricColor: 'text-brand-forest', surface: 'bg-garden-sage border-garden-border',
       title: 'Consultas e Historiales en Vivo',
       desc: 'Base de datos temporal TimescaleDB con trazabilidad integral de millones de puntos telemétricos.',
     },
     {
       icon: <Activity className="w-5 h-5" />,
       metric: '1 Hz',
-      metricColor: 'text-brand-forest', surface: 'bg-garden-mint border-garden-border',
       title: 'Gráficas Ambientales Dinámicas',
       desc: 'Series de tiempo interactivas en SVG con bandas de tolerancia, líneas de umbral y zoom temporal.',
     },
     {
       icon: <AlertTriangle className="w-5 h-5" />,
       metric: '5 min',
-      metricColor: 'text-garden-deep', surface: 'bg-garden-sage border-garden-border',
       title: 'Alertas sin avisos repetidos',
       desc: 'Disparo inmediato ante superación de límites, consolidando eventos críticos sin saturación.',
     },
     {
       icon: <BrainCircuit className="w-5 h-5" />,
       metric: '<200 ms',
-      metricColor: 'text-brand-forest', surface: 'bg-garden-sage border-garden-border',
       title: 'Detección Inteligente con IA',
       desc: 'Algoritmos Isolation Forest y Z-Score dinámico que discriminan picos de anomalías reales.',
     },
@@ -469,7 +463,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
               </div>
 
               {/* Three-column Feature Metric Tiles */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-[20px] landing-card-grid">
                 {aboutCapabilities.map((item, idx) => (
                   <ScrollReveal
                     key={idx}
@@ -478,31 +472,29 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className={`rounded-[28px] p-6 h-full flex flex-col justify-between space-y-4 border shadow-sm ${item.surface}`}>
+                    <div className="landing-card rounded-[28px] p-6 h-full flex flex-col justify-between space-y-4 border shadow-sm">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className={`text-[11px] font-bold uppercase tracking-wider bg-white/75 border border-current/25 px-2.5 py-1 rounded-full ${item.metricColor}`}>
+                          <span className="landing-card-chip text-[11px] font-bold uppercase tracking-wider border px-2.5 py-1 rounded-full">
                             Telemetría SIMOA
                           </span>
-                          <div className={`w-9 h-9 rounded-xl bg-white/75 border border-current/25 flex items-center justify-center shrink-0 ${item.metricColor}`}>
+                          <div className="landing-card-chip w-9 h-9 rounded-xl border flex items-center justify-center shrink-0">
                             {item.icon}
                           </div>
                         </div>
                         <div
-                          className={`text-[32px] font-bold ${
-                            item.metricColor
-                          } py-1 tabular-nums font-display`}
+                          className="landing-card-accent py-1 font-display text-[32px] font-bold tabular-nums"
                         >
                           {item.metric}
                         </div>
-                        <h3 className="text-[18px] font-bold leading-snug text-bark">
+                        <h3 className="text-[18px] font-bold leading-snug">
                           {item.title}
                         </h3>
-                        <p className="text-[14px] leading-relaxed text-slate">
+                        <p className="text-[14px] leading-relaxed landing-card-description">
                           {item.desc}
                         </p>
                       </div>
-                      <div className="pt-3 border-t border-sage-mist/35 flex items-center gap-2 text-[12px] font-semibold text-brand-forest">
+                      <div className="landing-card-divider landing-card-accent pt-3 border-t flex items-center gap-2 text-[12px] font-semibold">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
                         <span>Módulo activo en tiempo real</span>
                       </div>
@@ -615,7 +607,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 </p>
               </ScrollReveal>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px] landing-card-grid">
                 {techStack.map((tech, idx) => (
                   <ScrollReveal
                     key={idx}
@@ -624,20 +616,20 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-56" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-garden-mint text-bark border border-garden-border shadow-sm rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 transition-all">
+                    <div className="landing-card border shadow-sm rounded-[24px] p-6 flex flex-col justify-between h-full space-y-4 transition-all">
                       <div className="space-y-2">
-                        <span className="text-[12px] font-bold text-brand-forest uppercase tracking-wider">
+                        <span className="landing-card-accent text-[12px] font-bold uppercase tracking-wider">
                           {tech.category}
                         </span>
-                        <h3 className="text-[20px] font-bold text-bark">
+                        <h3 className="text-[20px] font-bold">
                           {tech.name}
                         </h3>
-                        <p className="text-[14px] leading-relaxed text-slate">
+                        <p className="text-[14px] leading-relaxed landing-card-description">
                           {tech.desc}
                         </p>
                       </div>
-                      <div className="pt-3 border-t border-garden-border">
-                        <span className="text-[12px] font-mono font-semibold text-garden-deep bg-garden-sage border border-garden-border px-3 py-1 rounded-full inline-block">
+                      <div className="landing-card-divider pt-3 border-t">
+                        <span className="landing-card-chip text-[12px] font-mono font-semibold border px-3 py-1 rounded-full inline-block">
                           {tech.badge}
                         </span>
                       </div>
@@ -663,7 +655,7 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                 </p>
               </ScrollReveal>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 min-[1200px]:grid-cols-6 gap-[16px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 min-[1200px]:grid-cols-6 gap-[16px] landing-card-grid">
                 {pipelineSteps.map((step, idx) => (
                   <ScrollReveal
                     key={idx}
@@ -672,24 +664,24 @@ export const EnvironmentalLandingPage: React.FC<EnvironmentalLandingPageProps> =
                     lazy
                     skeleton={<SkeletonBox className="h-44" rounded="rounded-[28px]" />}
                   >
-                    <div className="bg-garden-sage text-bark border border-garden-border shadow-sm rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
+                    <div className="landing-card border shadow-sm rounded-[24px] p-5 space-y-3 h-full flex flex-col justify-between transition-all">
                       <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono font-bold text-garden-deep bg-garden-sage border border-garden-border px-2.5 py-0.5 rounded-full">
+                          <span className="landing-card-chip text-[11px] font-mono font-bold border px-2.5 py-0.5 rounded-full">
                             PASO {step.step}
                           </span>
-                          <div className="w-8 h-8 rounded-xl bg-garden-mint border border-garden-border flex items-center justify-center text-brand-forest shrink-0">
+                          <div className="landing-card-chip w-8 h-8 rounded-xl border flex items-center justify-center shrink-0">
                             {step.icon}
                           </div>
                         </div>
-                        <h4 className="text-[16px] font-bold text-bark">
+                        <h4 className="text-[16px] font-bold">
                           {step.title}
                         </h4>
-                        <p className="text-[13px] leading-relaxed text-slate">
+                        <p className="text-[13px] leading-relaxed landing-card-description">
                           {step.desc}
                         </p>
                       </div>
-                      <div className="text-[12px] text-brand-forest font-bold pt-1 flex items-center gap-1">
+                      <div className="landing-card-accent text-[12px] font-bold pt-1 flex items-center gap-1">
                         <span>Etapa verificada</span>
                         <span>→</span>
                       </div>

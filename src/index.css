@@ -437,6 +437,8 @@
   --color-garden-paper: #fafbf6;
   --color-garden-mint: #eaf4e7;
   --color-garden-sage: #d7e7d8;
+  --color-garden-fern: #afc9ae;
+  --color-garden-edge: #78987e;
   --color-garden-leaf: #a8d183;
   --color-garden-border: #b3c9b8;
   --color-garden-temperature: #447233;
@@ -588,5 +590,50 @@
 
   .simoa-garden-hero-shade {
     background: linear-gradient(0deg, rgb(10 38 25 / 98%) 0%, rgb(10 38 25 / 86%) 54%, rgb(10 38 25 / 30%) 100%);
+  }
+}
+
+@layer components {
+  .landing-card {
+    --card-surface: var(--color-garden-fern);
+    --card-ink: var(--color-garden-deep);
+    --card-description: var(--color-brand-forest);
+    --card-accent: var(--color-brand-forest);
+    --card-chip: var(--color-garden-mint);
+    background-color: var(--card-surface);
+    border-color: var(--color-garden-edge);
+    color: var(--card-ink);
+  }
+
+  #acerca .landing-card-grid > :is(:nth-child(3), :nth-child(5)) .landing-card {
+    --card-surface: var(--color-garden-sage);
+  }
+
+  #acerca .landing-card-grid > :is(:first-child, :last-child) .landing-card,
+  #tecnologias .landing-card-grid > :nth-child(odd) .landing-card,
+  #funcionamiento .landing-card-grid > :nth-child(3n) .landing-card {
+    --card-surface: var(--color-brand-forest);
+    --card-ink: var(--color-garden-paper);
+    --card-description: var(--color-garden-mint);
+    --card-accent: var(--color-garden-leaf);
+    --card-chip: var(--color-garden-deep);
+  }
+
+  .landing-card-description {
+    color: var(--card-description);
+  }
+
+  .landing-card-accent {
+    color: var(--card-accent);
+  }
+
+  .landing-card-divider {
+    border-color: var(--color-garden-edge);
+  }
+
+  .landing-card-chip {
+    background-color: var(--card-chip);
+    border-color: var(--color-garden-edge);
+    color: var(--card-accent);
   }
 }
